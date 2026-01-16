@@ -1,4 +1,4 @@
-// Auth page - EdgeCore Trading
+// Auth page - TradeTracker
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -47,7 +47,7 @@ export default function Auth() {
               <BarChart3 className="h-8 w-8 text-primary" />
             </div>
           </div>
-          <CardTitle className="text-2xl">EdgeCore Trading</CardTitle>
+          <CardTitle className="text-2xl">TradeTracker</CardTitle>
           <CardDescription>
             {isLogin ? "Inicia sesión en tu cuenta" : "Crea tu cuenta para comenzar"}
           </CardDescription>
