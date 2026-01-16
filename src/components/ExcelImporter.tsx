@@ -187,11 +187,13 @@ export function ExcelImporter({ onSuccess, accountId }: ExcelImporterProps) {
   const [errors, setErrors] = useState<string[]>([]);
   const [progress, setProgress] = useState(0);
   const [dateFormat, setDateFormat] = useState<DateFormat>("auto");
+  const [isDragging, setIsDragging] = useState(false);
 
   const [rawRows, setRawRows] = useState<CsvRow[]>([]);
   const [previewRows, setPreviewRows] = useState<PreviewRow[]>([]);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const dropZoneRef = useRef<HTMLDivElement>(null);
 
   const detectedAuto = useMemo<Exclude<DateFormat, "auto">>(() => {
     // If MES is present in most rows, DMY is more likely for Spanish sources.
@@ -232,14 +234,12 @@ export function ExcelImporter({ onSuccess, accountId }: ExcelImporterProps) {
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
+  const processFile = async (file: File) => {
     setLoading(true);
     setErrors([]);
     setRawRows([]);
     setPreviewRows([]);
+    setIsDragging(false);
 
     try {
       const text = await file.text();
@@ -348,6 +348,53 @@ export function ExcelImporter({ onSuccess, accountId }: ExcelImporterProps) {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    await processFile(file);
+  };
+
+  const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!loading && !importing) {
+      setIsDragging(true);
+    }
+  };
+
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    // Only set isDragging to false if we're leaving the drop zone entirely
+    if (dropZoneRef.current && !dropZoneRef.current.contains(e.relatedTarget as Node)) {
+      setIsDragging(false);
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDrop = async (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+
+    if (loading || importing) return;
+
+    const files = e.dataTransfer.files;
+    if (files.length === 0) return;
+
+    const file = files[0];
+    if (!file.name.toLowerCase().endsWith('.csv')) {
+      toast.error("Por favor, arrastra un archivo CSV");
+      return;
+    }
+
+    await processFile(file);
   };
 
   const handleImport = async () => {
@@ -490,12 +537,31 @@ export function ExcelImporter({ onSuccess, accountId }: ExcelImporterProps) {
         <div className="space-y-4 py-4">
           <Card>
             <CardContent className="pt-6">
-              <div className="flex items-center justify-center w-full">
-                <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer hover:bg-muted/50 transition-colors">
+              <div 
+                ref={dropZoneRef}
+                className="flex items-center justify-center w-full"
+                onDragEnter={handleDragEnter}
+                onDragLeave={handleDragLeave}
+                onDragOver={handleDragOver}
+                onDrop={handleDrop}
+              >
+                <label 
+                  className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer transition-colors ${
+                    isDragging 
+                      ? "border-primary bg-primary/10" 
+                      : "hover:bg-muted/50"
+                  }`}
+                >
                   <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                    <Upload className="h-8 w-8 text-muted-foreground mb-2" />
+                    <Upload className={`h-8 w-8 mb-2 ${isDragging ? "text-primary" : "text-muted-foreground"}`} />
                     <p className="mb-2 text-sm text-muted-foreground">
-                      <span className="font-semibold">Click para seleccionar</span> o arrastra un archivo
+                      {isDragging ? (
+                        <span className="font-semibold text-primary">Suelta el archivo aquí</span>
+                      ) : (
+                        <>
+                          <span className="font-semibold">Click para seleccionar</span> o arrastra un archivo
+                        </>
+                      )}
                     </p>
                     <p className="text-xs text-muted-foreground">.csv</p>
                   </div>
