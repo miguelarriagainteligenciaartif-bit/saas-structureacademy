@@ -1,33 +1,46 @@
+@import '@fontsource/ibm-plex-sans/400.css';
+@import '@fontsource/ibm-plex-sans/500.css';
+@import '@fontsource/ibm-plex-sans/600.css';
+@import '@fontsource/ibm-plex-sans/700.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
+/* Quantum Era Design System
+   Colors based on brand identity manual:
+   - Quantum Blue: #1E90FF (HSL: 210 100% 56%)
+   - Absolute Black: #000000 (HSL: 0 0% 0%)
+   - Graphite Gray: #1B1B1F (HSL: 240 8% 11%)
+   
+   Typography: IBM Plex Sans
 */
 
 @layer base {
   :root {
-    --background: 220 26% 14%;
+    /* Quantum Era Dark Theme - "Dark Tech" aesthetic */
+    --background: 0 0% 0%;
     --foreground: 210 40% 98%;
 
-    --card: 224 28% 18%;
+    --card: 240 8% 11%;
     --card-foreground: 210 40% 98%;
 
-    --popover: 224 28% 18%;
+    --popover: 240 8% 11%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 221 83% 53%;
-    --primary-foreground: 210 40% 98%;
+    /* Quantum Blue - Primary accent */
+    --primary: 210 100% 56%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 215 20% 25%;
+    --secondary: 240 6% 18%;
     --secondary-foreground: 210 40% 98%;
 
-    --muted: 215 20% 25%;
-    --muted-foreground: 217 10% 64%;
+    --muted: 240 6% 18%;
+    --muted-foreground: 210 10% 60%;
 
-    --accent: 142 76% 36%;
-    --accent-foreground: 210 40% 98%;
+    /* Quantum Blue as accent */
+    --accent: 210 100% 56%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 210 40% 98%;
@@ -36,19 +49,30 @@ All colors MUST be HSL.
     --success-foreground: 210 40% 98%;
 
     --warning: 45 93% 47%;
-    --warning-foreground: 220 26% 14%;
+    --warning-foreground: 0 0% 0%;
 
-    --border: 215 20% 25%;
-    --input: 215 20% 25%;
-    --ring: 221 83% 53%;
+    --border: 240 6% 20%;
+    --input: 240 6% 18%;
+    --ring: 210 100% 56%;
 
-    --radius: 0.75rem;
+    --radius: 0.5rem;
     
+    /* Chart colors */
     --chart-1: 142 76% 36%;
     --chart-2: 0 84% 60%;
-    --chart-3: 221 83% 53%;
+    --chart-3: 210 100% 56%;
     --chart-4: 45 93% 47%;
     --chart-5: 280 65% 60%;
+
+    /* Sidebar */
+    --sidebar-background: 240 8% 11%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-primary: 210 100% 56%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 6% 18%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 240 6% 20%;
+    --sidebar-ring: 210 100% 56%;
   }
 }
 
@@ -57,7 +81,17 @@ All colors MUST be HSL.
     @apply border-border;
   }
 
+  html {
+    font-family: 'IBM Plex Sans', system-ui, sans-serif;
+  }
+
   body {
     @apply bg-background text-foreground;
+    font-family: 'IBM Plex Sans', system-ui, sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'IBM Plex Sans', system-ui, sans-serif;
+    font-weight: 700;
   }
 }
