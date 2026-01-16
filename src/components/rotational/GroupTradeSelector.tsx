@@ -284,7 +284,7 @@ export const GroupTradeSelector = ({ onTradesSelected, disabled = false }: Group
                   type="date"
                   value={dateFrom}
                   onChange={(e) => setDateFrom(e.target.value)}
-                  className="h-8 text-sm"
+                  className="h-8 text-sm [&::-webkit-calendar-picker-indicator]:brightness-0 [&::-webkit-calendar-picker-indicator]:invert [&::-webkit-calendar-picker-indicator]:opacity-70 [&::-webkit-calendar-picker-indicator]:hover:opacity-100 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
                 />
               </div>
               <div className="space-y-1">
@@ -293,7 +293,7 @@ export const GroupTradeSelector = ({ onTradesSelected, disabled = false }: Group
                   type="date"
                   value={dateTo}
                   onChange={(e) => setDateTo(e.target.value)}
-                  className="h-8 text-sm"
+                  className="h-8 text-sm [&::-webkit-calendar-picker-indicator]:brightness-0 [&::-webkit-calendar-picker-indicator]:invert [&::-webkit-calendar-picker-indicator]:opacity-70 [&::-webkit-calendar-picker-indicator]:hover:opacity-100 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
                 />
               </div>
             </div>
