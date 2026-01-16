@@ -469,37 +469,11 @@ export const projectWithdrawals = (
   return projections;
 };
 
-// Helper para crear configuración inicial de ejemplo
+// Helper para crear configuración inicial vacía (ratio 1:2 fijo)
 export const createDefaultConfig = (): GroupRotationalConfig => {
   return {
-    groups: [
-      {
-        id: generateId(),
-        name: 'FTMO Grupo 1',
-        brokerType: 'cfd',
-        brokerName: 'FTMO',
-        riskPerTrade: 800, // $800 risk per trade in CFD
-        accounts: [
-          { id: generateId(), name: 'FTMO 100K #1', initialBalance: 100000, currentBalance: 100000, profitTarget: 10, withdrawals: [], tradesSinceLastWithdrawal: 0, tradesInCurrentMonth: 0 },
-          { id: generateId(), name: 'FTMO 100K #2', initialBalance: 100000, currentBalance: 100000, profitTarget: 10, withdrawals: [], tradesSinceLastWithdrawal: 0, tradesInCurrentMonth: 0 },
-        ],
-      },
-      {
-        id: generateId(),
-        name: 'Apex Grupo 1',
-        brokerType: 'futures',
-        brokerName: 'Apex',
-        riskPerTrade: 375, // $375 risk per trade in Futures
-        withdrawalThreshold: 54100, // When balance reaches this, withdraw
-        withdrawalAmount: 2000, // Amount to withdraw
-        accounts: [
-          { id: generateId(), name: 'Apex 50K #1', initialBalance: 50000, currentBalance: 50000, profitTarget: 10, withdrawals: [], tradesSinceLastWithdrawal: 0, tradesInCurrentMonth: 0 },
-          { id: generateId(), name: 'Apex 50K #2', initialBalance: 50000, currentBalance: 50000, profitTarget: 10, withdrawals: [], tradesSinceLastWithdrawal: 0, tradesInCurrentMonth: 0 },
-          { id: generateId(), name: 'Apex 50K #3', initialBalance: 50000, currentBalance: 50000, profitTarget: 10, withdrawals: [], tradesSinceLastWithdrawal: 0, tradesInCurrentMonth: 0 },
-        ],
-      },
-    ],
-    riskRewardRatio: 2,
+    groups: [],
+    riskRewardRatio: 2, // Fijo en 1:2 según la estrategia
     profitTargetPercent: 10,
   };
 };
