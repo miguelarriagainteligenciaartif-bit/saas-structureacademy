@@ -73,7 +73,7 @@ const FlipRotational = () => {
     setIsSimulationActive(true);
     setCurrentSimulationId(null);
     setCurrentSimulationName("");
-    setMainTab("simulation");
+    setMainTab("trades"); // Va a trades para que el usuario elija cómo cargar operaciones
   };
 
   // Process unified trade - same result applies to ALL groups (CFD + Futures)

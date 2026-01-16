@@ -139,59 +139,22 @@ export const GroupConfigForm = ({
   return (
     <Card className="bg-card border-border">
       <CardHeader className="pb-4">
-        <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <Settings className="h-5 w-5 text-primary" />
-            Configuración de Grupos
-          </CardTitle>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={loadDefaultConfig}
-            disabled={isSimulationActive}
-          >
-            Cargar Ejemplo
-          </Button>
-        </div>
+        <CardTitle className="flex items-center gap-2 text-lg">
+          <Settings className="h-5 w-5 text-primary" />
+          Configuración de Grupos
+        </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Parámetros globales */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-secondary/30 rounded-lg">
-          <div className="space-y-2">
-            <Label htmlFor="riskRewardRatio" className="flex items-center gap-2">
-              <TrendingUp className="h-4 w-4 text-primary" />
-              Ratio R:R (1:X)
-            </Label>
-            <Input
-              id="riskRewardRatio"
-              type="number"
-              min={0.5}
-              max={10}
-              step={0.5}
-              value={config.riskRewardRatio}
-              onChange={(e) => onConfigChange({ ...config, riskRewardRatio: parseFloat(e.target.value) || 2 })}
-              disabled={isSimulationActive}
-              className="bg-background"
-            />
+        <div className="p-4 bg-secondary/30 rounded-lg">
+          <div className="flex items-center gap-3 mb-3">
+            <TrendingUp className="h-4 w-4 text-primary" />
+            <span className="text-sm font-medium">Estrategia: Ratio 1:2 fijo</span>
+            <Badge variant="outline" className="text-xs">Objetivo: 2% mensual</Badge>
           </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="profitTarget" className="flex items-center gap-2">
-              <Wallet className="h-4 w-4 text-primary" />
-              Objetivo Retiro (%)
-            </Label>
-            <Input
-              id="profitTarget"
-              type="number"
-              min={1}
-              max={50}
-              step={1}
-              value={config.profitTargetPercent}
-              onChange={(e) => onConfigChange({ ...config, profitTargetPercent: parseFloat(e.target.value) || 10 })}
-              disabled={isSimulationActive}
-              className="bg-background"
-            />
-          </div>
+          <p className="text-xs text-muted-foreground">
+            El ratio R:R está fijado en 1:2 según la estrategia. Configura tus grupos y cuentas abajo.
+          </p>
         </div>
 
         {/* Resumen */}
