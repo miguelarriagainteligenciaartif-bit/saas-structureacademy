@@ -31,8 +31,8 @@ export const Header = ({ userName }: HeaderProps) => {
                 <BarChart3 className="h-6 w-6 text-primary" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-foreground">EdgeCore Trading</h1>
-                <p className="text-xs text-muted-foreground">Nasdaq 100 Journal</p>
+                <h1 className="text-xl font-bold text-foreground">TradeTracker</h1>
+                <p className="text-xs text-muted-foreground">Tu Diario de Trading</p>
               </div>
             </div>
             
