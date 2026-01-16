@@ -48,24 +48,16 @@ export const Header = ({ userName }: HeaderProps) => {
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-6">
-            {/* Logo and Brand */}
+            {/* Logo */}
             <div 
-              className="flex items-center gap-3 cursor-pointer"
+              className="cursor-pointer"
               onClick={() => navigate("/")}
             >
               <img 
                 src={quantumLogo} 
                 alt="Quantum Trading Tracker" 
-                className="h-10 w-10"
+                className="h-12 w-12"
               />
-              <div>
-                <h1 className="text-xl font-bold text-foreground tracking-tight">
-                  QUANTUM TRADING TRACKER
-                </h1>
-                <p className="text-xs text-primary font-medium">
-                  Basado en Datos • Ejecución Disciplinada
-                </p>
-              </div>
             </div>
             
             {/* Desktop Navigation */}
