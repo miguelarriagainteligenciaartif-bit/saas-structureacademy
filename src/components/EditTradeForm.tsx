@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 
@@ -39,6 +40,7 @@ const formSchema = z.object({
   result_dollars: z.string().optional(),
   image_link: z.string().url().optional().or(z.literal("")),
   risk_percentage: z.string().default("1"),
+  notes: z.string().optional(),
 }).superRefine((data, ctx) => {
   if (data.no_trade_day) return;
   
@@ -112,6 +114,7 @@ export const EditTradeForm = ({ trade, onSuccess, isBacktest = false }: EditTrad
       execution_timing: trade.execution_timing || undefined,
       date: trade.date || "",
       day_of_week: trade.day_of_week || undefined,
+      notes: trade.notes || "",
     },
   });
 
@@ -188,6 +191,7 @@ export const EditTradeForm = ({ trade, onSuccess, isBacktest = false }: EditTrad
         result_dollars: values.no_trade_day ? 0 : (values.result_dollars ? parseFloat(values.result_dollars) : 0),
         image_link: values.image_link || null,
         risk_percentage: values.risk_percentage ? parseFloat(values.risk_percentage) : 1,
+        notes: values.notes || null,
       };
 
       if (!isBacktest) {
@@ -615,6 +619,24 @@ export const EditTradeForm = ({ trade, onSuccess, isBacktest = false }: EditTrad
                   placeholder="https://..." 
                   {...field} 
                   disabled={noTradeDay}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="notes"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Notas / Comentarios (opcional)</FormLabel>
+              <FormControl>
+                <Textarea 
+                  placeholder="Añade tus notas, observaciones o comentarios sobre esta operación..." 
+                  className="min-h-[100px] resize-y"
+                  {...field} 
                 />
               </FormControl>
               <FormMessage />
