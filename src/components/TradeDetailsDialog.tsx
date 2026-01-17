@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { TrendingUp, TrendingDown, ExternalLink, Pencil, ArrowLeft } from "lucide-react";
+import { TrendingUp, TrendingDown, ExternalLink, Pencil, ArrowLeft, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EditTradeForm } from "@/components/EditTradeForm";
 
@@ -28,6 +28,7 @@ interface Trade {
   asset?: string;
   drawdown?: number | null;
   max_rr?: number | null;
+  notes?: string | null;
 }
 
 interface TradeDetailsDialogProps {
@@ -188,6 +189,19 @@ export const TradeDetailsDialog = ({ trade, open, onOpenChange, onUpdated }: Tra
                         <p className="text-sm text-muted-foreground">Timing de Ejecución</p>
                         <p className="font-medium">{trade.execution_timing || "N/A"}</p>
                       </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Notes Section */}
+                {trade.notes && (
+                  <div className="border-t pt-4">
+                    <h3 className="font-semibold mb-2 flex items-center gap-2">
+                      <FileText className="h-4 w-4" />
+                      Notas / Comentarios
+                    </h3>
+                    <div className="bg-muted/50 rounded-lg p-4">
+                      <p className="text-sm whitespace-pre-wrap">{trade.notes}</p>
                     </div>
                   </div>
                 )}
