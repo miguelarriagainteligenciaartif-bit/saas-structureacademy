@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -40,6 +41,7 @@ const formSchema = z.object({
   result_dollars: z.string().optional(),
   image_link: z.string().url().optional().or(z.literal("")),
   risk_percentage: z.string().default("1"),
+  notes: z.string().optional(),
 }).superRefine((data, ctx) => {
   // Si es día sin entrada, no validamos campos de operación
   if (data.no_trade_day) return;
@@ -115,6 +117,7 @@ export const TradeForm = ({ onSuccess, isBacktest = false, strategyId }: TradeFo
       execution_timing: undefined,
       date: "",
       day_of_week: undefined,
+      notes: "",
     },
   });
 
@@ -177,6 +180,7 @@ export const TradeForm = ({ onSuccess, isBacktest = false, strategyId }: TradeFo
         result_dollars: values.no_trade_day ? 0 : (values.result_dollars ? parseFloat(values.result_dollars) : 0),
         image_link: values.image_link || null,
         risk_percentage: values.risk_percentage ? parseFloat(values.risk_percentage) : 1,
+        notes: values.notes || null,
       };
 
       // Add account_id for regular trades or strategy_id for backtest trades
@@ -212,6 +216,7 @@ export const TradeForm = ({ onSuccess, isBacktest = false, strategyId }: TradeFo
         execution_timing: undefined,
         date: "",
         day_of_week: undefined,
+        notes: "",
       });
       onSuccess();
     } catch (error: any) {
@@ -645,6 +650,24 @@ export const TradeForm = ({ onSuccess, isBacktest = false, strategyId }: TradeFo
                   <FormLabel>Link de Imagen (opcional)</FormLabel>
                   <FormControl>
                     <Input placeholder="https://..." {...field} disabled={noTradeDay} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="notes"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Notas / Comentarios (opcional)</FormLabel>
+                  <FormControl>
+                    <Textarea 
+                      placeholder="Añade tus notas, observaciones o comentarios sobre esta operación..." 
+                      className="min-h-[100px] resize-y"
+                      {...field} 
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
