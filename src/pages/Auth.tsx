@@ -46,7 +46,7 @@ export default function Auth() {
             <img 
               src={quantumLogo} 
               alt="Quantum Trading Tracker" 
-              className="h-32 w-32"
+              className="h-48 w-48"
             />
           </div>
           <div>
