@@ -190,6 +190,7 @@ const ForexCalendar = () => {
                       selected={selectedDate}
                       onSelect={(date) => date && setSelectedDate(date)}
                       initialFocus
+                      className="pointer-events-auto"
                     />
                   </PopoverContent>
                 </Popover>
