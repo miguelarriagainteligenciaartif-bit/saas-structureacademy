@@ -9,7 +9,7 @@ import { AccountManager } from "@/components/AccountManager";
 import { TradeDetailsDialog } from "@/components/TradeDetailsDialog";
 import { ExcelImporter } from "@/components/ExcelImporter";
 import { MonthlyResults } from "@/components/MonthlyResults";
-import { DollarSign, TrendingUp, TrendingDown, Target, Calendar, Layers } from "lucide-react";
+import { DollarSign, TrendingUp, TrendingDown, Target, Calendar, Layers, Trash2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -17,6 +17,9 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { cn } from "@/lib/utils";
+import { Checkbox } from "@/components/ui/checkbox";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { toast } from "sonner";
 
 interface Trade {
   id: string;
@@ -52,6 +55,8 @@ export default function Index() {
   const [allTrades, setAllTrades] = useState<Trade[]>([]); // ALL trades for metrics
   const [tradesLimit, setTradesLimit] = useState(50);
   const [hasMoreTrades, setHasMoreTrades] = useState(false);
+  const [selectedTradeIds, setSelectedTradeIds] = useState<Set<string>>(new Set());
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     checkUser();
@@ -240,6 +245,50 @@ export default function Index() {
 
   const equityCurve = equityCurveData();
 
+  // Multi-select handlers
+  const toggleTradeSelection = (tradeId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSelectedTradeIds(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(tradeId)) {
+        newSet.delete(tradeId);
+      } else {
+        newSet.add(tradeId);
+      }
+      return newSet;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedTradeIds.size === filteredTradesForTable.length) {
+      setSelectedTradeIds(new Set());
+    } else {
+      setSelectedTradeIds(new Set(filteredTradesForTable.map(t => t.id)));
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedTradeIds.size === 0) return;
+    
+    setIsDeleting(true);
+    try {
+      const { error } = await supabase
+        .from("trades")
+        .delete()
+        .in("id", Array.from(selectedTradeIds));
+
+      if (error) throw error;
+
+      toast.success(`${selectedTradeIds.size} trade(s) eliminados correctamente`);
+      setSelectedTradeIds(new Set());
+      loadTrades();
+    } catch (error: any) {
+      toast.error("Error al eliminar: " + error.message);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Header userName={user?.email} />
@@ -326,8 +375,37 @@ export default function Index() {
                 <CardDescription>
                   Mostrando {trades.length} operación{trades.length !== 1 ? 'es' : ''}
                   {hasMoreTrades && ' - Hay más operaciones disponibles'}
+                  {selectedTradeIds.size > 0 && ` • ${selectedTradeIds.size} seleccionado(s)`}
                 </CardDescription>
               </div>
+              {selectedTradeIds.size > 0 && (
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="destructive" size="sm">
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Eliminar {selectedTradeIds.size} trade(s)
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>¿Eliminar {selectedTradeIds.size} trade(s)?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Esta acción no se puede deshacer. Los trades seleccionados serán eliminados permanentemente.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={handleBulkDelete}
+                        disabled={isDeleting}
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      >
+                        {isDeleting ? "Eliminando..." : `Eliminar ${selectedTradeIds.size} trade(s)`}
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              )}
             </div>
           </CardHeader>
           <CardContent>
@@ -340,6 +418,13 @@ export default function Index() {
                 <Table>
                   <TableHeader>
                     <TableRow>
+                      <TableHead className="w-12">
+                        <Checkbox
+                          checked={filteredTradesForTable.length > 0 && selectedTradeIds.size === filteredTradesForTable.length}
+                          onCheckedChange={toggleSelectAll}
+                          aria-label="Seleccionar todos"
+                        />
+                      </TableHead>
                       <TableHead>Fecha</TableHead>
                       <TableHead>Hora</TableHead>
                       <TableHead>Tipo</TableHead>
@@ -349,15 +434,35 @@ export default function Index() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {trades.map((trade) => (
+                    {filteredTradesForTable.map((trade) => (
                       <TableRow 
                         key={trade.id}
-                        className="cursor-pointer hover:bg-muted/50"
+                        className={cn(
+                          "cursor-pointer hover:bg-muted/50",
+                          selectedTradeIds.has(trade.id) && "bg-muted/30"
+                        )}
                         onClick={() => {
                           setSelectedTrade(trade);
                           setDetailsOpen(true);
                         }}
                       >
+                        <TableCell onClick={(e) => e.stopPropagation()}>
+                          <Checkbox
+                            checked={selectedTradeIds.has(trade.id)}
+                            onCheckedChange={() => {
+                              setSelectedTradeIds(prev => {
+                                const newSet = new Set(prev);
+                                if (newSet.has(trade.id)) {
+                                  newSet.delete(trade.id);
+                                } else {
+                                  newSet.add(trade.id);
+                                }
+                                return newSet;
+                              });
+                            }}
+                            aria-label={`Seleccionar trade ${trade.date}`}
+                          />
+                        </TableCell>
                         <TableCell>{trade.date}</TableCell>
                         <TableCell>{trade.entry_time || "N/A"}</TableCell>
                         <TableCell>
