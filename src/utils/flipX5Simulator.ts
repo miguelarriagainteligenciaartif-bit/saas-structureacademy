@@ -36,9 +36,11 @@ export interface SimulationResult {
 
 export const simulateFlipX5 = (
   config: FlipConfig,
-  tradeResults: TradeResult[]
+  tradeResults: TradeResult[],
+  actualAmounts?: number[]
 ): SimulationResult => {
   const { accountSize, cycleSize, riskPerCycle, rrRatio, reinvestPercent, usePercentageRisk = false } = config;
+  const useActualAmounts = actualAmounts && actualAmounts.length === tradeResults.length;
   
   let balanceTraditional = accountSize;
   let balanceLeveraged = accountSize;
@@ -62,12 +64,14 @@ export const simulateFlipX5 = (
     let riskTraditional: number;
     let pnlTraditional: number;
     
-    if (usePercentageRisk) {
-      // Modo porcentaje: calcula el riesgo como % del balance actual POR TRADE
+    if (useActualAmounts) {
+      // Use actual dollar amounts from backtesting for traditional calc
+      pnlTraditional = actualAmounts[index];
+      riskTraditional = Math.abs(pnlTraditional);
+    } else if (usePercentageRisk) {
       riskTraditional = (balanceTraditional * riskPerCycle) / 100;
       pnlTraditional = result === 'TP' ? riskTraditional * rrRatio : -riskTraditional;
     } else {
-      // Modo dólares fijos: usa riskPerCycle como el monto fijo total por ciclo
       riskTraditional = riskPerCycle / cycleSize;
       pnlTraditional = result === 'TP' ? riskTraditional * rrRatio : -riskTraditional;
     }
