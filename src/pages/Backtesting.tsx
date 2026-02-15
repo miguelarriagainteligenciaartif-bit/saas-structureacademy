@@ -5,6 +5,7 @@ import { Header } from "@/components/Header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus, TrendingUp, TrendingDown, DollarSign, Percent, ExternalLink, ImageIcon, Target } from "lucide-react";
+import { BacktestReportGenerator } from "@/components/BacktestReportGenerator";
 import { StatsCard } from "@/components/StatsCard";
 import { TradeForm } from "@/components/TradeForm";
 import { EditTradeForm } from "@/components/EditTradeForm";
@@ -286,14 +287,16 @@ const Backtesting = () => {
             <h1 className="text-4xl font-bold mb-2">Backtesting</h1>
             <p className="text-muted-foreground">Prueba y analiza tus estrategias con datos históricos</p>
           </div>
-          {selectedStrategy && (
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-              <DialogTrigger asChild>
-                <Button size="lg">
-                  <Plus className="mr-2 h-4 w-4" />
-                  Añadir Operación
-                </Button>
-              </DialogTrigger>
+          {selectedStrategy && currentStrategy && (
+            <div className="flex gap-3">
+              <BacktestReportGenerator trades={trades} strategy={currentStrategy} />
+              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button size="lg">
+                    <Plus className="mr-2 h-4 w-4" />
+                    Añadir Operación
+                  </Button>
+                </DialogTrigger>
               <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle>Nueva Operación de Backtesting</DialogTitle>
@@ -308,6 +311,7 @@ const Backtesting = () => {
                 />
               </DialogContent>
             </Dialog>
+            </div>
           )}
         </div>
 
