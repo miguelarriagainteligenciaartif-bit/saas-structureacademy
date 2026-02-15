@@ -1,10 +1,12 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, TrendingUp, TrendingDown, DollarSign, Percent, ExternalLink, ImageIcon, Target, Download } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Plus, TrendingUp, TrendingDown, DollarSign, Percent, ExternalLink, ImageIcon, Target, Download, Filter, X } from "lucide-react";
 import { BacktestReportGenerator } from "@/components/BacktestReportGenerator";
 import { StatsCard } from "@/components/StatsCard";
 import { TradeForm } from "@/components/TradeForm";
@@ -56,6 +58,31 @@ const Backtesting = () => {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [tradesLimit, setTradesLimit] = useState(10);
   const [hasMoreTrades, setHasMoreTrades] = useState(false);
+  const [filterDateFrom, setFilterDateFrom] = useState<string>("");
+  const [filterDateTo, setFilterDateTo] = useState<string>("");
+  const [filterTimeFrom, setFilterTimeFrom] = useState<string>("");
+  const [filterTimeTo, setFilterTimeTo] = useState<string>("");
+
+  const hasActiveFilters = filterDateFrom || filterDateTo || filterTimeFrom || filterTimeTo;
+
+  const filteredTrades = useMemo(() => {
+    return trades.filter(t => {
+      if (filterDateFrom && t.date < filterDateFrom) return false;
+      if (filterDateTo && t.date > filterDateTo) return false;
+      if (!t.no_trade_day && t.entry_time) {
+        if (filterTimeFrom && t.entry_time < filterTimeFrom) return false;
+        if (filterTimeTo && t.entry_time > filterTimeTo) return false;
+      }
+      return true;
+    });
+  }, [trades, filterDateFrom, filterDateTo, filterTimeFrom, filterTimeTo]);
+
+  const clearFilters = () => {
+    setFilterDateFrom("");
+    setFilterDateTo("");
+    setFilterTimeFrom("");
+    setFilterTimeTo("");
+  };
 
   useEffect(() => {
     checkAuth();
@@ -125,9 +152,9 @@ const Backtesting = () => {
   }, [selectedStrategy]);
 
   const calculateMetrics = () => {
-    const actualTrades = trades.filter(t => !t.no_trade_day);
-    const noTradeDays = trades.filter(t => t.no_trade_day).length;
-    const totalDays = trades.length;
+    const actualTrades = filteredTrades.filter(t => !t.no_trade_day);
+    const noTradeDays = filteredTrades.filter(t => t.no_trade_day).length;
+    const totalDays = filteredTrades.length;
     const noTradeDaysPercentage = totalDays > 0 ? (noTradeDays / totalDays) * 100 : 0;
     
     const totalTrades = actualTrades.length;
@@ -215,7 +242,7 @@ const Backtesting = () => {
   const getAnalysisByEntryModel = () => {
     const models = ["M1", "M3", "Continuación"];
     return models.map(model => {
-      const modelTrades = trades.filter(t => t.entry_model === model && !t.no_trade_day);
+      const modelTrades = filteredTrades.filter(t => t.entry_model === model && !t.no_trade_day);
       const wins = modelTrades.filter(t => t.result_type === "TP").length;
       const total = modelTrades.length;
       const profit = modelTrades.reduce((sum, t) => sum + Number(t.result_dollars), 0);
@@ -232,7 +259,7 @@ const Backtesting = () => {
   const getAnalysisByDayOfWeek = () => {
     const days = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"];
     return days.map(day => {
-      const dayTrades = trades.filter(t => t.day_of_week === day && !t.no_trade_day);
+      const dayTrades = filteredTrades.filter(t => t.day_of_week === day && !t.no_trade_day);
       const wins = dayTrades.filter(t => t.result_type === "TP").length;
       const total = dayTrades.length;
       const profit = dayTrades.reduce((sum, t) => sum + Number(t.result_dollars), 0);
@@ -249,7 +276,7 @@ const Backtesting = () => {
   const getAnalysisByWeek = () => {
     const weeks = [1, 2, 3, 4, 5];
     return weeks.map(week => {
-      const weekTrades = trades.filter(t => t.week_of_month === week && !t.no_trade_day);
+      const weekTrades = filteredTrades.filter(t => t.week_of_month === week && !t.no_trade_day);
       const wins = weekTrades.filter(t => t.result_type === "TP").length;
       const total = weekTrades.length;
       const profit = weekTrades.reduce((sum, t) => sum + Number(t.result_dollars), 0);
@@ -264,12 +291,12 @@ const Backtesting = () => {
   };
 
   const exportToCSV = () => {
-    if (trades.length === 0) {
+    if (filteredTrades.length === 0) {
       toast.error("No hay datos para exportar");
       return;
     }
 
-    const actualTrades = trades.filter(t => !t.no_trade_day);
+    const actualTrades = filteredTrades.filter(t => !t.no_trade_day);
     let csvContent = "QUANTUM ERA - BACKTESTING EXPORT\n\n";
     
     csvContent += "=== ESTRATEGIA ===\n";
@@ -311,7 +338,7 @@ const Backtesting = () => {
 
     csvContent += "=== DETALLE DE OPERACIONES ===\n";
     csvContent += "Fecha,Día,Semana,Hora Entrada,Tipo,Modelo,Resultado,P&L ($),RR Máx,Notas\n";
-    const sorted = [...trades].sort((a, b) => a.date.localeCompare(b.date));
+    const sorted = [...filteredTrades].sort((a, b) => a.date.localeCompare(b.date));
     sorted.forEach(t => {
       if (t.no_trade_day) {
         csvContent += `${t.date},${t.day_of_week},${t.week_of_month || ""},,,,,Día sin entrada,,\n`;
@@ -335,7 +362,7 @@ const Backtesting = () => {
   const getEquityCurveData = () => {
     if (!currentStrategy) return [];
     
-    const sortedTrades = [...trades]
+    const sortedTrades = [...filteredTrades]
       .filter(t => !t.no_trade_day)
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
@@ -380,7 +407,7 @@ const Backtesting = () => {
                 <Download className="h-4 w-4" />
                 Exportar CSV
               </Button>
-              <BacktestReportGenerator trades={trades} strategy={currentStrategy} />
+              <BacktestReportGenerator trades={filteredTrades} strategy={currentStrategy} />
               <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogTrigger asChild>
                   <Button size="lg">
@@ -445,6 +472,69 @@ const Backtesting = () => {
                 </CardHeader>
               </Card>
             )}
+
+            {/* Filters */}
+            <Card className="mb-8">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base flex items-center justify-between">
+                  <span className="flex items-center gap-2">
+                    <Filter className="h-4 w-4" />
+                    Filtros
+                    {hasActiveFilters && (
+                      <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">
+                        {filteredTrades.length} de {trades.length} operaciones
+                      </span>
+                    )}
+                  </span>
+                  {hasActiveFilters && (
+                    <Button variant="ghost" size="sm" onClick={clearFilters} className="gap-1 text-xs h-7">
+                      <X className="h-3 w-3" />
+                      Limpiar filtros
+                    </Button>
+                  )}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground">Fecha desde</Label>
+                    <Input
+                      type="date"
+                      value={filterDateFrom}
+                      onChange={(e) => setFilterDateFrom(e.target.value)}
+                      className="h-8 text-sm"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground">Fecha hasta</Label>
+                    <Input
+                      type="date"
+                      value={filterDateTo}
+                      onChange={(e) => setFilterDateTo(e.target.value)}
+                      className="h-8 text-sm"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground">Hora desde</Label>
+                    <Input
+                      type="time"
+                      value={filterTimeFrom}
+                      onChange={(e) => setFilterTimeFrom(e.target.value)}
+                      className="h-8 text-sm"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground">Hora hasta</Label>
+                    <Input
+                      type="time"
+                      value={filterTimeTo}
+                      onChange={(e) => setFilterTimeTo(e.target.value)}
+                      className="h-8 text-sm"
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
             {/* Main Metrics */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6 mb-8">
@@ -649,22 +739,22 @@ const Backtesting = () => {
             {/* Recent Trades */}
             <Card className="mb-8">
               <CardHeader>
-                <CardTitle>Operaciones Recientes</CardTitle>
-                {trades.length > 0 && (
+                <CardTitle>Operaciones {hasActiveFilters ? "Filtradas" : "Recientes"}</CardTitle>
+                {filteredTrades.length > 0 && (
                   <p className="text-sm text-muted-foreground">
-                    Mostrando {Math.min(tradesLimit, trades.length)} de {trades.length} operaciones
+                    Mostrando {Math.min(tradesLimit, filteredTrades.length)} de {filteredTrades.length} operaciones
                   </p>
                 )}
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {trades.length === 0 ? (
+                  {filteredTrades.length === 0 ? (
                     <p className="text-center text-muted-foreground py-8">
-                      No hay registros para esta estrategia
+                      {hasActiveFilters ? "No hay operaciones que coincidan con los filtros" : "No hay registros para esta estrategia"}
                     </p>
                   ) : (
                     <>
-                      {trades.slice(0, tradesLimit).map((trade) => (
+                      {filteredTrades.slice(0, tradesLimit).map((trade) => (
                       <div 
                         key={trade.id} 
                         className={`flex items-start justify-between p-4 border rounded-lg transition-colors cursor-pointer ${
@@ -718,7 +808,7 @@ const Backtesting = () => {
                       </div>
                     ))}
                     
-                    {trades.length > tradesLimit && (
+                    {filteredTrades.length > tradesLimit && (
                       <div className="flex justify-center pt-4">
                         <Button 
                           variant="outline" 
