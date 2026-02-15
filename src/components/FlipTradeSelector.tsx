@@ -8,7 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
-import { Database, TrendingUp, TrendingDown, Plus, Calendar, Filter, CheckSquare, ClipboardPaste } from "lucide-react";
+import { Database, TrendingUp, TrendingDown, Plus, Calendar, Filter, CheckSquare, ClipboardPaste, FlaskConical } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TradeResult } from "@/utils/flipX5Simulator";
@@ -21,6 +21,20 @@ export interface RealTrade {
   result_dollars: number;
   entry_model: string;
   trade_type: string;
+}
+
+interface BacktestStrategy {
+  id: string;
+  name: string;
+  risk_reward_ratio: string;
+}
+
+interface BacktestTrade {
+  id: string;
+  date: string;
+  result_type: string;
+  entry_model: string;
+  no_trade_day: boolean;
 }
 
 interface FlipTradeSelectorProps {
@@ -38,8 +52,17 @@ export const FlipTradeSelector = ({ onTradesSelected }: FlipTradeSelectorProps) 
   const [selectCount, setSelectCount] = useState<number>(10);
   const [pastedSequence, setPastedSequence] = useState<string>("");
 
+  // Backtest state
+  const [btStrategies, setBtStrategies] = useState<BacktestStrategy[]>([]);
+  const [btSelectedStrategy, setBtSelectedStrategy] = useState<string>("");
+  const [btTrades, setBtTrades] = useState<BacktestTrade[]>([]);
+  const [btLoading, setBtLoading] = useState(false);
+  const [btSelectedIds, setBtSelectedIds] = useState<Set<string>>(new Set());
+  const [btFilterModel, setBtFilterModel] = useState<string>("all");
+
   useEffect(() => {
     loadTrades();
+    loadStrategies();
   }, []);
 
   const loadTrades = async () => {
@@ -61,6 +84,85 @@ export const FlipTradeSelector = ({ onTradesSelected }: FlipTradeSelectorProps) 
       setLoading(false);
     }
   };
+
+  const loadStrategies = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("backtest_strategies")
+        .select("id, name, risk_reward_ratio")
+        .order("name");
+
+      if (error) throw error;
+      setBtStrategies(data || []);
+    } catch (error) {
+      console.error("Error loading strategies:", error);
+    }
+  };
+
+  const loadBacktestTrades = async (strategyId: string) => {
+    setBtLoading(true);
+    setBtSelectedIds(new Set());
+    try {
+      const { data, error } = await supabase
+        .from("backtest_trades")
+        .select("id, date, result_type, entry_model, no_trade_day")
+        .eq("strategy_id", strategyId)
+        .eq("no_trade_day", false)
+        .in("result_type", ["TP", "SL"])
+        .order("date", { ascending: true })
+        .order("entry_time", { ascending: true });
+
+      if (error) throw error;
+      setBtTrades(data || []);
+    } catch (error) {
+      console.error("Error loading backtest trades:", error);
+    } finally {
+      setBtLoading(false);
+    }
+  };
+
+  const handleStrategyChange = (strategyId: string) => {
+    setBtSelectedStrategy(strategyId);
+    if (strategyId) {
+      loadBacktestTrades(strategyId);
+    } else {
+      setBtTrades([]);
+    }
+  };
+
+  const filteredBtTrades = btTrades.filter((t) => {
+    if (btFilterModel !== "all" && t.entry_model !== btFilterModel) return false;
+    return true;
+  });
+
+  const handleBtToggle = (id: string) => {
+    const newSet = new Set(btSelectedIds);
+    if (newSet.has(id)) newSet.delete(id);
+    else newSet.add(id);
+    setBtSelectedIds(newSet);
+  };
+
+  const handleBtSelectAll = () => {
+    setBtSelectedIds(new Set(filteredBtTrades.map(t => t.id)));
+  };
+
+  const handleBtAddTrades = () => {
+    const selected = filteredBtTrades
+      .filter(t => btSelectedIds.has(t.id))
+      .map(t => t.result_type as TradeResult);
+    toast.success(`Agregados ${selected.length} trades de backtesting`);
+    onTradesSelected(selected);
+    setBtSelectedIds(new Set());
+  };
+
+  const btSelectedStats = {
+    total: btSelectedIds.size,
+    tp: filteredBtTrades.filter(t => btSelectedIds.has(t.id) && t.result_type === "TP").length,
+    sl: filteredBtTrades.filter(t => btSelectedIds.has(t.id) && t.result_type === "SL").length,
+  };
+  const btWinRate = btSelectedStats.total > 0 ? ((btSelectedStats.tp / btSelectedStats.total) * 100).toFixed(1) : "0";
+
+  // --- Original dashboard logic (unchanged) ---
 
   const filteredTrades = trades.filter((trade) => {
     if (filterModel !== "all" && trade.entry_model !== filterModel) return false;
@@ -189,24 +291,151 @@ export const FlipTradeSelector = ({ onTradesSelected }: FlipTradeSelectorProps) 
           <div>
             <CardTitle className="text-lg">Importar Trades</CardTitle>
             <CardDescription>
-              Usa tus trades registrados o pega una secuencia
+              Usa tus trades registrados, de backtesting o pega una secuencia
             </CardDescription>
           </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
         <Tabs defaultValue="database" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="database" className="gap-2">
               <Database className="h-4 w-4" />
-              Desde Dashboard
+              Dashboard
+            </TabsTrigger>
+            <TabsTrigger value="backtest" className="gap-2">
+              <FlaskConical className="h-4 w-4" />
+              Backtesting
             </TabsTrigger>
             <TabsTrigger value="paste" className="gap-2">
               <ClipboardPaste className="h-4 w-4" />
-              Pegar Secuencia
+              Pegar
             </TabsTrigger>
           </TabsList>
 
+          {/* === BACKTEST TAB === */}
+          <TabsContent value="backtest" className="mt-4 space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">Estrategia de Backtesting</Label>
+                <Select value={btSelectedStrategy} onValueChange={handleStrategyChange}>
+                  <SelectTrigger className="h-8 text-sm">
+                    <SelectValue placeholder="Selecciona una estrategia" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {btStrategies.map(s => (
+                      <SelectItem key={s.id} value={s.id}>
+                        {s.name} (R:R {s.risk_reward_ratio})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Filter className="h-3 w-3" /> Modelo
+                </Label>
+                <Select value={btFilterModel} onValueChange={setBtFilterModel}>
+                  <SelectTrigger className="h-8 text-sm">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos</SelectItem>
+                    <SelectItem value="M1">M1</SelectItem>
+                    <SelectItem value="M3">M3</SelectItem>
+                    <SelectItem value="Continuación">Continuación</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {btSelectedStrategy && (
+              <>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Button variant="outline" size="sm" onClick={handleBtSelectAll} disabled={btLoading || filteredBtTrades.length === 0}>
+                    Seleccionar todos ({filteredBtTrades.length})
+                  </Button>
+                  <Button variant="ghost" size="sm" onClick={() => setBtSelectedIds(new Set())} disabled={btSelectedIds.size === 0}>
+                    Limpiar
+                  </Button>
+                </div>
+
+                {btLoading ? (
+                  <div className="text-center py-8 text-muted-foreground">Cargando trades de backtesting...</div>
+                ) : filteredBtTrades.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    No hay trades TP/SL en esta estrategia
+                  </div>
+                ) : (
+                  <ScrollArea className="h-[200px] rounded-md border border-border/50 p-2">
+                    <div className="space-y-1">
+                      {filteredBtTrades.map((trade, index) => (
+                        <div
+                          key={trade.id}
+                          onClick={() => handleBtToggle(trade.id)}
+                          className={`flex items-center justify-between p-2 rounded-md cursor-pointer transition-colors ${
+                            btSelectedIds.has(trade.id)
+                              ? "bg-primary/10 border border-primary/30"
+                              : "hover:bg-muted/50"
+                          }`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <Checkbox
+                              checked={btSelectedIds.has(trade.id)}
+                              onCheckedChange={() => handleBtToggle(trade.id)}
+                              onClick={(e) => e.stopPropagation()}
+                            />
+                            <span className="text-xs text-muted-foreground w-6">#{index + 1}</span>
+                            <span className="text-sm font-mono">{trade.date}</span>
+                            <Badge variant="outline" className="text-xs">
+                              {trade.entry_model}
+                            </Badge>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            {trade.result_type === "TP" ? (
+                              <div className="flex items-center gap-1 text-success">
+                                <TrendingUp className="h-3 w-3" />
+                                <span className="text-sm font-medium">TP</span>
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-1 text-destructive">
+                                <TrendingDown className="h-3 w-3" />
+                                <span className="text-sm font-medium">SL</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                )}
+
+                <div className="flex items-center justify-between pt-2 border-t border-border/50">
+                  <div className="flex items-center gap-4 text-sm">
+                    <span className="text-muted-foreground">
+                      Seleccionados: <span className="font-medium text-foreground">{btSelectedStats.total}</span>
+                    </span>
+                    <span className="text-success">TP: {btSelectedStats.tp}</span>
+                    <span className="text-destructive">SL: {btSelectedStats.sl}</span>
+                    <span className="text-muted-foreground">
+                      Win Rate: <span className="font-medium text-foreground">{btWinRate}%</span>
+                    </span>
+                  </div>
+                  <Button
+                    onClick={handleBtAddTrades}
+                    disabled={btSelectedIds.size === 0}
+                    size="sm"
+                    className="gap-2"
+                  >
+                    <Plus className="h-4 w-4" />
+                    Agregar {btSelectedStats.total} trades
+                  </Button>
+                </div>
+              </>
+            )}
+          </TabsContent>
+
+          {/* === DASHBOARD TAB (original) === */}
           <TabsContent value="database" className="mt-4 space-y-4">
             {/* Filters */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
