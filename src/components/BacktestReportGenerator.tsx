@@ -233,6 +233,30 @@ export const BacktestReportGenerator = ({ trades, strategy }: BacktestReportGene
         columnStyles: { 2: { halign: 'right' }, 3: { halign: 'right' } },
         margin: { left: 14, right: 14 }
       });
+      yPos = (doc as any).lastAutoTable.finalY + 12;
+
+      // Week table
+      const weekStats = [1, 2, 3, 4, 5].map(week => {
+        const weekTrades = actualTrades.filter(t => t.week_of_month === week);
+        const wins = weekTrades.filter(t => t.result_type === "TP").length;
+        const pnl = weekTrades.reduce((sum, t) => sum + Number(t.result_dollars), 0);
+        const wr = weekTrades.length > 0 ? (wins / weekTrades.length * 100) : 0;
+        return { week: `Semana ${week}`, trades: weekTrades.length, pnl, winRate: wr };
+      }).filter(w => w.trades > 0);
+
+      if (weekStats.length > 0) {
+        yPos = addSectionTitle(doc, "Análisis por Semana del Mes", yPos);
+        autoTable(doc, {
+          startY: yPos,
+          head: [['Semana', 'Operaciones', 'P&L', 'Win Rate']],
+          body: weekStats.map(w => [w.week, w.trades.toString(), `$${w.pnl.toFixed(2)}`, `${w.winRate.toFixed(1)}%`]),
+          theme: 'striped',
+          ...tableStyles,
+          columnStyles: { 2: { halign: 'right' }, 3: { halign: 'right' } },
+          margin: { left: 14, right: 14 }
+        });
+        yPos = (doc as any).lastAutoTable.finalY + 12;
+      }
 
       // New page
       doc.addPage();
