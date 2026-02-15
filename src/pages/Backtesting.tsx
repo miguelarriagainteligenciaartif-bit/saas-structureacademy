@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, TrendingUp, TrendingDown, DollarSign, Percent, ExternalLink, ImageIcon, Target } from "lucide-react";
+import { Plus, TrendingUp, TrendingDown, DollarSign, Percent, ExternalLink, ImageIcon, Target, Download } from "lucide-react";
 import { BacktestReportGenerator } from "@/components/BacktestReportGenerator";
 import { StatsCard } from "@/components/StatsCard";
 import { TradeForm } from "@/components/TradeForm";
@@ -246,6 +246,92 @@ const Backtesting = () => {
     });
   };
 
+  const getAnalysisByWeek = () => {
+    const weeks = [1, 2, 3, 4, 5];
+    return weeks.map(week => {
+      const weekTrades = trades.filter(t => t.week_of_month === week && !t.no_trade_day);
+      const wins = weekTrades.filter(t => t.result_type === "TP").length;
+      const total = weekTrades.length;
+      const profit = weekTrades.reduce((sum, t) => sum + Number(t.result_dollars), 0);
+      
+      return {
+        semana: `Semana ${week}`,
+        "Win Rate (%)": total > 0 ? Number(((wins / total) * 100).toFixed(1)) : 0,
+        "Ganancia": Number(profit.toFixed(2)),
+        operaciones: total
+      };
+    }).filter(w => w.operaciones > 0);
+  };
+
+  const exportToCSV = () => {
+    if (trades.length === 0) {
+      toast.error("No hay datos para exportar");
+      return;
+    }
+
+    const actualTrades = trades.filter(t => !t.no_trade_day);
+    let csvContent = "QUANTUM ERA - BACKTESTING EXPORT\n\n";
+    
+    csvContent += "=== ESTRATEGIA ===\n";
+    csvContent += `Nombre,${currentStrategy?.name || "N/A"}\n`;
+    csvContent += `Capital Inicial,$${(currentStrategy?.initial_capital || 0).toFixed(2)}\n`;
+    csvContent += `R:R,${currentStrategy?.risk_reward_ratio || "N/A"}\n\n`;
+
+    csvContent += "=== RESUMEN ===\n";
+    csvContent += `Total Operaciones,${metrics.totalTrades}\n`;
+    csvContent += `Ganadoras,${metrics.winningTrades}\n`;
+    csvContent += `Perdedoras,${metrics.losingTrades}\n`;
+    csvContent += `Break Even,${metrics.breakEvenTrades}\n`;
+    csvContent += `Win Rate,${metrics.winRate.toFixed(1)}%\n`;
+    csvContent += `P&L Total,$${metrics.totalProfit.toFixed(2)}\n`;
+    csvContent += `Expected Value,$${metrics.expectedValue.toFixed(2)}\n`;
+    csvContent += `Mejor Racha TP,${metrics.bestTPStreak}\n`;
+    csvContent += `Peor Racha SL,${metrics.worstSLStreak}\n\n`;
+
+    csvContent += "=== ANÁLISIS POR SEMANA ===\n";
+    csvContent += "Semana,Operaciones,Win Rate (%),P&L ($)\n";
+    getAnalysisByWeek().forEach(w => {
+      csvContent += `${w.semana},${w.operaciones},${w["Win Rate (%)"]},${w.Ganancia}\n`;
+    });
+    csvContent += "\n";
+
+    csvContent += "=== ANÁLISIS POR DÍA ===\n";
+    csvContent += "Día,Operaciones,Win Rate (%),P&L ($)\n";
+    dayData.forEach(d => {
+      csvContent += `${d.día},${d.operaciones},${d["Win Rate (%)"]},${d.Ganancia}\n`;
+    });
+    csvContent += "\n";
+
+    csvContent += "=== ANÁLISIS POR MODELO ===\n";
+    csvContent += "Modelo,Operaciones,Win Rate (%),P&L ($)\n";
+    modelData.forEach(m => {
+      csvContent += `${m.modelo},${m.operaciones},${m["Win Rate (%)"]},${m.Ganancia}\n`;
+    });
+    csvContent += "\n";
+
+    csvContent += "=== DETALLE DE OPERACIONES ===\n";
+    csvContent += "Fecha,Día,Semana,Hora Entrada,Tipo,Modelo,Resultado,P&L ($),RR Máx,Notas\n";
+    const sorted = [...trades].sort((a, b) => a.date.localeCompare(b.date));
+    sorted.forEach(t => {
+      if (t.no_trade_day) {
+        csvContent += `${t.date},${t.day_of_week},${t.week_of_month || ""},,,,,Día sin entrada,,\n`;
+      } else {
+        csvContent += `${t.date},${t.day_of_week},${t.week_of_month || ""},${t.entry_time || ""},${t.trade_type},${t.entry_model},${t.result_type},$${Number(t.result_dollars).toFixed(2)},${t.max_rr !== null ? t.max_rr : ""},\n`;
+      }
+    });
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    const slug = (currentStrategy?.name || "backtest").toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+    link.download = `quantum-backtest-${slug}-${new Date().toISOString().split("T")[0]}.csv`;
+    link.style.visibility = "hidden";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast.success("CSV exportado exitosamente");
+  };
+
   const getEquityCurveData = () => {
     if (!currentStrategy) return [];
     
@@ -267,6 +353,7 @@ const Backtesting = () => {
   const metrics = calculateMetrics();
   const modelData = getAnalysisByEntryModel();
   const dayData = getAnalysisByDayOfWeek();
+  const weekData = getAnalysisByWeek();
   const equityData = getEquityCurveData();
   const initialCapital = currentStrategy?.initial_capital || 0;
 
@@ -289,6 +376,10 @@ const Backtesting = () => {
           </div>
           {selectedStrategy && currentStrategy && (
             <div className="flex gap-3">
+              <Button onClick={exportToCSV} variant="outline" className="gap-2">
+                <Download className="h-4 w-4" />
+                Exportar CSV
+              </Button>
               <BacktestReportGenerator trades={trades} strategy={currentStrategy} />
               <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogTrigger asChild>
@@ -448,6 +539,42 @@ const Backtesting = () => {
                 </CardContent>
               </Card>
             </div>
+
+            {/* Weekly Analysis */}
+            {weekData.length > 0 && (
+              <Card className="mb-8">
+                <CardHeader>
+                  <CardTitle>Análisis por Semana del Mes</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={weekData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="semana" />
+                      <YAxis />
+                      <Tooltip 
+                        formatter={(value: any, name: string) => {
+                          if (name === "Ganancia") return [`$${value}`, "Ganancia ($)"];
+                          return [value, name];
+                        }}
+                      />
+                      <Legend 
+                        formatter={(value: string) => {
+                          if (value === "Ganancia") return "Ganancia ($)";
+                          return value;
+                        }}
+                      />
+                      <Bar dataKey="Win Rate (%)" fill="hsl(var(--primary))" />
+                      <Bar dataKey="Ganancia">
+                        {weekData.map((entry, index) => (
+                          <Cell key={`cell-week-${index}`} fill={entry.Ganancia >= 0 ? "hsl(var(--success))" : "hsl(var(--destructive))"} />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+            )}
 
 
             {/* Charts */}
