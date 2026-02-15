@@ -33,12 +33,13 @@ interface BacktestTrade {
   id: string;
   date: string;
   result_type: string;
+  result_dollars: number;
   entry_model: string;
   no_trade_day: boolean;
 }
 
 interface FlipTradeSelectorProps {
-  onTradesSelected: (trades: TradeResult[]) => void;
+  onTradesSelected: (trades: TradeResult[], amounts?: number[]) => void;
 }
 
 export const FlipTradeSelector = ({ onTradesSelected }: FlipTradeSelectorProps) => {
@@ -105,7 +106,7 @@ export const FlipTradeSelector = ({ onTradesSelected }: FlipTradeSelectorProps) 
     try {
       const { data, error } = await supabase
         .from("backtest_trades")
-        .select("id, date, result_type, entry_model, no_trade_day")
+        .select("id, date, result_type, result_dollars, entry_model, no_trade_day")
         .eq("strategy_id", strategyId)
         .eq("no_trade_day", false)
         .in("result_type", ["TP", "SL"])
@@ -147,11 +148,11 @@ export const FlipTradeSelector = ({ onTradesSelected }: FlipTradeSelectorProps) 
   };
 
   const handleBtAddTrades = () => {
-    const selected = filteredBtTrades
-      .filter(t => btSelectedIds.has(t.id))
-      .map(t => t.result_type as TradeResult);
-    toast.success(`Agregados ${selected.length} trades de backtesting`);
-    onTradesSelected(selected);
+    const selectedTrades = filteredBtTrades.filter(t => btSelectedIds.has(t.id));
+    const results = selectedTrades.map(t => t.result_type as TradeResult);
+    const amounts = selectedTrades.map(t => Number(t.result_dollars));
+    toast.success(`Agregados ${results.length} trades de backtesting`);
+    onTradesSelected(results, amounts);
     setBtSelectedIds(new Set());
   };
 

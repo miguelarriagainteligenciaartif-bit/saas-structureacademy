@@ -28,6 +28,7 @@ const EdgecoreX5 = () => {
     }
   );
   const [trades, setTrades] = useState<TradeResult[]>(location.state?.trades || []);
+  const [tradeAmounts, setTradeAmounts] = useState<number[]>(location.state?.tradeAmounts || []);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -74,7 +75,8 @@ const EdgecoreX5 = () => {
     }
   };
 
-  const result = trades.length > 0 ? simulateFlipX5(config, trades) : null;
+  const hasAmounts = tradeAmounts.length === trades.length && tradeAmounts.length > 0;
+  const result = trades.length > 0 ? simulateFlipX5(config, trades, hasAmounts ? tradeAmounts : undefined) : null;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-background/95">
@@ -112,9 +114,23 @@ const EdgecoreX5 = () => {
       <div className="container mx-auto px-4 py-8 space-y-6">
         <FlipConfigForm initialConfig={config} onConfigChange={setConfig} />
         
-        <FlipTradeSelector onTradesSelected={(newTrades) => setTrades([...trades, ...newTrades])} />
+        <FlipTradeSelector onTradesSelected={(newTrades, amounts) => {
+          setTrades([...trades, ...newTrades]);
+          if (amounts) {
+            setTradeAmounts([...tradeAmounts, ...amounts]);
+          } else {
+            // No amounts = clear amounts tracking (mixed sources)
+            setTradeAmounts([]);
+          }
+        }} />
         
-        <FlipTradeInput trades={trades} onTradesChange={setTrades} />
+        <FlipTradeInput trades={trades} onTradesChange={(newTrades) => {
+          setTrades(newTrades);
+          // If trades are manually edited, amounts no longer match
+          if (newTrades.length !== tradeAmounts.length) {
+            setTradeAmounts([]);
+          }
+        }} />
 
         {result && (
           <>
