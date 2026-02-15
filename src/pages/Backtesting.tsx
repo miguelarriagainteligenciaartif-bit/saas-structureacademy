@@ -144,7 +144,9 @@ const Backtesting = () => {
       ? Math.abs(actualTrades.filter(t => t.result_type === "SL").reduce((sum, t) => sum + Number(t.result_dollars), 0) / losingTrades)
       : 0;
     
-    const expectedValue = totalTrades > 0 ? (winRate / 100 * avgWin) - ((1 - winRate / 100) * avgLoss) : 0;
+    const decisiveTrades = winningTrades + losingTrades;
+    const decisiveWinRate = decisiveTrades > 0 ? winningTrades / decisiveTrades : 0;
+    const expectedValue = decisiveTrades > 0 ? (decisiveWinRate * avgWin) - ((1 - decisiveWinRate) * avgLoss) : 0;
 
     // Calcular rachas consecutivas - INCLUYE Break Even como continuación
     let currentTPStreak = 0;
