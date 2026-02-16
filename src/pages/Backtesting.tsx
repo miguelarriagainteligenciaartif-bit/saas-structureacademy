@@ -794,16 +794,16 @@ const Backtesting = () => {
                           )}
                         </div>
                         {trade.image_link && (
-                          <a 
-                            href={trade.image_link} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="flex items-center gap-2 px-3 py-2 text-sm border rounded-lg hover:bg-accent transition-colors"
-                          >
-                            <ImageIcon className="h-4 w-4" />
-                            Ver Chart
-                            <ExternalLink className="h-3 w-3" />
-                          </a>
+                          <div className="mt-2 border rounded-lg overflow-hidden">
+                            <img
+                              src={trade.image_link}
+                              alt="Trade Chart"
+                              className="w-full h-auto"
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).style.display = "none";
+                              }}
+                            />
+                          </div>
                         )}
                       </div>
                     ))}
