@@ -125,11 +125,22 @@ const EdgecoreX5 = () => {
         }} />
         
         <FlipTradeInput trades={trades} onTradesChange={(newTrades) => {
-          setTrades(newTrades);
-          // If trades are manually edited, amounts no longer match
-          if (newTrades.length !== tradeAmounts.length) {
+          // Maintain amounts array in sync with trades
+          if (newTrades.length === 0) {
+            // Cleared all
+            setTradeAmounts([]);
+          } else if (newTrades.length === trades.length + 1 && tradeAmounts.length === trades.length) {
+            // One trade added manually - no actual amount, so clear amounts to use config
+            setTradeAmounts([]);
+          } else if (newTrades.length === trades.length - 1 && tradeAmounts.length === trades.length) {
+            // One trade removed - find which index was removed and remove its amount
+            const removedIndex = trades.findIndex((t, i) => newTrades[i] !== t);
+            const idx = removedIndex === -1 ? trades.length - 1 : removedIndex;
+            setTradeAmounts(tradeAmounts.filter((_, i) => i !== idx));
+          } else if (newTrades.length !== tradeAmounts.length) {
             setTradeAmounts([]);
           }
+          setTrades(newTrades);
         }} />
 
         {result && (

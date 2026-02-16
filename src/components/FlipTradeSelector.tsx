@@ -205,11 +205,12 @@ export const FlipTradeSelector = ({ onTradesSelected }: FlipTradeSelectorProps) 
 
   const handleAddTrades = () => {
     const selectedTrades = filteredTrades
-      .filter((trade) => selectedTradeIds.has(trade.id))
-      .map((trade) => trade.result_type as TradeResult);
+      .filter((trade) => selectedTradeIds.has(trade.id));
+    const results = selectedTrades.map((trade) => trade.result_type as TradeResult);
+    const amounts = selectedTrades.map((trade) => Number(trade.result_dollars));
 
-    toast.success(`Agregados ${selectedTrades.length} trades`);
-    onTradesSelected(selectedTrades);
+    toast.success(`Agregados ${results.length} trades`);
+    onTradesSelected(results, amounts);
     setSelectedTradeIds(new Set());
   };
 
