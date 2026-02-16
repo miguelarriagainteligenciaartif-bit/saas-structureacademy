@@ -262,19 +262,11 @@ export const TradeDetailsDialog = ({ trade, open, onOpenChange, onUpdated }: Tra
                 {/* TradingView Image */}
                 {trade.image_link && (
                   <div className="border-t pt-4">
-                    <h3 className="font-semibold mb-2">Chart de TradingView</h3>
-                    <Button
-                      variant="outline"
-                      className="w-full"
-                      onClick={() => window.open(trade.image_link!, "_blank")}
-                    >
-                      <ExternalLink className="h-4 w-4 mr-2" />
-                      Ver Chart en TradingView
-                    </Button>
-                    <div className="mt-4 border rounded-lg overflow-hidden">
+                    <h3 className="font-semibold mb-2">Chart</h3>
+                    <div className="border rounded-lg overflow-hidden">
                       <img
                         src={trade.image_link}
-                        alt="TradingView Chart"
+                        alt="Trade Chart"
                         className="w-full h-auto"
                         onError={(e) => {
                           (e.target as HTMLImageElement).style.display = "none";
