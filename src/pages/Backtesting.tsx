@@ -794,11 +794,11 @@ const Backtesting = () => {
                           )}
                         </div>
                         {trade.image_link && (
-                          <div className="mt-2 border rounded-lg overflow-hidden">
+                          <div className="mt-2 border rounded-lg overflow-hidden max-w-xs">
                             <img
                               src={trade.image_link}
                               alt="Trade Chart"
-                              className="w-full h-auto"
+                              className="w-full h-auto cursor-pointer hover:opacity-90 transition-opacity"
                               onError={(e) => {
                                 (e.target as HTMLImageElement).style.display = "none";
                               }}
