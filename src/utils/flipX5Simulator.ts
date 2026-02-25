@@ -60,14 +60,11 @@ export const simulateFlipX5 = (
       cycleData[currentCycle] = { tpCount: 0, slCount: 0, profit: 0 };
     }
     
-    // Traditional calculation
+    // Traditional calculation - SIEMPRE usa la configuración del usuario
     let riskTraditional: number;
     let pnlTraditional: number;
     
-    if (useActualAmounts) {
-      pnlTraditional = actualAmounts[index];
-      riskTraditional = Math.abs(pnlTraditional);
-    } else if (usePercentageRisk) {
+    if (usePercentageRisk) {
       riskTraditional = (balanceTraditional * riskPerCycle) / 100;
       pnlTraditional = result === 'TP' ? riskTraditional * rrRatio : -riskTraditional;
     } else {
@@ -77,31 +74,11 @@ export const simulateFlipX5 = (
     
     balanceTraditional += pnlTraditional;
     
-    // Leveraged calculation - aplica ciclos con reinversión
+    // Leveraged calculation - aplica ciclos con reinversión usando config del usuario
     let riskLeveraged: number;
     let pnlLeveraged: number;
     
-    if (useActualAmounts) {
-      // Con montos reales: usamos el monto real como base
-      const actualPnl = actualAmounts[index];
-      const baseRisk = Math.abs(actualPnl);
-      
-      // Si es el segundo+ trade del ciclo Y el anterior fue TP, aplicar reinversión
-      if (tradesInCycle > 0 && previousTradeResult === 'TP' && previousTradeProfit > 0) {
-        const reinvestAmount = (previousTradeProfit * reinvestPercent) / 100;
-        riskLeveraged = baseRisk + reinvestAmount;
-        // El PnL apalancado escala proporcionalmente
-        if (result === 'TP') {
-          pnlLeveraged = actualPnl + (reinvestAmount * rrRatio);
-        } else {
-          pnlLeveraged = actualPnl - reinvestAmount;
-        }
-      } else {
-        // Primer trade del ciclo o anterior fue SL: sin reinversión
-        riskLeveraged = baseRisk;
-        pnlLeveraged = actualPnl;
-      }
-    } else if (usePercentageRisk) {
+    if (usePercentageRisk) {
       riskLeveraged = (balanceLeveraged * riskPerCycle) / 100;
       
       if (tradesInCycle > 0 && previousTradeResult === 'TP' && previousTradeProfit > 0) {
