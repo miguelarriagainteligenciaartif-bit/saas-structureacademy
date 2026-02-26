@@ -222,6 +222,7 @@ export function BacktestCSVImporter({ onSuccess, strategyId }: BacktestCSVImport
   const [isDragging, setIsDragging] = useState(false);
   const [rawRows, setRawRows] = useState<CsvRow[]>([]);
   const [previewRows, setPreviewRows] = useState<PreviewRow[]>([]);
+  const [rValue, setRValue] = useState<number>(1000);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dropZoneRef = useRef<HTMLDivElement>(null);
 
@@ -310,7 +311,7 @@ export function BacktestCSVImporter({ onSuccess, strategyId }: BacktestCSVImport
     const dayNames = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
     const derivedDay = dayNames[parsedDate.getDay()] || "Lunes";
 
-    const pnl = parsePnL(getValue(r, "PNL"));
+    const pnl = parsePnL(getValue(r, "PNL")) * rValue;
     const asset = getValue(r, "ASSET") ?? "";
     return {
       date: dateStr,
@@ -502,6 +503,20 @@ export function BacktestCSVImporter({ onSuccess, strategyId }: BacktestCSVImport
                 <SelectItem value="mdy">Mes/Día/Año</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm font-medium">Valor de 1R en dólares</p>
+              <p className="text-xs text-muted-foreground">Si la columna R's muestra múltiplos (ej: 1R = $1,000), ajusta aquí.</p>
+            </div>
+            <input
+              type="number"
+              min={1}
+              value={rValue}
+              onChange={(e) => setRValue(parseFloat(e.target.value) || 1)}
+              className="w-full sm:w-[220px] h-10 rounded-md border border-input bg-background px-3 py-2 text-sm"
+            />
           </div>
 
           {loading && <div className="text-center py-4"><p className="text-muted-foreground">Procesando archivo...</p></div>}
