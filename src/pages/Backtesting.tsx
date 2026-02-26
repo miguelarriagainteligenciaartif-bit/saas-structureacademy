@@ -6,8 +6,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, TrendingUp, TrendingDown, DollarSign, Percent, ExternalLink, ImageIcon, Target, Download, Filter, X, Trash2 } from "lucide-react";
+import { Plus, TrendingUp, TrendingDown, DollarSign, Percent, ExternalLink, ImageIcon, Target, Download, Filter, X, Trash2, CheckSquare } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Checkbox } from "@/components/ui/checkbox";
 import { BacktestReportGenerator } from "@/components/BacktestReportGenerator";
 import { StatsCard } from "@/components/StatsCard";
 import { TradeForm } from "@/components/TradeForm";
@@ -59,6 +60,8 @@ const Backtesting = () => {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [tradesLimit, setTradesLimit] = useState(10);
   const [hasMoreTrades, setHasMoreTrades] = useState(false);
+  const [selectedTradeIds, setSelectedTradeIds] = useState<Set<string>>(new Set());
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
   const [filterDateFrom, setFilterDateFrom] = useState<string>("");
   const [filterDateTo, setFilterDateTo] = useState<string>("");
   const [filterTimeFrom, setFilterTimeFrom] = useState<string>("");
@@ -83,6 +86,44 @@ const Backtesting = () => {
     setFilterDateTo("");
     setFilterTimeFrom("");
     setFilterTimeTo("");
+  };
+
+  const isSelecting = selectedTradeIds.size > 0;
+
+  const toggleTradeSelection = (tradeId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSelectedTradeIds(prev => {
+      const next = new Set(prev);
+      if (next.has(tradeId)) next.delete(tradeId);
+      else next.add(tradeId);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    const visible = filteredTrades.slice(0, tradesLimit);
+    if (selectedTradeIds.size === visible.length) {
+      setSelectedTradeIds(new Set());
+    } else {
+      setSelectedTradeIds(new Set(visible.map(t => t.id)));
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    try {
+      const ids = Array.from(selectedTradeIds);
+      const { error } = await supabase
+        .from("backtest_trades")
+        .delete()
+        .in("id", ids);
+      if (error) throw error;
+      toast.success(`${ids.length} operación(es) eliminada(s)`);
+      setSelectedTradeIds(new Set());
+      setBulkDeleteOpen(false);
+      fetchTrades();
+    } catch (error: any) {
+      toast.error(error.message || "Error al eliminar");
+    }
   };
 
   useEffect(() => {
@@ -667,7 +708,6 @@ const Backtesting = () => {
               </Card>
             )}
 
-
             {/* Charts */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
               <Card>
@@ -740,11 +780,56 @@ const Backtesting = () => {
             {/* Recent Trades */}
             <Card className="mb-8">
               <CardHeader>
-                <CardTitle>Operaciones {hasActiveFilters ? "Filtradas" : "Recientes"}</CardTitle>
-                {filteredTrades.length > 0 && (
-                  <p className="text-sm text-muted-foreground">
-                    Mostrando {Math.min(tradesLimit, filteredTrades.length)} de {filteredTrades.length} operaciones
-                  </p>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>Operaciones {hasActiveFilters ? "Filtradas" : "Recientes"}</CardTitle>
+                    {filteredTrades.length > 0 && (
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Mostrando {Math.min(tradesLimit, filteredTrades.length)} de {filteredTrades.length} operaciones
+                      </p>
+                    )}
+                  </div>
+                  {filteredTrades.length > 0 && (
+                    <div className="flex items-center gap-2">
+                      <Button variant="outline" size="sm" onClick={toggleSelectAll} className="gap-2">
+                        <CheckSquare className="h-4 w-4" />
+                        {selectedTradeIds.size === filteredTrades.slice(0, tradesLimit).length ? "Deseleccionar" : "Seleccionar todo"}
+                      </Button>
+                    </div>
+                  )}
+                </div>
+                {isSelecting && (
+                  <div className="flex items-center gap-3 mt-3 p-3 rounded-lg bg-destructive/10 border border-destructive/20">
+                    <span className="text-sm font-medium">{selectedTradeIds.size} seleccionada(s)</span>
+                    <AlertDialog open={bulkDeleteOpen} onOpenChange={setBulkDeleteOpen}>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="destructive" size="sm" className="gap-2">
+                          <Trash2 className="h-4 w-4" />
+                          Eliminar seleccionadas
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>¿Eliminar {selectedTradeIds.size} operación(es)?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Esta acción no se puede deshacer. Se eliminarán permanentemente las operaciones seleccionadas.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                          <AlertDialogAction
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            onClick={handleBulkDelete}
+                          >
+                            Eliminar {selectedTradeIds.size}
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                    <Button variant="ghost" size="sm" onClick={() => setSelectedTradeIds(new Set())}>
+                      Cancelar
+                    </Button>
+                  </div>
                 )}
               </CardHeader>
               <CardContent>
@@ -758,16 +843,27 @@ const Backtesting = () => {
                       {filteredTrades.slice(0, tradesLimit).map((trade) => (
                       <div 
                         key={trade.id} 
-                        className={`flex items-start justify-between p-4 border rounded-lg transition-colors cursor-pointer ${
+                        className={`flex items-start gap-3 p-4 border rounded-lg transition-colors cursor-pointer ${
+                          selectedTradeIds.has(trade.id) ? 'bg-primary/10 border-primary/30' :
                           trade.no_trade_day 
                             ? 'bg-warning/5 border-warning/20' 
                             : 'hover:bg-accent/5'
                         }`}
                         onClick={() => {
-                          setSelectedTrade(trade);
-                          setEditDialogOpen(true);
+                          if (isSelecting) {
+                            toggleTradeSelection(trade.id, { stopPropagation: () => {} } as React.MouseEvent);
+                          } else {
+                            setSelectedTrade(trade);
+                            setEditDialogOpen(true);
+                          }
                         }}
                       >
+                        <div className="pt-1" onClick={(e) => toggleTradeSelection(trade.id, e)}>
+                          <Checkbox
+                            checked={selectedTradeIds.has(trade.id)}
+                            onCheckedChange={() => {}}
+                          />
+                        </div>
                         <div className="flex-1">
                           <div className="flex items-center gap-3 mb-2">
                             <span className="text-sm font-semibold">{new Date(trade.date).toLocaleDateString('es-ES')}</span>
