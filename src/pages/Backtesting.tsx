@@ -10,6 +10,7 @@ import { Plus, TrendingUp, TrendingDown, DollarSign, Percent, ExternalLink, Imag
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { BacktestReportGenerator } from "@/components/BacktestReportGenerator";
+import { BacktestCSVImporter } from "@/components/BacktestCSVImporter";
 import { StatsCard } from "@/components/StatsCard";
 import { TradeForm } from "@/components/TradeForm";
 import { EditTradeForm } from "@/components/EditTradeForm";
@@ -449,6 +450,7 @@ const Backtesting = () => {
                 <Download className="h-4 w-4" />
                 Exportar CSV
               </Button>
+              <BacktestCSVImporter strategyId={selectedStrategy} onSuccess={fetchTrades} />
               <BacktestReportGenerator trades={filteredTrades} strategy={currentStrategy} />
               <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogTrigger asChild>
