@@ -34,6 +34,7 @@ interface ParsedTrade {
   image_link: string | null;
   no_trade_day: boolean;
   risk_percentage: number;
+  asset: string;
 }
 
 interface PreviewRow {
@@ -54,6 +55,53 @@ const normalizeHeader = (v: any) =>
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .replace(/\s+/g, " ");
+
+const MONTH_MAP: Record<string, number> = {
+  JANUARY: 1, FEBRUARY: 2, MARCH: 3, APRIL: 4, MAY: 5, JUNE: 6,
+  JULY: 7, AUGUST: 8, SEPTEMBER: 9, OCTOBER: 10, NOVEMBER: 11, DECEMBER: 12,
+  ENERO: 1, FEBRERO: 2, MARZO: 3, ABRIL: 4, MAYO: 5, JUNIO: 6,
+  JULIO: 7, AGOSTO: 8, SEPTIEMBRE: 9, OCTUBRE: 10, NOVIEMBRE: 11, DICIEMBRE: 12,
+};
+
+/** Parse dates like "October 2, 2025" or "2 de octubre de 2025" */
+const parseNaturalDate = (raw: string): string | null => {
+  const cleaned = raw.replace(/"/g, "").trim();
+  // "Month Day, Year"
+  const match1 = cleaned.match(/^(\w+)\s+(\d{1,2}),?\s+(\d{4})$/i);
+  if (match1) {
+    const month = MONTH_MAP[match1[1].toUpperCase()];
+    if (month) return parseDateFromParts(parseInt(match1[3]), month, parseInt(match1[2]));
+  }
+  // "Day de Month de Year"
+  const match2 = cleaned.match(/^(\d{1,2})\s+de\s+(\w+)\s+de\s+(\d{4})$/i);
+  if (match2) {
+    const month = MONTH_MAP[match2[2].toUpperCase()];
+    if (month) return parseDateFromParts(parseInt(match2[3]), month, parseInt(match2[1]));
+  }
+  // ISO "YYYY-MM-DD"
+  const match3 = cleaned.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (match3) return `${match3[1]}-${match3[2]}-${match3[3]}`;
+  return null;
+};
+
+/** Flexible column lookup: tries multiple aliases */
+const COLUMN_ALIASES: Record<string, string[]> = {
+  FECHA: ["FECHA", "FECHA OPERATIVA", "DATE", "TRADE DATE"],
+  DIA: ["DIA", "DAY", "DAY OF WEEK"],
+  SEMANA: ["SEMANA", "WEEK", "WEEK OF MONTH"],
+  HORA_ENTRADA: ["HORA ENTRADA", "ENTRY TIME", "HORA"],
+  HORA_SALIDA: ["HORA SALIDA EN 1:2", "HORA SALIDA", "EXIT TIME"],
+  TIPO: ["TIPO", "DIRECCION", "DIRECTION", "SIDE", "TYPE"],
+  MODELO: ["MODELO", "MODEL", "ENTRY MODEL", "EDUCADOR", "EDUCATOR"],
+  RESULTADO: ["RESULTADO", "RESULT", "OUTCOME"],
+  PNL: ["P&L", "PNL", "PROFIT", "PROFIT/LOSS", "R'S", "RS", "R S"],
+  NOTICIA: ["NOTICIA", "NEWS"],
+  RR_MAX: ["RR MAXIMO", "RR MAX", "MAX RR"],
+  DRAWDOWN: ["DRAWDOWN", "DD"],
+  LINK: ["LINK M1 (EJECUCION)", "LINK", "LINK TRADINGVIEW", "IMAGE", "SCREENSHOT"],
+  ASSET: ["PAR OPERADO", "PAR", "ASSET", "SYMBOL", "INSTRUMENT", "TICKER"],
+  MES: ["MES", "MONTH"],
+};
 
 const formatYmd = (d: Date) => {
   const y = d.getFullYear();
@@ -195,8 +243,19 @@ export function BacktestCSVImporter({ onSuccess, strategyId }: BacktestCSVImport
     return mdyVotes > dmyVotes ? "mdy" : "dmy";
   }, [dateFormat, rawRows]);
 
-  function getValue(row: CsvRow, header: string) {
-    const desired = normalizeHeader(header);
+  function getValue(row: CsvRow, aliasKey: string) {
+    const aliases = COLUMN_ALIASES[aliasKey];
+    if (aliases) {
+      for (const alias of aliases) {
+        const desired = normalizeHeader(alias);
+        for (const [k, v] of Object.entries(row)) {
+          if (normalizeHeader(k) === desired) return v;
+        }
+      }
+      return undefined;
+    }
+    // Fallback: direct header match
+    const desired = normalizeHeader(aliasKey);
     for (const [k, v] of Object.entries(row)) {
       if (normalizeHeader(k) === desired) return v;
     }
@@ -217,41 +276,60 @@ export function BacktestCSVImporter({ onSuccess, strategyId }: BacktestCSVImport
 
     const rawMes = String(getValue(r, "MES") ?? "").trim();
     let dateStr: string | null = null;
+
+    // Try MES-guaranteed first
     if (rawMes) dateStr = parseFechaWithMesGuarantee(rawFecha, rawMes, fmt);
+
+    // Try natural language date ("October 2, 2025", "2 de octubre de 2025")
+    if (!dateStr) dateStr = parseNaturalDate(rawFecha);
+
+    // Try DD/MM/YYYY or MM/DD/YYYY
     if (!dateStr) {
       const parts = rawFecha.split("/");
-      if (parts.length !== 3) return null;
-      const a = parseInt(parts[0], 10);
-      const b = parseInt(parts[1], 10);
-      let year = parseInt(parts[2], 10);
-      if (!Number.isFinite(a) || !Number.isFinite(b) || !Number.isFinite(year)) return null;
-      if (year < 100) year += year > 50 ? 1900 : 2000;
-      const day = fmt === "dmy" ? a : b;
-      const month = fmt === "dmy" ? b : a;
-      if (month < 1 || month > 12 || day < 1 || day > 31) return null;
-      dateStr = parseDateFromParts(year, month, day);
+      if (parts.length === 3) {
+        const a = parseInt(parts[0], 10);
+        const b = parseInt(parts[1], 10);
+        let year = parseInt(parts[2], 10);
+        if (Number.isFinite(a) && Number.isFinite(b) && Number.isFinite(year)) {
+          if (year < 100) year += year > 50 ? 1900 : 2000;
+          const day = fmt === "dmy" ? a : b;
+          const month = fmt === "dmy" ? b : a;
+          if (month >= 1 && month <= 12 && day >= 1 && day <= 31) {
+            dateStr = parseDateFromParts(year, month, day);
+          }
+        }
+      }
     }
+
+    if (!dateStr) return null;
     const year = parseInt(dateStr.split("-")[0], 10);
     if (year < 2000) return null;
 
-    const pnl = parsePnL(getValue(r, "P&L"));
+    // Derive day of week from parsed date
+    const parsedDate = new Date(dateStr + "T12:00:00");
+    const dayNames = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+    const derivedDay = dayNames[parsedDate.getDay()] || "Lunes";
+
+    const pnl = parsePnL(getValue(r, "PNL"));
+    const asset = getValue(r, "ASSET") ?? "";
     return {
       date: dateStr,
-      day_of_week: mapDayOfWeek(getValue(r, "DÍA") ?? getValue(r, "DIA")),
+      day_of_week: getValue(r, "DIA") ? mapDayOfWeek(getValue(r, "DIA")) : derivedDay,
       week_of_month: parseWeekOfMonth(getValue(r, "SEMANA")),
-      entry_time: parseTime(getValue(r, "HORA ENTRADA")),
-      exit_time: getValue(r, "HORA SALIDA EN 1:2") || getValue(r, "HORA SALIDA") ? parseTime(getValue(r, "HORA SALIDA EN 1:2") || getValue(r, "HORA SALIDA")) : null,
+      entry_time: parseTime(getValue(r, "HORA_ENTRADA")),
+      exit_time: getValue(r, "HORA_SALIDA") ? parseTime(getValue(r, "HORA_SALIDA")) : null,
       trade_type: mapTradeType(getValue(r, "TIPO")),
       entry_model: mapEntryModel(getValue(r, "MODELO")),
       result_type: mapResultType(getValue(r, "RESULTADO"), pnl),
       result_dollars: pnl,
-      had_news: (getValue(r, "NOTICIA") ? !String(getValue(r, "NOTICIA")).toUpperCase().includes("NO NEWS") : false),
+      had_news: false,
       news_description: getValue(r, "NOTICIA") && !String(getValue(r, "NOTICIA")).toUpperCase().includes("NO NEWS") ? String(getValue(r, "NOTICIA")) : null,
-      max_rr: parseNumber(getValue(r, "RR MÁXIMO") ?? getValue(r, "RR MAXIMO")),
+      max_rr: parseNumber(getValue(r, "RR_MAX")),
       drawdown: parseNumber(getValue(r, "DRAWDOWN")),
-      image_link: (getValue(r, "LINK m1 (EJECUCIÓN)") || getValue(r, "LINK")) ?? null,
+      image_link: getValue(r, "LINK") ?? null,
       no_trade_day: false,
       risk_percentage: 1,
+      asset: asset || "Nasdaq 100",
     };
   };
 
@@ -463,7 +541,7 @@ export function BacktestCSVImporter({ onSuccess, strategyId }: BacktestCSVImport
                         <TableHead>Fecha</TableHead>
                         <TableHead>CSV</TableHead>
                         <TableHead>Día</TableHead>
-                        <TableHead>Hora</TableHead>
+                        <TableHead>Asset</TableHead>
                         <TableHead>Tipo</TableHead>
                         <TableHead>Modelo</TableHead>
                         <TableHead>Resultado</TableHead>
@@ -476,7 +554,7 @@ export function BacktestCSVImporter({ onSuccess, strategyId }: BacktestCSVImport
                           <TableCell className="text-xs font-mono">{r.parsed.date}</TableCell>
                           <TableCell className="text-xs font-mono text-muted-foreground">{r.rawFecha}</TableCell>
                           <TableCell className="text-xs">{r.parsed.day_of_week}</TableCell>
-                          <TableCell className="text-xs">{r.parsed.entry_time}</TableCell>
+                          <TableCell className="text-xs">{r.parsed.asset}</TableCell>
                           <TableCell><Badge variant={r.parsed.trade_type === "Compra" ? "default" : "secondary"} className="text-xs">{r.parsed.trade_type}</Badge></TableCell>
                           <TableCell><Badge variant="outline" className="text-xs">{r.parsed.entry_model}</Badge></TableCell>
                           <TableCell><Badge variant={r.parsed.result_type === "TP" ? "default" : "destructive"} className="text-xs">{r.parsed.result_type}</Badge></TableCell>
