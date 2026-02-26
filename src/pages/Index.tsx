@@ -5,6 +5,7 @@ import { Header } from "@/components/Header";
 import { StatsCard } from "@/components/StatsCard";
 import { TradeForm } from "@/components/TradeForm";
 import { ReportGeneratorDialog } from "@/components/ReportGeneratorDialog";
+import { CSVExportButton } from "@/components/CSVExportButton";
 import { AccountManager } from "@/components/AccountManager";
 import { TradeDetailsDialog } from "@/components/TradeDetailsDialog";
 import { ExcelImporter } from "@/components/ExcelImporter";
@@ -300,6 +301,7 @@ export default function Index() {
         {/* Report Generator and Excel Importer */}
         <div className="flex justify-end gap-2">
           <ExcelImporter onSuccess={loadTrades} />
+          <CSVExportButton trades={allTrades} />
           <ReportGeneratorDialog trades={allTrades} />
         </div>
 
