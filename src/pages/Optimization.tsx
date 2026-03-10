@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { TrendingUp, TrendingDown, Search, Target, ArrowDownRight, Info } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { OptimizationPnLChart } from "@/components/OptimizationPnLChart";
 
 interface DrawdownTrade {
   id: string;
@@ -53,6 +54,7 @@ export default function Optimization() {
   const [selectedStrategy, setSelectedStrategy] = useState<string>("");
   const [trades, setTrades] = useState<DrawdownTrade[]>([]);
   const [totalSLs, setTotalSLs] = useState<number>(0);
+  const [allDecisiveTrades, setAllDecisiveTrades] = useState<{ id: string; date: string; drawdown: number | null; result_type: string }[]>([]);
   const [customLevel, setCustomLevel] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [expandedLevel, setExpandedLevel] = useState<number | null>(null);
@@ -94,10 +96,10 @@ export default function Optimization() {
   useEffect(() => {
     const loadTrades = async () => {
       setLoading(true);
-      let query;
 
       let tpQuery;
       let slQuery;
+      let allQuery;
 
       if (source === "journal") {
         tpQuery = supabase
@@ -109,10 +111,16 @@ export default function Optimization() {
           .from("trades")
           .select("id", { count: "exact", head: true })
           .eq("result_type", "SL");
+        allQuery = supabase
+          .from("trades")
+          .select("id, date, drawdown, result_type")
+          .in("result_type", ["TP", "SL"])
+          .order("date", { ascending: true });
       } else {
         if (!selectedStrategy) {
           setTrades([]);
           setTotalSLs(0);
+          setAllDecisiveTrades([]);
           setLoading(false);
           return;
         }
@@ -127,17 +135,27 @@ export default function Optimization() {
           .select("id", { count: "exact", head: true })
           .eq("result_type", "SL")
           .eq("strategy_id", selectedStrategy);
+        allQuery = supabase
+          .from("backtest_trades")
+          .select("id, date, drawdown, result_type")
+          .eq("strategy_id", selectedStrategy)
+          .in("result_type", ["TP", "SL"])
+          .order("date", { ascending: true });
       }
 
-      const [tpResult, slResult] = await Promise.all([
+      const [tpResult, slResult, allResult] = await Promise.all([
         tpQuery.order("date", { ascending: true }),
         slQuery,
+        allQuery,
       ]);
 
       if (!tpResult.error && tpResult.data) {
         setTrades(tpResult.data as DrawdownTrade[]);
       }
       setTotalSLs(slResult.count ?? 0);
+      if (!allResult.error && allResult.data) {
+        setAllDecisiveTrades(allResult.data);
+      }
       setLoading(false);
     };
 
@@ -433,6 +451,13 @@ export default function Optimization() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* P&L Comparison Chart */}
+            <OptimizationPnLChart
+              allTrades={allDecisiveTrades}
+              baseRR={baseRR}
+              presetLevels={PRESET_LEVELS}
+            />
 
             {/* Custom Level */}
             <Card>
