@@ -28,12 +28,18 @@ interface LevelAnalysis {
   tpsReach: number;
   tpsDontReach: number;
   totalTPs: number;
+  totalSLs: number;
   reachPercent: number;
   dontReachPercent: number;
   potentialRRGain: string;
   avgOriginalRR: number;
   avgNewRR: number;
   avgRRIncrease: number;
+  originalWinRate: number;
+  newWinRate: number;
+  originalEV: number;
+  newEV: number;
+  evDelta: number;
   survivingTrades: { id: string; date: string; asset: string; entry_model: string; originalRR: number; newRR: number; rrIncrease: number; drawdown: number }[];
 }
 
@@ -46,10 +52,11 @@ export default function Optimization() {
   const [strategies, setStrategies] = useState<{ id: string; name: string; risk_reward_ratio: string }[]>([]);
   const [selectedStrategy, setSelectedStrategy] = useState<string>("");
   const [trades, setTrades] = useState<DrawdownTrade[]>([]);
+  const [totalSLs, setTotalSLs] = useState<number>(0);
   const [customLevel, setCustomLevel] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [expandedLevel, setExpandedLevel] = useState<number | null>(null);
-  const [journalRR, setJournalRR] = useState<number>(2); // RR fijo para journal
+  const [journalRR, setJournalRR] = useState<number>(2);
 
   // Auth
   useEffect(() => {
@@ -89,30 +96,48 @@ export default function Optimization() {
       setLoading(true);
       let query;
 
+      let tpQuery;
+      let slQuery;
+
       if (source === "journal") {
-        query = supabase
+        tpQuery = supabase
           .from("trades")
           .select("id, date, drawdown, result_type, result_dollars, asset, entry_model, max_rr")
           .eq("result_type", "TP")
           .not("drawdown", "is", null);
+        slQuery = supabase
+          .from("trades")
+          .select("id", { count: "exact", head: true })
+          .eq("result_type", "SL");
       } else {
         if (!selectedStrategy) {
           setTrades([]);
+          setTotalSLs(0);
           setLoading(false);
           return;
         }
-        query = supabase
+        tpQuery = supabase
           .from("backtest_trades")
           .select("id, date, drawdown, result_type, result_dollars, asset, entry_model, max_rr")
           .eq("result_type", "TP")
           .eq("strategy_id", selectedStrategy)
           .not("drawdown", "is", null);
+        slQuery = supabase
+          .from("backtest_trades")
+          .select("id", { count: "exact", head: true })
+          .eq("result_type", "SL")
+          .eq("strategy_id", selectedStrategy);
       }
 
-      const { data, error } = await query.order("date", { ascending: true });
-      if (!error && data) {
-        setTrades(data as DrawdownTrade[]);
+      const [tpResult, slResult] = await Promise.all([
+        tpQuery.order("date", { ascending: true }),
+        slQuery,
+      ]);
+
+      if (!tpResult.error && tpResult.data) {
+        setTrades(tpResult.data as DrawdownTrade[]);
       }
+      setTotalSLs(slResult.count ?? 0);
       setLoading(false);
     };
 
@@ -122,29 +147,35 @@ export default function Optimization() {
   // Analysis
   const analyzeLevel = (level: number): LevelAnalysis => {
     const totalTPs = trades.length;
+    const newRR = (baseRR + level) / (1 - level);
     
-    // Surviving trades: drawdown >= level
     const surviving = trades
       .filter((t) => t.drawdown >= level)
-      .map((t) => {
-        const originalRR = baseRR;
-        // New RR: TP increases by level * SL, SL shrinks by (1 - level)
-        // newRR = (originalRR + level) / (1 - level)
-        const newRR = (baseRR + level) / (1 - level);
-        return {
-          id: t.id,
-          date: t.date,
-          asset: t.asset,
-          entry_model: t.entry_model,
-          originalRR,
-          newRR,
-          rrIncrease: newRR - originalRR,
-          drawdown: t.drawdown,
-        };
-      });
+      .map((t) => ({
+        id: t.id,
+        date: t.date,
+        asset: t.asset,
+        entry_model: t.entry_model,
+        originalRR: baseRR,
+        newRR,
+        rrIncrease: newRR - baseRR,
+        drawdown: t.drawdown,
+      }));
 
-    const tpsReach = trades.filter((t) => t.drawdown >= level).length;
+    const tpsReach = surviving.length;
     const tpsDontReach = totalTPs - tpsReach;
+
+    // Win rates
+    const originalTotal = totalTPs + totalSLs;
+    const originalWinRate = originalTotal > 0 ? (totalTPs / originalTotal) * 100 : 0;
+    const newTotal = tpsReach + totalSLs;
+    const newWinRate = newTotal > 0 ? (tpsReach / newTotal) * 100 : 0;
+
+    // EV = (WR × RR) - (1 - WR)
+    const origWR = originalWinRate / 100;
+    const newWR = newWinRate / 100;
+    const originalEV = (origWR * baseRR) - (1 - origWR);
+    const newEV = (newWR * newRR) - (1 - newWR);
 
     return {
       level,
@@ -152,30 +183,35 @@ export default function Optimization() {
       tpsReach,
       tpsDontReach,
       totalTPs,
+      totalSLs,
       reachPercent: totalTPs > 0 ? (tpsReach / totalTPs) * 100 : 0,
       dontReachPercent: totalTPs > 0 ? (tpsDontReach / totalTPs) * 100 : 0,
-      potentialRRGain: `+${(((baseRR + level) / (1 - level)) - baseRR).toFixed(2)}R`,
+      potentialRRGain: `+${(newRR - baseRR).toFixed(2)}R`,
       avgOriginalRR: baseRR,
-      avgNewRR: (baseRR + level) / (1 - level),
-      avgRRIncrease: ((baseRR + level) / (1 - level)) - baseRR,
+      avgNewRR: newRR,
+      avgRRIncrease: newRR - baseRR,
+      originalWinRate,
+      newWinRate,
+      originalEV,
+      newEV,
+      evDelta: newEV - originalEV,
       survivingTrades: surviving,
     };
   };
 
-  const presetAnalysis = useMemo(() => PRESET_LEVELS.map(analyzeLevel), [trades, baseRR]);
+  const presetAnalysis = useMemo(() => PRESET_LEVELS.map(analyzeLevel), [trades, baseRR, totalSLs]);
 
   const customLevelNum = parseFloat(customLevel);
   const customAnalysis = useMemo(() => {
     if (isNaN(customLevelNum) || customLevelNum <= 0 || customLevelNum >= 1) return null;
     return analyzeLevel(customLevelNum);
-  }, [customLevelNum, trades, baseRR]);
+  }, [customLevelNum, trades, baseRR, totalSLs]);
 
-  // Trades that would NOT survive at the most aggressive viable level
+  // Best level: highest level where EV improves
   const bestLevel = useMemo(() => {
-    // Find the highest level where ≥80% of TPs survive
     for (let i = PRESET_LEVELS.length - 1; i >= 0; i--) {
       const analysis = presetAnalysis[i];
-      if (analysis.reachPercent >= 80) return analysis;
+      if (analysis.evDelta > 0) return analysis;
     }
     return null;
   }, [presetAnalysis]);
@@ -244,7 +280,7 @@ export default function Optimization() {
             )}
 
             <Badge variant="outline" className="self-center whitespace-nowrap">
-              {trades.length} TPs con drawdown
+              {trades.length} TPs · {totalSLs} SLs
             </Badge>
           </CardContent>
         </Card>
@@ -271,9 +307,10 @@ export default function Optimization() {
                   <div>
                     <p className="font-semibold text-lg">Recomendación</p>
                     <p className="text-muted-foreground">
-                      Podrías mover tu entrada hasta el <span className="text-foreground font-bold">{bestLevel.label}</span> del recorrido al SL 
-                      manteniendo el <span className="text-foreground font-bold">{bestLevel.reachPercent.toFixed(1)}%</span> de tus TPs. 
-                      Esto representaría un aumento potencial de <span className="text-primary font-bold">{bestLevel.potentialRRGain}</span> en tu RR.
+                      Mover tu entrada al <span className="text-foreground font-bold">{bestLevel.label}</span> del recorrido al SL 
+                      aumenta tu RR de <span className="font-bold">{bestLevel.avgOriginalRR.toFixed(2)}R</span> a <span className="text-primary font-bold">{bestLevel.avgNewRR.toFixed(2)}R</span>.
+                      Tu Win Rate bajaría de <span className="font-bold">{bestLevel.originalWinRate.toFixed(1)}%</span> a <span className="font-bold">{bestLevel.newWinRate.toFixed(1)}%</span>, 
+                      pero tu EV mejora de <span className="font-bold">{bestLevel.originalEV.toFixed(3)}</span> a <span className="text-primary font-bold">{bestLevel.newEV.toFixed(3)}</span> (<span className="text-success font-bold">+{bestLevel.evDelta.toFixed(3)}</span>).
                     </p>
                   </div>
                 </CardContent>
@@ -306,32 +343,43 @@ export default function Optimization() {
                     <TableRow>
                       <TableHead>Nivel DD</TableHead>
                       <TableHead className="text-center">Supervivencia</TableHead>
-                      <TableHead className="text-center">RR Original Prom.</TableHead>
-                      <TableHead className="text-center">RR Nuevo Prom.</TableHead>
-                      <TableHead className="text-center">Δ RR Prom.</TableHead>
+                      <TableHead className="text-center">Win Rate</TableHead>
+                      <TableHead className="text-center">RR Nuevo</TableHead>
+                      <TableHead className="text-center">EV Original</TableHead>
+                      <TableHead className="text-center">EV Nuevo</TableHead>
+                      <TableHead className="text-center">Δ EV</TableHead>
                       <TableHead className="text-center">Detalle</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {presetAnalysis.map((a) => (
                       <>
-                        <TableRow key={a.level} className={a.reachPercent >= 80 ? "bg-success/5" : a.reachPercent >= 60 ? "" : "bg-destructive/5"}>
+                        <TableRow key={a.level} className={a.evDelta > 0 ? "bg-success/5" : a.evDelta > -0.05 ? "" : "bg-destructive/5"}>
                           <TableCell className="font-bold">{a.label}</TableCell>
                           <TableCell className="text-center">
-                            <div className="flex items-center justify-center gap-1.5">
-                              <Badge variant={a.reachPercent >= 80 ? "default" : a.reachPercent >= 60 ? "secondary" : "destructive"}>
-                                {a.tpsReach}/{a.totalTPs} ({a.reachPercent.toFixed(1)}%)
-                              </Badge>
+                            <Badge variant={a.reachPercent >= 80 ? "default" : a.reachPercent >= 60 ? "secondary" : "destructive"}>
+                              {a.tpsReach}/{a.totalTPs} ({a.reachPercent.toFixed(1)}%)
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <div className="flex flex-col items-center">
+                              <span className="text-xs text-muted-foreground line-through">{a.originalWinRate.toFixed(1)}%</span>
+                              <span className="font-mono font-bold">{a.newWinRate.toFixed(1)}%</span>
                             </div>
                           </TableCell>
-                          <TableCell className="text-center font-mono">
-                            {a.avgOriginalRR > 0 ? `${a.avgOriginalRR.toFixed(2)}R` : "—"}
-                          </TableCell>
                           <TableCell className="text-center font-mono font-bold text-primary">
-                            {a.avgNewRR > 0 ? `${a.avgNewRR.toFixed(2)}R` : "—"}
+                            {a.avgNewRR.toFixed(2)}R
                           </TableCell>
-                          <TableCell className="text-center font-mono font-bold text-success">
-                            {a.avgRRIncrease > 0 ? `+${a.avgRRIncrease.toFixed(2)}R` : "—"}
+                          <TableCell className="text-center font-mono text-muted-foreground">
+                            {a.originalEV.toFixed(3)}
+                          </TableCell>
+                          <TableCell className="text-center font-mono font-bold">
+                            {a.newEV.toFixed(3)}
+                          </TableCell>
+                          <TableCell className="text-center font-mono font-bold">
+                            <span className={a.evDelta > 0 ? "text-success" : "text-destructive"}>
+                              {a.evDelta > 0 ? "+" : ""}{a.evDelta.toFixed(3)}
+                            </span>
                           </TableCell>
                           <TableCell className="text-center">
                             <Button
@@ -340,13 +388,13 @@ export default function Optimization() {
                               onClick={() => setExpandedLevel(expandedLevel === a.level ? null : a.level)}
                               disabled={a.survivingTrades.length === 0}
                             >
-                              {expandedLevel === a.level ? "Ocultar" : `Ver ${a.survivingTrades.length} trades`}
+                              {expandedLevel === a.level ? "Ocultar" : `Ver ${a.survivingTrades.length}`}
                             </Button>
                           </TableCell>
                         </TableRow>
                         {expandedLevel === a.level && a.survivingTrades.length > 0 && (
                           <TableRow key={`${a.level}-detail`}>
-                            <TableCell colSpan={6} className="p-0">
+                            <TableCell colSpan={8} className="p-0">
                               <div className="bg-muted/30 p-4">
                                 <Table>
                                   <TableHeader>
@@ -412,13 +460,7 @@ export default function Optimization() {
 
                 {customAnalysis && (
                   <div className="space-y-4 pt-2">
-                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-                      <Card>
-                        <CardContent className="pt-4 text-center">
-                          <p className="text-xs text-muted-foreground mb-1">Nivel</p>
-                          <p className="text-2xl font-bold">{customAnalysis.label}</p>
-                        </CardContent>
-                      </Card>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
                       <Card>
                         <CardContent className="pt-4 text-center">
                           <p className="text-xs text-muted-foreground mb-1">Supervivencia</p>
@@ -428,26 +470,25 @@ export default function Optimization() {
                       </Card>
                       <Card>
                         <CardContent className="pt-4 text-center">
-                          <p className="text-xs text-muted-foreground mb-1">Pierdes</p>
-                          <p className="text-2xl font-bold text-destructive">{customAnalysis.tpsDontReach}</p>
-                        </CardContent>
-                      </Card>
-                      <Card>
-                        <CardContent className="pt-4 text-center">
-                          <p className="text-xs text-muted-foreground mb-1">RR Original</p>
-                          <p className="text-2xl font-bold">{customAnalysis.avgOriginalRR.toFixed(2)}R</p>
+                          <p className="text-xs text-muted-foreground mb-1">Win Rate</p>
+                          <p className="text-xs text-muted-foreground line-through">{customAnalysis.originalWinRate.toFixed(1)}%</p>
+                          <p className="text-2xl font-bold">{customAnalysis.newWinRate.toFixed(1)}%</p>
                         </CardContent>
                       </Card>
                       <Card>
                         <CardContent className="pt-4 text-center">
                           <p className="text-xs text-muted-foreground mb-1">RR Nuevo</p>
+                          <p className="text-xs text-muted-foreground line-through">{customAnalysis.avgOriginalRR.toFixed(2)}R</p>
                           <p className="text-2xl font-bold text-primary">{customAnalysis.avgNewRR.toFixed(2)}R</p>
                         </CardContent>
                       </Card>
-                      <Card>
+                      <Card className={customAnalysis.evDelta > 0 ? "border-success/30 bg-success/5" : "border-destructive/30 bg-destructive/5"}>
                         <CardContent className="pt-4 text-center">
-                          <p className="text-xs text-muted-foreground mb-1">Δ RR</p>
-                          <p className="text-2xl font-bold text-success">+{customAnalysis.avgRRIncrease.toFixed(2)}R</p>
+                          <p className="text-xs text-muted-foreground mb-1">Δ EV</p>
+                          <p className="text-xs text-muted-foreground">{customAnalysis.originalEV.toFixed(3)} → {customAnalysis.newEV.toFixed(3)}</p>
+                          <p className={`text-2xl font-bold ${customAnalysis.evDelta > 0 ? "text-success" : "text-destructive"}`}>
+                            {customAnalysis.evDelta > 0 ? "+" : ""}{customAnalysis.evDelta.toFixed(3)}
+                          </p>
                         </CardContent>
                       </Card>
                     </div>
@@ -498,20 +539,18 @@ export default function Optimization() {
                   Un drawdown de 0.33 significa que el precio recorrió el 33% del camino hacia el SL.
                 </p>
                 <p>
-                  <strong className="text-foreground">"TPs que llegan"</strong> son los trades ganadores cuyo drawdown fue ≥ al nivel analizado. 
-                  Si movieras tu entrada a ese nivel, estos trades <strong className="text-success">seguirían siendo TP</strong>.
+                  <strong className="text-foreground">Supervivencia</strong> = TPs cuyo drawdown ≥ nivel. Si mueves la entrada ahí, estos trades seguirían siendo TP. Los que no llegan se pierden.
                 </p>
                 <p>
-                  <strong className="text-foreground">"TPs que NO llegan"</strong> son los que tienen drawdown menor al nivel. 
-                  Si movieras la entrada ahí, <strong className="text-destructive">los perderías</strong> porque el precio no llegó a tocar esa zona.
+                  <strong className="text-foreground">Win Rate</strong> = TPs supervivientes / (TPs supervivientes + SLs). 
+                  Los SL se mantienen todos; solo disminuyen los TPs que no alcanzan el nivel.
                 </p>
                 <p>
-                  <strong className="text-foreground">Ganancia RR Potencial</strong> indica cuánto aumentaría tu ratio riesgo-recompensa 
-                  al acercar la entrada al SL. Por ejemplo, +0.50x sobre un RR de 2:1 te daría 3:1.
+                  <strong className="text-foreground">EV (Expected Value)</strong> = (WR × RR) − (1 − WR). 
+                  Si el EV nuevo es mayor que el original, <strong className="text-success">merece la pena</strong> mover la entrada.
                 </p>
                 <p>
-                  <strong className="text-primary">Busca el nivel donde mantengas ≥80% de supervivencia</strong> — ese es tu punto óptimo 
-                  para mejorar el RR sin sacrificar demasiados trades ganadores.
+                  <strong className="text-primary">Busca el nivel donde el Δ EV sea positivo</strong> — eso significa que el aumento de RR compensa la pérdida de Win Rate.
                 </p>
               </CardContent>
             </Card>
