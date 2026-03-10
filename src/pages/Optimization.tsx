@@ -154,10 +154,10 @@ export default function Optimization() {
       totalTPs,
       reachPercent: totalTPs > 0 ? (tpsReach / totalTPs) * 100 : 0,
       dontReachPercent: totalTPs > 0 ? (tpsDontReach / totalTPs) * 100 : 0,
-      potentialRRGain: `+${((baseRR / (1 - level)) - baseRR).toFixed(2)}R`,
+      potentialRRGain: `+${(((baseRR + level) / (1 - level)) - baseRR).toFixed(2)}R`,
       avgOriginalRR: baseRR,
-      avgNewRR: baseRR / (1 - level),
-      avgRRIncrease: (baseRR / (1 - level)) - baseRR,
+      avgNewRR: (baseRR + level) / (1 - level),
+      avgRRIncrease: ((baseRR + level) / (1 - level)) - baseRR,
       survivingTrades: surviving,
     };
   };
