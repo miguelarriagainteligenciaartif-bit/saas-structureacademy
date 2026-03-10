@@ -371,14 +371,14 @@ export default function Optimization() {
                       <TableHead className="text-center">RR Nuevo</TableHead>
                       <TableHead className="text-center">EV Original</TableHead>
                       <TableHead className="text-center">EV Nuevo</TableHead>
-                      <TableHead className="text-center">Δ EV</TableHead>
+                      <TableHead className="text-center">Δ P&L (R)</TableHead>
                       <TableHead className="text-center">Detalle</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {presetAnalysis.map((a) => (
                       <>
-                        <TableRow key={a.level} className={a.evDelta > 0 ? "bg-success/5" : a.evDelta > -0.05 ? "" : "bg-destructive/5"}>
+                        <TableRow key={a.level} className={a.totalRDelta > 0 ? "bg-success/5" : "bg-destructive/5"}>
                           <TableCell className="font-bold">{a.label}</TableCell>
                           <TableCell className="text-center">
                             <Badge variant={a.reachPercent >= 80 ? "default" : a.reachPercent >= 60 ? "secondary" : "destructive"}>
@@ -401,8 +401,8 @@ export default function Optimization() {
                             {a.newEV.toFixed(3)}
                           </TableCell>
                           <TableCell className="text-center font-mono font-bold">
-                            <span className={a.evDelta > 0 ? "text-success" : "text-destructive"}>
-                              {a.evDelta > 0 ? "+" : ""}{a.evDelta.toFixed(3)}
+                            <span className={a.totalRDelta > 0 ? "text-success" : "text-destructive"}>
+                              {a.totalRDelta > 0 ? "+" : ""}{a.totalRDelta.toFixed(2)}R
                             </span>
                           </TableCell>
                           <TableCell className="text-center">
