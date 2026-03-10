@@ -31,6 +31,10 @@ interface LevelAnalysis {
   reachPercent: number;
   dontReachPercent: number;
   potentialRRGain: string;
+  avgOriginalRR: number;
+  avgNewRR: number;
+  avgRRIncrease: number;
+  survivingTrades: { id: string; date: string; asset: string; entry_model: string; originalRR: number; newRR: number; rrIncrease: number; drawdown: number }[];
 }
 
 const PRESET_LEVELS = [0.25, 0.33, 0.50, 0.66, 0.75];
@@ -44,6 +48,7 @@ export default function Optimization() {
   const [trades, setTrades] = useState<DrawdownTrade[]>([]);
   const [customLevel, setCustomLevel] = useState<string>("");
   const [loading, setLoading] = useState(false);
+  const [expandedLevel, setExpandedLevel] = useState<number | null>(null);
 
   // Auth
   useEffect(() => {
@@ -106,10 +111,32 @@ export default function Optimization() {
   // Analysis
   const analyzeLevel = (level: number): LevelAnalysis => {
     const totalTPs = trades.length;
-    // "Reach" = drawdown >= level → the trade went at least that far toward SL, 
-    // meaning if you moved entry there, the trade would still hit TP
+    const tradesWithRR = trades.filter((t) => t.max_rr != null);
+    
+    // Surviving trades: drawdown >= level
+    const surviving = tradesWithRR
+      .filter((t) => t.drawdown >= level)
+      .map((t) => {
+        const originalRR = t.max_rr!;
+        // New RR: same TP distance, but SL distance shrinks by (1 - level)
+        const newRR = originalRR / (1 - level);
+        return {
+          id: t.id,
+          date: t.date,
+          asset: t.asset,
+          entry_model: t.entry_model,
+          originalRR,
+          newRR,
+          rrIncrease: newRR - originalRR,
+          drawdown: t.drawdown,
+        };
+      });
+
     const tpsReach = trades.filter((t) => t.drawdown >= level).length;
     const tpsDontReach = totalTPs - tpsReach;
+
+    const avgOriginalRR = surviving.length > 0 ? surviving.reduce((s, t) => s + t.originalRR, 0) / surviving.length : 0;
+    const avgNewRR = surviving.length > 0 ? surviving.reduce((s, t) => s + t.newRR, 0) / surviving.length : 0;
 
     return {
       level,
@@ -120,6 +147,10 @@ export default function Optimization() {
       reachPercent: totalTPs > 0 ? (tpsReach / totalTPs) * 100 : 0,
       dontReachPercent: totalTPs > 0 ? (tpsDontReach / totalTPs) * 100 : 0,
       potentialRRGain: `+${((1 / (1 - level)) - 1).toFixed(2)}x`,
+      avgOriginalRR,
+      avgNewRR,
+      avgRRIncrease: avgNewRR - avgOriginalRR,
+      survivingTrades: surviving,
     };
   };
 
@@ -240,46 +271,89 @@ export default function Optimization() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
+                <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
                       <TableHead>Nivel DD</TableHead>
-                      <TableHead className="text-center">TPs que llegan</TableHead>
-                      <TableHead className="text-center">TPs que NO llegan</TableHead>
-                      <TableHead className="text-center">% Supervivencia</TableHead>
-                      <TableHead className="text-center">Ganancia RR Potencial</TableHead>
+                      <TableHead className="text-center">Supervivencia</TableHead>
+                      <TableHead className="text-center">RR Original Prom.</TableHead>
+                      <TableHead className="text-center">RR Nuevo Prom.</TableHead>
+                      <TableHead className="text-center">Δ RR Prom.</TableHead>
+                      <TableHead className="text-center">Detalle</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {presetAnalysis.map((a) => (
-                      <TableRow key={a.level} className={a.reachPercent >= 80 ? "bg-success/5" : a.reachPercent >= 60 ? "" : "bg-destructive/5"}>
-                        <TableCell className="font-bold">{a.label}</TableCell>
-                        <TableCell className="text-center">
-                          <div className="flex items-center justify-center gap-1.5">
-                            <TrendingUp className="h-4 w-4 text-success" />
-                            <span className="font-medium">{a.tpsReach}</span>
-                            <span className="text-muted-foreground text-xs">({a.reachPercent.toFixed(1)}%)</span>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-center">
-                          <div className="flex items-center justify-center gap-1.5">
-                            <TrendingDown className="h-4 w-4 text-destructive" />
-                            <span className="font-medium">{a.tpsDontReach}</span>
-                            <span className="text-muted-foreground text-xs">({a.dontReachPercent.toFixed(1)}%)</span>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-center">
-                          <Badge variant={a.reachPercent >= 80 ? "default" : a.reachPercent >= 60 ? "secondary" : "destructive"}>
-                            {a.reachPercent.toFixed(1)}%
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-center font-mono font-bold text-primary">
-                          {a.potentialRRGain}
-                        </TableCell>
-                      </TableRow>
+                      <>
+                        <TableRow key={a.level} className={a.reachPercent >= 80 ? "bg-success/5" : a.reachPercent >= 60 ? "" : "bg-destructive/5"}>
+                          <TableCell className="font-bold">{a.label}</TableCell>
+                          <TableCell className="text-center">
+                            <div className="flex items-center justify-center gap-1.5">
+                              <Badge variant={a.reachPercent >= 80 ? "default" : a.reachPercent >= 60 ? "secondary" : "destructive"}>
+                                {a.tpsReach}/{a.totalTPs} ({a.reachPercent.toFixed(1)}%)
+                              </Badge>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-center font-mono">
+                            {a.avgOriginalRR > 0 ? `${a.avgOriginalRR.toFixed(2)}R` : "—"}
+                          </TableCell>
+                          <TableCell className="text-center font-mono font-bold text-primary">
+                            {a.avgNewRR > 0 ? `${a.avgNewRR.toFixed(2)}R` : "—"}
+                          </TableCell>
+                          <TableCell className="text-center font-mono font-bold text-success">
+                            {a.avgRRIncrease > 0 ? `+${a.avgRRIncrease.toFixed(2)}R` : "—"}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setExpandedLevel(expandedLevel === a.level ? null : a.level)}
+                              disabled={a.survivingTrades.length === 0}
+                            >
+                              {expandedLevel === a.level ? "Ocultar" : `Ver ${a.survivingTrades.length} trades`}
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                        {expandedLevel === a.level && a.survivingTrades.length > 0 && (
+                          <TableRow key={`${a.level}-detail`}>
+                            <TableCell colSpan={6} className="p-0">
+                              <div className="bg-muted/30 p-4">
+                                <Table>
+                                  <TableHeader>
+                                    <TableRow>
+                                      <TableHead>Fecha</TableHead>
+                                      <TableHead>Activo</TableHead>
+                                      <TableHead>Modelo</TableHead>
+                                      <TableHead className="text-center">DD</TableHead>
+                                      <TableHead className="text-center">RR Original</TableHead>
+                                      <TableHead className="text-center">RR Nuevo</TableHead>
+                                      <TableHead className="text-center">Δ RR</TableHead>
+                                    </TableRow>
+                                  </TableHeader>
+                                  <TableBody>
+                                    {a.survivingTrades.map((t) => (
+                                      <TableRow key={t.id}>
+                                        <TableCell className="text-sm">{t.date}</TableCell>
+                                        <TableCell className="text-sm">{t.asset}</TableCell>
+                                        <TableCell className="text-sm">{t.entry_model}</TableCell>
+                                        <TableCell className="text-center text-sm">{(t.drawdown * 100).toFixed(0)}%</TableCell>
+                                        <TableCell className="text-center font-mono text-sm">{t.originalRR.toFixed(2)}R</TableCell>
+                                        <TableCell className="text-center font-mono font-bold text-primary text-sm">{t.newRR.toFixed(2)}R</TableCell>
+                                        <TableCell className="text-center font-mono font-bold text-success text-sm">+{t.rrIncrease.toFixed(2)}R</TableCell>
+                                      </TableRow>
+                                    ))}
+                                  </TableBody>
+                                </Table>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </>
                     ))}
                   </TableBody>
                 </Table>
+                </div>
               </CardContent>
             </Card>
 
@@ -308,33 +382,77 @@ export default function Optimization() {
                 </div>
 
                 {customAnalysis && (
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-2">
-                    <Card>
-                      <CardContent className="pt-4 text-center">
-                        <p className="text-xs text-muted-foreground mb-1">Nivel</p>
-                        <p className="text-2xl font-bold">{customAnalysis.label}</p>
-                      </CardContent>
-                    </Card>
-                    <Card>
-                      <CardContent className="pt-4 text-center">
-                        <p className="text-xs text-muted-foreground mb-1">TPs que llegan</p>
-                        <p className="text-2xl font-bold text-success">{customAnalysis.tpsReach}</p>
-                        <p className="text-xs text-muted-foreground">{customAnalysis.reachPercent.toFixed(1)}%</p>
-                      </CardContent>
-                    </Card>
-                    <Card>
-                      <CardContent className="pt-4 text-center">
-                        <p className="text-xs text-muted-foreground mb-1">TPs que NO llegan</p>
-                        <p className="text-2xl font-bold text-destructive">{customAnalysis.tpsDontReach}</p>
-                        <p className="text-xs text-muted-foreground">{customAnalysis.dontReachPercent.toFixed(1)}%</p>
-                      </CardContent>
-                    </Card>
-                    <Card>
-                      <CardContent className="pt-4 text-center">
-                        <p className="text-xs text-muted-foreground mb-1">Ganancia RR</p>
-                        <p className="text-2xl font-bold text-primary">{customAnalysis.potentialRRGain}</p>
-                      </CardContent>
-                    </Card>
+                  <div className="space-y-4 pt-2">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+                      <Card>
+                        <CardContent className="pt-4 text-center">
+                          <p className="text-xs text-muted-foreground mb-1">Nivel</p>
+                          <p className="text-2xl font-bold">{customAnalysis.label}</p>
+                        </CardContent>
+                      </Card>
+                      <Card>
+                        <CardContent className="pt-4 text-center">
+                          <p className="text-xs text-muted-foreground mb-1">Supervivencia</p>
+                          <p className="text-2xl font-bold text-success">{customAnalysis.tpsReach}/{customAnalysis.totalTPs}</p>
+                          <p className="text-xs text-muted-foreground">{customAnalysis.reachPercent.toFixed(1)}%</p>
+                        </CardContent>
+                      </Card>
+                      <Card>
+                        <CardContent className="pt-4 text-center">
+                          <p className="text-xs text-muted-foreground mb-1">Pierdes</p>
+                          <p className="text-2xl font-bold text-destructive">{customAnalysis.tpsDontReach}</p>
+                        </CardContent>
+                      </Card>
+                      <Card>
+                        <CardContent className="pt-4 text-center">
+                          <p className="text-xs text-muted-foreground mb-1">RR Original</p>
+                          <p className="text-2xl font-bold">{customAnalysis.avgOriginalRR.toFixed(2)}R</p>
+                        </CardContent>
+                      </Card>
+                      <Card>
+                        <CardContent className="pt-4 text-center">
+                          <p className="text-xs text-muted-foreground mb-1">RR Nuevo</p>
+                          <p className="text-2xl font-bold text-primary">{customAnalysis.avgNewRR.toFixed(2)}R</p>
+                        </CardContent>
+                      </Card>
+                      <Card>
+                        <CardContent className="pt-4 text-center">
+                          <p className="text-xs text-muted-foreground mb-1">Δ RR</p>
+                          <p className="text-2xl font-bold text-success">+{customAnalysis.avgRRIncrease.toFixed(2)}R</p>
+                        </CardContent>
+                      </Card>
+                    </div>
+
+                    {customAnalysis.survivingTrades.length > 0 && (
+                      <div className="overflow-x-auto">
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Fecha</TableHead>
+                              <TableHead>Activo</TableHead>
+                              <TableHead>Modelo</TableHead>
+                              <TableHead className="text-center">DD</TableHead>
+                              <TableHead className="text-center">RR Original</TableHead>
+                              <TableHead className="text-center">RR Nuevo</TableHead>
+                              <TableHead className="text-center">Δ RR</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {customAnalysis.survivingTrades.map((t) => (
+                              <TableRow key={t.id}>
+                                <TableCell className="text-sm">{t.date}</TableCell>
+                                <TableCell className="text-sm">{t.asset}</TableCell>
+                                <TableCell className="text-sm">{t.entry_model}</TableCell>
+                                <TableCell className="text-center text-sm">{(t.drawdown * 100).toFixed(0)}%</TableCell>
+                                <TableCell className="text-center font-mono text-sm">{t.originalRR.toFixed(2)}R</TableCell>
+                                <TableCell className="text-center font-mono font-bold text-primary text-sm">{t.newRR.toFixed(2)}R</TableCell>
+                                <TableCell className="text-center font-mono font-bold text-success text-sm">+{t.rrIncrease.toFixed(2)}R</TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    )}
                   </div>
                 )}
               </CardContent>
