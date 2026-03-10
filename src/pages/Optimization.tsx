@@ -221,6 +221,27 @@ export default function Optimization() {
               </Select>
             )}
 
+            {source === "journal" && (
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground whitespace-nowrap">RR de la estrategia:</span>
+                <span className="text-sm text-muted-foreground">1:</span>
+                <Input
+                  type="number"
+                  step="0.1"
+                  min="0.1"
+                  value={journalRR}
+                  onChange={(e) => setJournalRR(parseFloat(e.target.value) || 2)}
+                  className="w-20 h-8"
+                />
+              </div>
+            )}
+
+            {source === "backtest" && strategies.find(s => s.id === selectedStrategy) && (
+              <Badge variant="secondary" className="self-center whitespace-nowrap">
+                RR: 1:{baseRR}
+              </Badge>
+            )}
+
             <Badge variant="outline" className="self-center whitespace-nowrap">
               {trades.length} TPs con drawdown
             </Badge>
