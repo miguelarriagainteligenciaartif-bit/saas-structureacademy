@@ -65,13 +65,23 @@ export default function Optimization() {
   // Load strategies for backtest source
   useEffect(() => {
     if (source !== "backtest") return;
-    supabase.from("backtest_strategies").select("id, name").then(({ data }) => {
+    supabase.from("backtest_strategies").select("id, name, risk_reward_ratio").then(({ data }) => {
       setStrategies(data || []);
       if (data && data.length > 0 && !selectedStrategy) {
         setSelectedStrategy(data[0].id);
       }
     });
   }, [source]);
+
+  // Get the base RR for calculations
+  const baseRR = useMemo(() => {
+    if (source === "journal") return journalRR;
+    const strat = strategies.find((s) => s.id === selectedStrategy);
+    if (!strat) return 2;
+    // risk_reward_ratio format is "1:2" → extract the second number
+    const parts = strat.risk_reward_ratio.split(":");
+    return parts.length === 2 ? parseFloat(parts[1]) : 2;
+  }, [source, journalRR, strategies, selectedStrategy]);
 
   // Load trades
   useEffect(() => {
