@@ -13,6 +13,7 @@ import FlipRotational from "./pages/FlipRotational";
 import SavedSimulations from "./pages/SavedSimulations";
 import ForexCalendar from "./pages/ForexCalendar";
 import Checklist from "./pages/Checklist";
+import Optimization from "./pages/Optimization";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
