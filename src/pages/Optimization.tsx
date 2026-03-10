@@ -513,12 +513,12 @@ export default function Optimization() {
                           <p className="text-2xl font-bold text-primary">{customAnalysis.avgNewRR.toFixed(2)}R</p>
                         </CardContent>
                       </Card>
-                      <Card className={customAnalysis.evDelta > 0 ? "border-success/30 bg-success/5" : "border-destructive/30 bg-destructive/5"}>
+                      <Card className={customAnalysis.totalRDelta > 0 ? "border-success/30 bg-success/5" : "border-destructive/30 bg-destructive/5"}>
                         <CardContent className="pt-4 text-center">
-                          <p className="text-xs text-muted-foreground mb-1">Δ EV</p>
-                          <p className="text-xs text-muted-foreground">{customAnalysis.originalEV.toFixed(3)} → {customAnalysis.newEV.toFixed(3)}</p>
-                          <p className={`text-2xl font-bold ${customAnalysis.evDelta > 0 ? "text-success" : "text-destructive"}`}>
-                            {customAnalysis.evDelta > 0 ? "+" : ""}{customAnalysis.evDelta.toFixed(3)}
+                          <p className="text-xs text-muted-foreground mb-1">Δ P&L Total</p>
+                          <p className="text-xs text-muted-foreground">{customAnalysis.originalTotalR.toFixed(2)}R → {customAnalysis.newTotalR.toFixed(2)}R</p>
+                          <p className={`text-2xl font-bold ${customAnalysis.totalRDelta > 0 ? "text-success" : "text-destructive"}`}>
+                            {customAnalysis.totalRDelta > 0 ? "+" : ""}{customAnalysis.totalRDelta.toFixed(2)}R
                           </p>
                         </CardContent>
                       </Card>
