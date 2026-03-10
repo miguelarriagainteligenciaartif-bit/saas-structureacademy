@@ -216,6 +216,9 @@ export default function Optimization() {
       originalEV,
       newEV,
       evDelta: newEV - originalEV,
+      originalTotalR: (totalTPs * baseRR) - totalSLs,
+      newTotalR: (tpsReach * newRR) - totalSLs,
+      totalRDelta: (tpsReach * newRR) - (totalTPs * baseRR),
       survivingTrades: surviving,
     };
   };
