@@ -43,7 +43,7 @@ interface LevelAnalysis {
   survivingTrades: { id: string; date: string; asset: string; entry_model: string; originalRR: number; newRR: number; rrIncrease: number; drawdown: number }[];
 }
 
-const PRESET_LEVELS = [0.25, 0.33, 0.50, 0.66, 0.75];
+const PRESET_LEVELS = [0.33, 0.50, 0.66, 0.75];
 
 export default function Optimization() {
   const navigate = useNavigate();
