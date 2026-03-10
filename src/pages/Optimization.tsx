@@ -48,6 +48,7 @@ export default function Optimization() {
   const [trades, setTrades] = useState<DrawdownTrade[]>([]);
   const [customLevel, setCustomLevel] = useState<string>("");
   const [loading, setLoading] = useState(false);
+  const [expandedLevel, setExpandedLevel] = useState<number | null>(null);
 
   // Auth
   useEffect(() => {
