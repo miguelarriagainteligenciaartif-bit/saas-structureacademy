@@ -122,15 +122,14 @@ export default function Optimization() {
   // Analysis
   const analyzeLevel = (level: number): LevelAnalysis => {
     const totalTPs = trades.length;
-    const tradesWithRR = trades.filter((t) => t.max_rr != null);
     
     // Surviving trades: drawdown >= level
-    const surviving = tradesWithRR
+    const surviving = trades
       .filter((t) => t.drawdown >= level)
       .map((t) => {
-        const originalRR = t.max_rr!;
+        const originalRR = baseRR;
         // New RR: same TP distance, but SL distance shrinks by (1 - level)
-        const newRR = originalRR / (1 - level);
+        const newRR = baseRR / (1 - level);
         return {
           id: t.id,
           date: t.date,
@@ -146,9 +145,6 @@ export default function Optimization() {
     const tpsReach = trades.filter((t) => t.drawdown >= level).length;
     const tpsDontReach = totalTPs - tpsReach;
 
-    const avgOriginalRR = surviving.length > 0 ? surviving.reduce((s, t) => s + t.originalRR, 0) / surviving.length : 0;
-    const avgNewRR = surviving.length > 0 ? surviving.reduce((s, t) => s + t.newRR, 0) / surviving.length : 0;
-
     return {
       level,
       label: `${(level * 100).toFixed(0)}%`,
@@ -157,15 +153,15 @@ export default function Optimization() {
       totalTPs,
       reachPercent: totalTPs > 0 ? (tpsReach / totalTPs) * 100 : 0,
       dontReachPercent: totalTPs > 0 ? (tpsDontReach / totalTPs) * 100 : 0,
-      potentialRRGain: `+${((1 / (1 - level)) - 1).toFixed(2)}x`,
-      avgOriginalRR,
-      avgNewRR,
-      avgRRIncrease: avgNewRR - avgOriginalRR,
+      potentialRRGain: `+${((baseRR / (1 - level)) - baseRR).toFixed(2)}R`,
+      avgOriginalRR: baseRR,
+      avgNewRR: baseRR / (1 - level),
+      avgRRIncrease: (baseRR / (1 - level)) - baseRR,
       survivingTrades: surviving,
     };
   };
 
-  const presetAnalysis = useMemo(() => PRESET_LEVELS.map(analyzeLevel), [trades]);
+  const presetAnalysis = useMemo(() => PRESET_LEVELS.map(analyzeLevel), [trades, baseRR]);
 
   const customLevelNum = parseFloat(customLevel);
   const customAnalysis = useMemo(() => {
