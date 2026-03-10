@@ -37,10 +37,10 @@ export const Header = ({ userName }: HeaderProps) => {
     { path: "/backtesting", label: "Backtesting", icon: FlaskConical },
     { path: "/edgecore-x5", label: "X5 Simulator", icon: Activity },
     { path: "/flip-rotational", label: "Flip Rotacional", icon: Layers },
+    { path: "/optimization", label: "Optimization", icon: Crosshair },
     { path: "/saved-simulations", label: "Simulaciones", icon: Save },
     { path: "/forex-calendar", label: "Calendario USD", icon: Newspaper },
     { path: "/checklist", label: "Checklist", icon: ClipboardCheck },
-    { path: "/optimization", label: "Optimization", icon: Crosshair },
   ];
 
   return (
