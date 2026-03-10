@@ -324,16 +324,17 @@ export default function Optimization() {
           <>
             {/* Recommendation */}
             {bestLevel && (
-              <Card className="border-primary/30 bg-primary/5">
+              <Card className="border-success/30 bg-success/5">
                 <CardContent className="py-5 flex items-start gap-4">
-                  <Target className="h-8 w-8 text-primary shrink-0 mt-0.5" />
+                  <Target className="h-8 w-8 text-success shrink-0 mt-0.5" />
                   <div>
                     <p className="font-semibold text-lg">Recomendación</p>
                     <p className="text-muted-foreground">
                       Mover tu entrada al <span className="text-foreground font-bold">{bestLevel.label}</span> del recorrido al SL 
-                      aumenta tu RR de <span className="font-bold">{bestLevel.avgOriginalRR.toFixed(2)}R</span> a <span className="text-primary font-bold">{bestLevel.avgNewRR.toFixed(2)}R</span>.
-                      Tu Win Rate bajaría de <span className="font-bold">{bestLevel.originalWinRate.toFixed(1)}%</span> a <span className="font-bold">{bestLevel.newWinRate.toFixed(1)}%</span>, 
-                      pero tu EV mejora de <span className="font-bold">{bestLevel.originalEV.toFixed(3)}</span> a <span className="text-primary font-bold">{bestLevel.newEV.toFixed(3)}</span> (<span className="text-success font-bold">+{bestLevel.evDelta.toFixed(3)}</span>).
+                      te habría dado <span className="text-success font-bold">+{bestLevel.totalRDelta.toFixed(2)}R más</span> en total.
+                      Tu RR sube de <span className="font-bold">{bestLevel.avgOriginalRR.toFixed(2)}R</span> a <span className="text-primary font-bold">{bestLevel.avgNewRR.toFixed(2)}R</span>, 
+                      tu Win Rate baja de <span className="font-bold">{bestLevel.originalWinRate.toFixed(1)}%</span> a <span className="font-bold">{bestLevel.newWinRate.toFixed(1)}%</span>, 
+                      pero el P&L total pasa de <span className="font-bold">{bestLevel.originalTotalR.toFixed(2)}R</span> a <span className="text-success font-bold">{bestLevel.newTotalR.toFixed(2)}R</span>.
                     </p>
                   </div>
                 </CardContent>
