@@ -307,9 +307,10 @@ export default function Optimization() {
                   <div>
                     <p className="font-semibold text-lg">Recomendación</p>
                     <p className="text-muted-foreground">
-                      Podrías mover tu entrada hasta el <span className="text-foreground font-bold">{bestLevel.label}</span> del recorrido al SL 
-                      manteniendo el <span className="text-foreground font-bold">{bestLevel.reachPercent.toFixed(1)}%</span> de tus TPs. 
-                      Esto representaría un aumento potencial de <span className="text-primary font-bold">{bestLevel.potentialRRGain}</span> en tu RR.
+                      Mover tu entrada al <span className="text-foreground font-bold">{bestLevel.label}</span> del recorrido al SL 
+                      aumenta tu RR de <span className="font-bold">{bestLevel.avgOriginalRR.toFixed(2)}R</span> a <span className="text-primary font-bold">{bestLevel.avgNewRR.toFixed(2)}R</span>.
+                      Tu Win Rate bajaría de <span className="font-bold">{bestLevel.originalWinRate.toFixed(1)}%</span> a <span className="font-bold">{bestLevel.newWinRate.toFixed(1)}%</span>, 
+                      pero tu EV mejora de <span className="font-bold">{bestLevel.originalEV.toFixed(3)}</span> a <span className="text-primary font-bold">{bestLevel.newEV.toFixed(3)}</span> (<span className="text-success font-bold">+{bestLevel.evDelta.toFixed(3)}</span>).
                     </p>
                   </div>
                 </CardContent>
