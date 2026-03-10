@@ -24,8 +24,9 @@ export function OptimizationPnLChart({ allTrades, baseRR, presetLevels }: Props)
   const newRR = (baseRR + level) / (1 - level);
 
   const { chartData, originalTotal, newTotal, deltaR, originalTradeCount, newTradeCount } = useMemo(() => {
-    // Sort trades chronologically
-    const sorted = [...allTrades].sort((a, b) => a.date.localeCompare(b.date));
+    // Filter: keep all SLs + only TPs with non-null drawdown (matching main analysis)
+    const filtered = allTrades.filter(t => t.result_type === "SL" || (t.result_type === "TP" && t.drawdown !== null));
+    const sorted = [...filtered].sort((a, b) => a.date.localeCompare(b.date));
 
     let origCumulative = 0;
     let newCumulative = 0;
@@ -34,22 +35,18 @@ export function OptimizationPnLChart({ allTrades, baseRR, presetLevels }: Props)
 
     const data = sorted.map((trade, i) => {
       if (trade.result_type === "SL") {
-        // SLs always count in both scenarios
         origCumulative -= 1;
         newCumulative -= 1;
         origCount++;
         newCount++;
       } else if (trade.result_type === "TP") {
-        // Original: all TPs count
         origCumulative += baseRR;
         origCount++;
 
-        // New: only TPs with drawdown >= level survive
         if (trade.drawdown !== null && trade.drawdown >= level) {
           newCumulative += newRR;
           newCount++;
         }
-        // TPs that don't reach: trader never enters, so no gain and no loss
       }
 
       return {
