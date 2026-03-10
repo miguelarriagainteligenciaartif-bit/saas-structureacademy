@@ -31,6 +31,10 @@ interface LevelAnalysis {
   reachPercent: number;
   dontReachPercent: number;
   potentialRRGain: string;
+  avgOriginalRR: number;
+  avgNewRR: number;
+  avgRRIncrease: number;
+  survivingTrades: { id: string; date: string; asset: string; entry_model: string; originalRR: number; newRR: number; rrIncrease: number; drawdown: number }[];
 }
 
 const PRESET_LEVELS = [0.25, 0.33, 0.50, 0.66, 0.75];
