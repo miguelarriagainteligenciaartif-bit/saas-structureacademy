@@ -45,6 +45,7 @@ interface LevelAnalysis {
   originalTotalR: number;
   newTotalR: number;
   totalRDelta: number;
+}
 
 const PRESET_LEVELS = [0.33, 0.50, 0.66, 0.75];
 
