@@ -43,12 +43,13 @@ export default function Optimization() {
   const navigate = useNavigate();
   const [userName, setUserName] = useState<string | null>(null);
   const [source, setSource] = useState<string>("journal");
-  const [strategies, setStrategies] = useState<{ id: string; name: string }[]>([]);
+  const [strategies, setStrategies] = useState<{ id: string; name: string; risk_reward_ratio: string }[]>([]);
   const [selectedStrategy, setSelectedStrategy] = useState<string>("");
   const [trades, setTrades] = useState<DrawdownTrade[]>([]);
   const [customLevel, setCustomLevel] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [expandedLevel, setExpandedLevel] = useState<number | null>(null);
+  const [journalRR, setJournalRR] = useState<number>(2); // RR fijo para journal
 
   // Auth
   useEffect(() => {
@@ -64,13 +65,23 @@ export default function Optimization() {
   // Load strategies for backtest source
   useEffect(() => {
     if (source !== "backtest") return;
-    supabase.from("backtest_strategies").select("id, name").then(({ data }) => {
+    supabase.from("backtest_strategies").select("id, name, risk_reward_ratio").then(({ data }) => {
       setStrategies(data || []);
       if (data && data.length > 0 && !selectedStrategy) {
         setSelectedStrategy(data[0].id);
       }
     });
   }, [source]);
+
+  // Get the base RR for calculations
+  const baseRR = useMemo(() => {
+    if (source === "journal") return journalRR;
+    const strat = strategies.find((s) => s.id === selectedStrategy);
+    if (!strat) return 2;
+    // risk_reward_ratio format is "1:2" → extract the second number
+    const parts = strat.risk_reward_ratio.split(":");
+    return parts.length === 2 ? parseFloat(parts[1]) : 2;
+  }, [source, journalRR, strategies, selectedStrategy]);
 
   // Load trades
   useEffect(() => {
@@ -111,15 +122,14 @@ export default function Optimization() {
   // Analysis
   const analyzeLevel = (level: number): LevelAnalysis => {
     const totalTPs = trades.length;
-    const tradesWithRR = trades.filter((t) => t.max_rr != null);
     
     // Surviving trades: drawdown >= level
-    const surviving = tradesWithRR
+    const surviving = trades
       .filter((t) => t.drawdown >= level)
       .map((t) => {
-        const originalRR = t.max_rr!;
+        const originalRR = baseRR;
         // New RR: same TP distance, but SL distance shrinks by (1 - level)
-        const newRR = originalRR / (1 - level);
+        const newRR = baseRR / (1 - level);
         return {
           id: t.id,
           date: t.date,
@@ -135,9 +145,6 @@ export default function Optimization() {
     const tpsReach = trades.filter((t) => t.drawdown >= level).length;
     const tpsDontReach = totalTPs - tpsReach;
 
-    const avgOriginalRR = surviving.length > 0 ? surviving.reduce((s, t) => s + t.originalRR, 0) / surviving.length : 0;
-    const avgNewRR = surviving.length > 0 ? surviving.reduce((s, t) => s + t.newRR, 0) / surviving.length : 0;
-
     return {
       level,
       label: `${(level * 100).toFixed(0)}%`,
@@ -146,21 +153,21 @@ export default function Optimization() {
       totalTPs,
       reachPercent: totalTPs > 0 ? (tpsReach / totalTPs) * 100 : 0,
       dontReachPercent: totalTPs > 0 ? (tpsDontReach / totalTPs) * 100 : 0,
-      potentialRRGain: `+${((1 / (1 - level)) - 1).toFixed(2)}x`,
-      avgOriginalRR,
-      avgNewRR,
-      avgRRIncrease: avgNewRR - avgOriginalRR,
+      potentialRRGain: `+${((baseRR / (1 - level)) - baseRR).toFixed(2)}R`,
+      avgOriginalRR: baseRR,
+      avgNewRR: baseRR / (1 - level),
+      avgRRIncrease: (baseRR / (1 - level)) - baseRR,
       survivingTrades: surviving,
     };
   };
 
-  const presetAnalysis = useMemo(() => PRESET_LEVELS.map(analyzeLevel), [trades]);
+  const presetAnalysis = useMemo(() => PRESET_LEVELS.map(analyzeLevel), [trades, baseRR]);
 
   const customLevelNum = parseFloat(customLevel);
   const customAnalysis = useMemo(() => {
     if (isNaN(customLevelNum) || customLevelNum <= 0 || customLevelNum >= 1) return null;
     return analyzeLevel(customLevelNum);
-  }, [customLevelNum, trades]);
+  }, [customLevelNum, trades, baseRR]);
 
   // Trades that would NOT survive at the most aggressive viable level
   const bestLevel = useMemo(() => {
@@ -212,6 +219,27 @@ export default function Optimization() {
                   ))}
                 </SelectContent>
               </Select>
+            )}
+
+            {source === "journal" && (
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground whitespace-nowrap">RR de la estrategia:</span>
+                <span className="text-sm text-muted-foreground">1:</span>
+                <Input
+                  type="number"
+                  step="0.1"
+                  min="0.1"
+                  value={journalRR}
+                  onChange={(e) => setJournalRR(parseFloat(e.target.value) || 2)}
+                  className="w-20 h-8"
+                />
+              </div>
+            )}
+
+            {source === "backtest" && strategies.find(s => s.id === selectedStrategy) && (
+              <Badge variant="secondary" className="self-center whitespace-nowrap">
+                RR: 1:{baseRR}
+              </Badge>
             )}
 
             <Badge variant="outline" className="self-center whitespace-nowrap">
