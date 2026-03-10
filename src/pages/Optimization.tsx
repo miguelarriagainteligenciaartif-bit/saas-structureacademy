@@ -111,10 +111,32 @@ export default function Optimization() {
   // Analysis
   const analyzeLevel = (level: number): LevelAnalysis => {
     const totalTPs = trades.length;
-    // "Reach" = drawdown >= level → the trade went at least that far toward SL, 
-    // meaning if you moved entry there, the trade would still hit TP
+    const tradesWithRR = trades.filter((t) => t.max_rr != null);
+    
+    // Surviving trades: drawdown >= level
+    const surviving = tradesWithRR
+      .filter((t) => t.drawdown >= level)
+      .map((t) => {
+        const originalRR = t.max_rr!;
+        // New RR: same TP distance, but SL distance shrinks by (1 - level)
+        const newRR = originalRR / (1 - level);
+        return {
+          id: t.id,
+          date: t.date,
+          asset: t.asset,
+          entry_model: t.entry_model,
+          originalRR,
+          newRR,
+          rrIncrease: newRR - originalRR,
+          drawdown: t.drawdown,
+        };
+      });
+
     const tpsReach = trades.filter((t) => t.drawdown >= level).length;
     const tpsDontReach = totalTPs - tpsReach;
+
+    const avgOriginalRR = surviving.length > 0 ? surviving.reduce((s, t) => s + t.originalRR, 0) / surviving.length : 0;
+    const avgNewRR = surviving.length > 0 ? surviving.reduce((s, t) => s + t.newRR, 0) / surviving.length : 0;
 
     return {
       level,
@@ -125,6 +147,10 @@ export default function Optimization() {
       reachPercent: totalTPs > 0 ? (tpsReach / totalTPs) * 100 : 0,
       dontReachPercent: totalTPs > 0 ? (tpsDontReach / totalTPs) * 100 : 0,
       potentialRRGain: `+${((1 / (1 - level)) - 1).toFixed(2)}x`,
+      avgOriginalRR,
+      avgNewRR,
+      avgRRIncrease: avgNewRR - avgOriginalRR,
+      survivingTrades: surviving,
     };
   };
 
