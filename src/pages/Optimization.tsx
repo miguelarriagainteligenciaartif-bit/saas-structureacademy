@@ -539,20 +539,18 @@ export default function Optimization() {
                   Un drawdown de 0.33 significa que el precio recorrió el 33% del camino hacia el SL.
                 </p>
                 <p>
-                  <strong className="text-foreground">"TPs que llegan"</strong> son los trades ganadores cuyo drawdown fue ≥ al nivel analizado. 
-                  Si movieras tu entrada a ese nivel, estos trades <strong className="text-success">seguirían siendo TP</strong>.
+                  <strong className="text-foreground">Supervivencia</strong> = TPs cuyo drawdown ≥ nivel. Si mueves la entrada ahí, estos trades seguirían siendo TP. Los que no llegan se pierden.
                 </p>
                 <p>
-                  <strong className="text-foreground">"TPs que NO llegan"</strong> son los que tienen drawdown menor al nivel. 
-                  Si movieras la entrada ahí, <strong className="text-destructive">los perderías</strong> porque el precio no llegó a tocar esa zona.
+                  <strong className="text-foreground">Win Rate</strong> = TPs supervivientes / (TPs supervivientes + SLs). 
+                  Los SL se mantienen todos; solo disminuyen los TPs que no alcanzan el nivel.
                 </p>
                 <p>
-                  <strong className="text-foreground">Ganancia RR Potencial</strong> indica cuánto aumentaría tu ratio riesgo-recompensa 
-                  al acercar la entrada al SL. Por ejemplo, +0.50x sobre un RR de 2:1 te daría 3:1.
+                  <strong className="text-foreground">EV (Expected Value)</strong> = (WR × RR) − (1 − WR). 
+                  Si el EV nuevo es mayor que el original, <strong className="text-success">merece la pena</strong> mover la entrada.
                 </p>
                 <p>
-                  <strong className="text-primary">Busca el nivel donde mantengas ≥80% de supervivencia</strong> — ese es tu punto óptimo 
-                  para mejorar el RR sin sacrificar demasiados trades ganadores.
+                  <strong className="text-primary">Busca el nivel donde el Δ EV sea positivo</strong> — eso significa que el aumento de RR compensa la pérdida de Win Rate.
                 </p>
               </CardContent>
             </Card>
