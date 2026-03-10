@@ -280,7 +280,7 @@ export default function Optimization() {
             )}
 
             <Badge variant="outline" className="self-center whitespace-nowrap">
-              {trades.length} TPs con drawdown
+              {trades.length} TPs · {totalSLs} SLs
             </Badge>
           </CardContent>
         </Card>
