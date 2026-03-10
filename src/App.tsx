@@ -38,6 +38,7 @@ function App() {
             <Route path="/saved-simulations" element={<SavedSimulations />} />
             <Route path="/forex-calendar" element={<ForexCalendar />} />
             <Route path="/checklist" element={<Checklist />} />
+            <Route path="/optimization" element={<Optimization />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
