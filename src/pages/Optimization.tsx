@@ -42,6 +42,9 @@ interface LevelAnalysis {
   newEV: number;
   evDelta: number;
   survivingTrades: { id: string; date: string; asset: string; entry_model: string; originalRR: number; newRR: number; rrIncrease: number; drawdown: number }[];
+  originalTotalR: number;
+  newTotalR: number;
+  totalRDelta: number;
 }
 
 const PRESET_LEVELS = [0.33, 0.50, 0.66, 0.75];
@@ -213,6 +216,9 @@ export default function Optimization() {
       originalEV,
       newEV,
       evDelta: newEV - originalEV,
+      originalTotalR: (totalTPs * baseRR) - totalSLs,
+      newTotalR: (tpsReach * newRR) - totalSLs,
+      totalRDelta: (tpsReach * newRR) - (totalTPs * baseRR),
       survivingTrades: surviving,
     };
   };
@@ -225,13 +231,12 @@ export default function Optimization() {
     return analyzeLevel(customLevelNum);
   }, [customLevelNum, trades, baseRR, totalSLs]);
 
-  // Best level: highest level where EV improves
+  // Best level: highest level where total R improves (aligned with P&L chart)
   const bestLevel = useMemo(() => {
-    for (let i = PRESET_LEVELS.length - 1; i >= 0; i--) {
-      const analysis = presetAnalysis[i];
-      if (analysis.evDelta > 0) return analysis;
-    }
-    return null;
+    const profitable = presetAnalysis.filter(a => a.totalRDelta > 0);
+    if (profitable.length === 0) return null;
+    // Pick the one with the highest totalRDelta
+    return profitable.reduce((best, curr) => curr.totalRDelta > best.totalRDelta ? curr : best);
   }, [presetAnalysis]);
 
   return (
@@ -319,16 +324,17 @@ export default function Optimization() {
           <>
             {/* Recommendation */}
             {bestLevel && (
-              <Card className="border-primary/30 bg-primary/5">
+              <Card className="border-success/30 bg-success/5">
                 <CardContent className="py-5 flex items-start gap-4">
-                  <Target className="h-8 w-8 text-primary shrink-0 mt-0.5" />
+                  <Target className="h-8 w-8 text-success shrink-0 mt-0.5" />
                   <div>
                     <p className="font-semibold text-lg">Recomendación</p>
                     <p className="text-muted-foreground">
                       Mover tu entrada al <span className="text-foreground font-bold">{bestLevel.label}</span> del recorrido al SL 
-                      aumenta tu RR de <span className="font-bold">{bestLevel.avgOriginalRR.toFixed(2)}R</span> a <span className="text-primary font-bold">{bestLevel.avgNewRR.toFixed(2)}R</span>.
-                      Tu Win Rate bajaría de <span className="font-bold">{bestLevel.originalWinRate.toFixed(1)}%</span> a <span className="font-bold">{bestLevel.newWinRate.toFixed(1)}%</span>, 
-                      pero tu EV mejora de <span className="font-bold">{bestLevel.originalEV.toFixed(3)}</span> a <span className="text-primary font-bold">{bestLevel.newEV.toFixed(3)}</span> (<span className="text-success font-bold">+{bestLevel.evDelta.toFixed(3)}</span>).
+                      te habría dado <span className="text-success font-bold">+{bestLevel.totalRDelta.toFixed(2)}R más</span> en total.
+                      Tu RR sube de <span className="font-bold">{bestLevel.avgOriginalRR.toFixed(2)}R</span> a <span className="text-primary font-bold">{bestLevel.avgNewRR.toFixed(2)}R</span>, 
+                      tu Win Rate baja de <span className="font-bold">{bestLevel.originalWinRate.toFixed(1)}%</span> a <span className="font-bold">{bestLevel.newWinRate.toFixed(1)}%</span>, 
+                      pero el P&L total pasa de <span className="font-bold">{bestLevel.originalTotalR.toFixed(2)}R</span> a <span className="text-success font-bold">{bestLevel.newTotalR.toFixed(2)}R</span>.
                     </p>
                   </div>
                 </CardContent>
@@ -365,14 +371,14 @@ export default function Optimization() {
                       <TableHead className="text-center">RR Nuevo</TableHead>
                       <TableHead className="text-center">EV Original</TableHead>
                       <TableHead className="text-center">EV Nuevo</TableHead>
-                      <TableHead className="text-center">Δ EV</TableHead>
+                      <TableHead className="text-center">Δ P&L (R)</TableHead>
                       <TableHead className="text-center">Detalle</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {presetAnalysis.map((a) => (
                       <>
-                        <TableRow key={a.level} className={a.evDelta > 0 ? "bg-success/5" : a.evDelta > -0.05 ? "" : "bg-destructive/5"}>
+                        <TableRow key={a.level} className={a.totalRDelta > 0 ? "bg-success/5" : "bg-destructive/5"}>
                           <TableCell className="font-bold">{a.label}</TableCell>
                           <TableCell className="text-center">
                             <Badge variant={a.reachPercent >= 80 ? "default" : a.reachPercent >= 60 ? "secondary" : "destructive"}>
@@ -395,8 +401,8 @@ export default function Optimization() {
                             {a.newEV.toFixed(3)}
                           </TableCell>
                           <TableCell className="text-center font-mono font-bold">
-                            <span className={a.evDelta > 0 ? "text-success" : "text-destructive"}>
-                              {a.evDelta > 0 ? "+" : ""}{a.evDelta.toFixed(3)}
+                            <span className={a.totalRDelta > 0 ? "text-success" : "text-destructive"}>
+                              {a.totalRDelta > 0 ? "+" : ""}{a.totalRDelta.toFixed(2)}R
                             </span>
                           </TableCell>
                           <TableCell className="text-center">
@@ -507,12 +513,12 @@ export default function Optimization() {
                           <p className="text-2xl font-bold text-primary">{customAnalysis.avgNewRR.toFixed(2)}R</p>
                         </CardContent>
                       </Card>
-                      <Card className={customAnalysis.evDelta > 0 ? "border-success/30 bg-success/5" : "border-destructive/30 bg-destructive/5"}>
+                      <Card className={customAnalysis.totalRDelta > 0 ? "border-success/30 bg-success/5" : "border-destructive/30 bg-destructive/5"}>
                         <CardContent className="pt-4 text-center">
-                          <p className="text-xs text-muted-foreground mb-1">Δ EV</p>
-                          <p className="text-xs text-muted-foreground">{customAnalysis.originalEV.toFixed(3)} → {customAnalysis.newEV.toFixed(3)}</p>
-                          <p className={`text-2xl font-bold ${customAnalysis.evDelta > 0 ? "text-success" : "text-destructive"}`}>
-                            {customAnalysis.evDelta > 0 ? "+" : ""}{customAnalysis.evDelta.toFixed(3)}
+                          <p className="text-xs text-muted-foreground mb-1">Δ P&L Total</p>
+                          <p className="text-xs text-muted-foreground">{customAnalysis.originalTotalR.toFixed(2)}R → {customAnalysis.newTotalR.toFixed(2)}R</p>
+                          <p className={`text-2xl font-bold ${customAnalysis.totalRDelta > 0 ? "text-success" : "text-destructive"}`}>
+                            {customAnalysis.totalRDelta > 0 ? "+" : ""}{customAnalysis.totalRDelta.toFixed(2)}R
                           </p>
                         </CardContent>
                       </Card>
