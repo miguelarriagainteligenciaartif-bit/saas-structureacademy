@@ -28,12 +28,18 @@ interface LevelAnalysis {
   tpsReach: number;
   tpsDontReach: number;
   totalTPs: number;
+  totalSLs: number;
   reachPercent: number;
   dontReachPercent: number;
   potentialRRGain: string;
   avgOriginalRR: number;
   avgNewRR: number;
   avgRRIncrease: number;
+  originalWinRate: number;
+  newWinRate: number;
+  originalEV: number;
+  newEV: number;
+  evDelta: number;
   survivingTrades: { id: string; date: string; asset: string; entry_model: string; originalRR: number; newRR: number; rrIncrease: number; drawdown: number }[];
 }
 
