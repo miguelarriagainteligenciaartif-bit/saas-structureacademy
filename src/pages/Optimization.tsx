@@ -271,46 +271,89 @@ export default function Optimization() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
+                <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
                       <TableHead>Nivel DD</TableHead>
-                      <TableHead className="text-center">TPs que llegan</TableHead>
-                      <TableHead className="text-center">TPs que NO llegan</TableHead>
-                      <TableHead className="text-center">% Supervivencia</TableHead>
-                      <TableHead className="text-center">Ganancia RR Potencial</TableHead>
+                      <TableHead className="text-center">Supervivencia</TableHead>
+                      <TableHead className="text-center">RR Original Prom.</TableHead>
+                      <TableHead className="text-center">RR Nuevo Prom.</TableHead>
+                      <TableHead className="text-center">Δ RR Prom.</TableHead>
+                      <TableHead className="text-center">Detalle</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {presetAnalysis.map((a) => (
-                      <TableRow key={a.level} className={a.reachPercent >= 80 ? "bg-success/5" : a.reachPercent >= 60 ? "" : "bg-destructive/5"}>
-                        <TableCell className="font-bold">{a.label}</TableCell>
-                        <TableCell className="text-center">
-                          <div className="flex items-center justify-center gap-1.5">
-                            <TrendingUp className="h-4 w-4 text-success" />
-                            <span className="font-medium">{a.tpsReach}</span>
-                            <span className="text-muted-foreground text-xs">({a.reachPercent.toFixed(1)}%)</span>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-center">
-                          <div className="flex items-center justify-center gap-1.5">
-                            <TrendingDown className="h-4 w-4 text-destructive" />
-                            <span className="font-medium">{a.tpsDontReach}</span>
-                            <span className="text-muted-foreground text-xs">({a.dontReachPercent.toFixed(1)}%)</span>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-center">
-                          <Badge variant={a.reachPercent >= 80 ? "default" : a.reachPercent >= 60 ? "secondary" : "destructive"}>
-                            {a.reachPercent.toFixed(1)}%
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-center font-mono font-bold text-primary">
-                          {a.potentialRRGain}
-                        </TableCell>
-                      </TableRow>
+                      <>
+                        <TableRow key={a.level} className={a.reachPercent >= 80 ? "bg-success/5" : a.reachPercent >= 60 ? "" : "bg-destructive/5"}>
+                          <TableCell className="font-bold">{a.label}</TableCell>
+                          <TableCell className="text-center">
+                            <div className="flex items-center justify-center gap-1.5">
+                              <Badge variant={a.reachPercent >= 80 ? "default" : a.reachPercent >= 60 ? "secondary" : "destructive"}>
+                                {a.tpsReach}/{a.totalTPs} ({a.reachPercent.toFixed(1)}%)
+                              </Badge>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-center font-mono">
+                            {a.avgOriginalRR > 0 ? `${a.avgOriginalRR.toFixed(2)}R` : "—"}
+                          </TableCell>
+                          <TableCell className="text-center font-mono font-bold text-primary">
+                            {a.avgNewRR > 0 ? `${a.avgNewRR.toFixed(2)}R` : "—"}
+                          </TableCell>
+                          <TableCell className="text-center font-mono font-bold text-success">
+                            {a.avgRRIncrease > 0 ? `+${a.avgRRIncrease.toFixed(2)}R` : "—"}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setExpandedLevel(expandedLevel === a.level ? null : a.level)}
+                              disabled={a.survivingTrades.length === 0}
+                            >
+                              {expandedLevel === a.level ? "Ocultar" : `Ver ${a.survivingTrades.length} trades`}
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                        {expandedLevel === a.level && a.survivingTrades.length > 0 && (
+                          <TableRow key={`${a.level}-detail`}>
+                            <TableCell colSpan={6} className="p-0">
+                              <div className="bg-muted/30 p-4">
+                                <Table>
+                                  <TableHeader>
+                                    <TableRow>
+                                      <TableHead>Fecha</TableHead>
+                                      <TableHead>Activo</TableHead>
+                                      <TableHead>Modelo</TableHead>
+                                      <TableHead className="text-center">DD</TableHead>
+                                      <TableHead className="text-center">RR Original</TableHead>
+                                      <TableHead className="text-center">RR Nuevo</TableHead>
+                                      <TableHead className="text-center">Δ RR</TableHead>
+                                    </TableRow>
+                                  </TableHeader>
+                                  <TableBody>
+                                    {a.survivingTrades.map((t) => (
+                                      <TableRow key={t.id}>
+                                        <TableCell className="text-sm">{t.date}</TableCell>
+                                        <TableCell className="text-sm">{t.asset}</TableCell>
+                                        <TableCell className="text-sm">{t.entry_model}</TableCell>
+                                        <TableCell className="text-center text-sm">{(t.drawdown * 100).toFixed(0)}%</TableCell>
+                                        <TableCell className="text-center font-mono text-sm">{t.originalRR.toFixed(2)}R</TableCell>
+                                        <TableCell className="text-center font-mono font-bold text-primary text-sm">{t.newRR.toFixed(2)}R</TableCell>
+                                        <TableCell className="text-center font-mono font-bold text-success text-sm">+{t.rrIncrease.toFixed(2)}R</TableCell>
+                                      </TableRow>
+                                    ))}
+                                  </TableBody>
+                                </Table>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </>
                     ))}
                   </TableBody>
                 </Table>
+                </div>
               </CardContent>
             </Card>
 
