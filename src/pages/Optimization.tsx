@@ -54,7 +54,7 @@ export default function Optimization() {
   const [selectedStrategy, setSelectedStrategy] = useState<string>("");
   const [trades, setTrades] = useState<DrawdownTrade[]>([]);
   const [totalSLs, setTotalSLs] = useState<number>(0);
-  const [customLevel, setCustomLevel] = useState<string>("");
+  const [allDecisiveTrades, setAllDecisiveTrades] = useState<{ id: string; date: string; drawdown: number | null; result_type: string }[]>([]);
   const [loading, setLoading] = useState(false);
   const [expandedLevel, setExpandedLevel] = useState<number | null>(null);
   const [journalRR, setJournalRR] = useState<number>(2);
