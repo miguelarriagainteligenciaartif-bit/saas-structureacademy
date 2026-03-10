@@ -1,4 +1,4 @@
-import { FlaskConical, Activity, Save, Layers, Newspaper, ClipboardCheck, Menu } from "lucide-react";
+import { FlaskConical, Activity, Save, Layers, Newspaper, ClipboardCheck, Menu, Crosshair } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -40,6 +40,7 @@ export const Header = ({ userName }: HeaderProps) => {
     { path: "/saved-simulations", label: "Simulaciones", icon: Save },
     { path: "/forex-calendar", label: "Calendario USD", icon: Newspaper },
     { path: "/checklist", label: "Checklist", icon: ClipboardCheck },
+    { path: "/optimization", label: "Optimization", icon: Crosshair },
   ];
 
   return (
