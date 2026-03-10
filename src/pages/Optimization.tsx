@@ -167,7 +167,7 @@ export default function Optimization() {
   const customAnalysis = useMemo(() => {
     if (isNaN(customLevelNum) || customLevelNum <= 0 || customLevelNum >= 1) return null;
     return analyzeLevel(customLevelNum);
-  }, [customLevelNum, trades]);
+  }, [customLevelNum, trades, baseRR]);
 
   // Trades that would NOT survive at the most aggressive viable level
   const bestLevel = useMemo(() => {
