@@ -147,29 +147,35 @@ export default function Optimization() {
   // Analysis
   const analyzeLevel = (level: number): LevelAnalysis => {
     const totalTPs = trades.length;
+    const newRR = (baseRR + level) / (1 - level);
     
-    // Surviving trades: drawdown >= level
     const surviving = trades
       .filter((t) => t.drawdown >= level)
-      .map((t) => {
-        const originalRR = baseRR;
-        // New RR: TP increases by level * SL, SL shrinks by (1 - level)
-        // newRR = (originalRR + level) / (1 - level)
-        const newRR = (baseRR + level) / (1 - level);
-        return {
-          id: t.id,
-          date: t.date,
-          asset: t.asset,
-          entry_model: t.entry_model,
-          originalRR,
-          newRR,
-          rrIncrease: newRR - originalRR,
-          drawdown: t.drawdown,
-        };
-      });
+      .map((t) => ({
+        id: t.id,
+        date: t.date,
+        asset: t.asset,
+        entry_model: t.entry_model,
+        originalRR: baseRR,
+        newRR,
+        rrIncrease: newRR - baseRR,
+        drawdown: t.drawdown,
+      }));
 
-    const tpsReach = trades.filter((t) => t.drawdown >= level).length;
+    const tpsReach = surviving.length;
     const tpsDontReach = totalTPs - tpsReach;
+
+    // Win rates
+    const originalTotal = totalTPs + totalSLs;
+    const originalWinRate = originalTotal > 0 ? (totalTPs / originalTotal) * 100 : 0;
+    const newTotal = tpsReach + totalSLs;
+    const newWinRate = newTotal > 0 ? (tpsReach / newTotal) * 100 : 0;
+
+    // EV = (WR × RR) - (1 - WR)
+    const origWR = originalWinRate / 100;
+    const newWR = newWinRate / 100;
+    const originalEV = (origWR * baseRR) - (1 - origWR);
+    const newEV = (newWR * newRR) - (1 - newWR);
 
     return {
       level,
@@ -177,30 +183,35 @@ export default function Optimization() {
       tpsReach,
       tpsDontReach,
       totalTPs,
+      totalSLs,
       reachPercent: totalTPs > 0 ? (tpsReach / totalTPs) * 100 : 0,
       dontReachPercent: totalTPs > 0 ? (tpsDontReach / totalTPs) * 100 : 0,
-      potentialRRGain: `+${(((baseRR + level) / (1 - level)) - baseRR).toFixed(2)}R`,
+      potentialRRGain: `+${(newRR - baseRR).toFixed(2)}R`,
       avgOriginalRR: baseRR,
-      avgNewRR: (baseRR + level) / (1 - level),
-      avgRRIncrease: ((baseRR + level) / (1 - level)) - baseRR,
+      avgNewRR: newRR,
+      avgRRIncrease: newRR - baseRR,
+      originalWinRate,
+      newWinRate,
+      originalEV,
+      newEV,
+      evDelta: newEV - originalEV,
       survivingTrades: surviving,
     };
   };
 
-  const presetAnalysis = useMemo(() => PRESET_LEVELS.map(analyzeLevel), [trades, baseRR]);
+  const presetAnalysis = useMemo(() => PRESET_LEVELS.map(analyzeLevel), [trades, baseRR, totalSLs]);
 
   const customLevelNum = parseFloat(customLevel);
   const customAnalysis = useMemo(() => {
     if (isNaN(customLevelNum) || customLevelNum <= 0 || customLevelNum >= 1) return null;
     return analyzeLevel(customLevelNum);
-  }, [customLevelNum, trades, baseRR]);
+  }, [customLevelNum, trades, baseRR, totalSLs]);
 
-  // Trades that would NOT survive at the most aggressive viable level
+  // Best level: highest level where EV improves
   const bestLevel = useMemo(() => {
-    // Find the highest level where ≥80% of TPs survive
     for (let i = PRESET_LEVELS.length - 1; i >= 0; i--) {
       const analysis = presetAnalysis[i];
-      if (analysis.reachPercent >= 80) return analysis;
+      if (analysis.evDelta > 0) return analysis;
     }
     return null;
   }, [presetAnalysis]);
