@@ -460,13 +460,7 @@ export default function Optimization() {
 
                 {customAnalysis && (
                   <div className="space-y-4 pt-2">
-                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-                      <Card>
-                        <CardContent className="pt-4 text-center">
-                          <p className="text-xs text-muted-foreground mb-1">Nivel</p>
-                          <p className="text-2xl font-bold">{customAnalysis.label}</p>
-                        </CardContent>
-                      </Card>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
                       <Card>
                         <CardContent className="pt-4 text-center">
                           <p className="text-xs text-muted-foreground mb-1">Supervivencia</p>
@@ -476,26 +470,25 @@ export default function Optimization() {
                       </Card>
                       <Card>
                         <CardContent className="pt-4 text-center">
-                          <p className="text-xs text-muted-foreground mb-1">Pierdes</p>
-                          <p className="text-2xl font-bold text-destructive">{customAnalysis.tpsDontReach}</p>
-                        </CardContent>
-                      </Card>
-                      <Card>
-                        <CardContent className="pt-4 text-center">
-                          <p className="text-xs text-muted-foreground mb-1">RR Original</p>
-                          <p className="text-2xl font-bold">{customAnalysis.avgOriginalRR.toFixed(2)}R</p>
+                          <p className="text-xs text-muted-foreground mb-1">Win Rate</p>
+                          <p className="text-xs text-muted-foreground line-through">{customAnalysis.originalWinRate.toFixed(1)}%</p>
+                          <p className="text-2xl font-bold">{customAnalysis.newWinRate.toFixed(1)}%</p>
                         </CardContent>
                       </Card>
                       <Card>
                         <CardContent className="pt-4 text-center">
                           <p className="text-xs text-muted-foreground mb-1">RR Nuevo</p>
+                          <p className="text-xs text-muted-foreground line-through">{customAnalysis.avgOriginalRR.toFixed(2)}R</p>
                           <p className="text-2xl font-bold text-primary">{customAnalysis.avgNewRR.toFixed(2)}R</p>
                         </CardContent>
                       </Card>
-                      <Card>
+                      <Card className={customAnalysis.evDelta > 0 ? "border-success/30 bg-success/5" : "border-destructive/30 bg-destructive/5"}>
                         <CardContent className="pt-4 text-center">
-                          <p className="text-xs text-muted-foreground mb-1">Δ RR</p>
-                          <p className="text-2xl font-bold text-success">+{customAnalysis.avgRRIncrease.toFixed(2)}R</p>
+                          <p className="text-xs text-muted-foreground mb-1">Δ EV</p>
+                          <p className="text-xs text-muted-foreground">{customAnalysis.originalEV.toFixed(3)} → {customAnalysis.newEV.toFixed(3)}</p>
+                          <p className={`text-2xl font-bold ${customAnalysis.evDelta > 0 ? "text-success" : "text-destructive"}`}>
+                            {customAnalysis.evDelta > 0 ? "+" : ""}{customAnalysis.evDelta.toFixed(3)}
+                          </p>
                         </CardContent>
                       </Card>
                     </div>
