@@ -1,4 +1,4 @@
-import { FlaskConical, Activity, Save, Layers, Newspaper, ClipboardCheck, Menu } from "lucide-react";
+import { FlaskConical, Activity, Save, Layers, Newspaper, ClipboardCheck, Menu, Crosshair } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate, useLocation } from "react-router-dom";
