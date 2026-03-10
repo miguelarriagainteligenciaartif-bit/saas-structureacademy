@@ -231,13 +231,12 @@ export default function Optimization() {
     return analyzeLevel(customLevelNum);
   }, [customLevelNum, trades, baseRR, totalSLs]);
 
-  // Best level: highest level where EV improves
+  // Best level: highest level where total R improves (aligned with P&L chart)
   const bestLevel = useMemo(() => {
-    for (let i = PRESET_LEVELS.length - 1; i >= 0; i--) {
-      const analysis = presetAnalysis[i];
-      if (analysis.evDelta > 0) return analysis;
-    }
-    return null;
+    const profitable = presetAnalysis.filter(a => a.totalRDelta > 0);
+    if (profitable.length === 0) return null;
+    // Pick the one with the highest totalRDelta
+    return profitable.reduce((best, curr) => curr.totalRDelta > best.totalRDelta ? curr : best);
   }, [presetAnalysis]);
 
   return (
