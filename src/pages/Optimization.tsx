@@ -245,11 +245,23 @@ export default function Optimization() {
       <Header userName={userName} />
       <div className="container mx-auto px-4 py-8 space-y-6">
         {/* Title */}
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Optimización de Entrada</h1>
-          <p className="text-muted-foreground mt-1">
-            Analiza el drawdown de tus TPs para determinar si puedes acercar tu entrada al SL y aumentar tu RR.
-          </p>
+        <div className="flex items-start justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Optimización de Entrada</h1>
+            <p className="text-muted-foreground mt-1">
+              Analiza el drawdown de tus TPs para determinar si puedes acercar tu entrada al SL y aumentar tu RR.
+            </p>
+          </div>
+          {trades.length > 0 && (
+            <OptimizationReportGenerator
+              presetAnalysis={presetAnalysis}
+              bestLevel={bestLevel}
+              baseRR={baseRR}
+              source={source}
+              strategyName={strategies.find(s => s.id === selectedStrategy)?.name}
+              allTrades={allDecisiveTrades}
+            />
+          )}
         </div>
 
         {/* Source Selector */}
