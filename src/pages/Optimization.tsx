@@ -96,30 +96,48 @@ export default function Optimization() {
       setLoading(true);
       let query;
 
+      let tpQuery;
+      let slQuery;
+
       if (source === "journal") {
-        query = supabase
+        tpQuery = supabase
           .from("trades")
           .select("id, date, drawdown, result_type, result_dollars, asset, entry_model, max_rr")
           .eq("result_type", "TP")
           .not("drawdown", "is", null);
+        slQuery = supabase
+          .from("trades")
+          .select("id", { count: "exact", head: true })
+          .eq("result_type", "SL");
       } else {
         if (!selectedStrategy) {
           setTrades([]);
+          setTotalSLs(0);
           setLoading(false);
           return;
         }
-        query = supabase
+        tpQuery = supabase
           .from("backtest_trades")
           .select("id, date, drawdown, result_type, result_dollars, asset, entry_model, max_rr")
           .eq("result_type", "TP")
           .eq("strategy_id", selectedStrategy)
           .not("drawdown", "is", null);
+        slQuery = supabase
+          .from("backtest_trades")
+          .select("id", { count: "exact", head: true })
+          .eq("result_type", "SL")
+          .eq("strategy_id", selectedStrategy);
       }
 
-      const { data, error } = await query.order("date", { ascending: true });
-      if (!error && data) {
-        setTrades(data as DrawdownTrade[]);
+      const [tpResult, slResult] = await Promise.all([
+        tpQuery.order("date", { ascending: true }),
+        slQuery,
+      ]);
+
+      if (!tpResult.error && tpResult.data) {
+        setTrades(tpResult.data as DrawdownTrade[]);
       }
+      setTotalSLs(slResult.count ?? 0);
       setLoading(false);
     };
 
