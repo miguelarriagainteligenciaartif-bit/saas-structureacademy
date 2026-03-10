@@ -343,32 +343,43 @@ export default function Optimization() {
                     <TableRow>
                       <TableHead>Nivel DD</TableHead>
                       <TableHead className="text-center">Supervivencia</TableHead>
-                      <TableHead className="text-center">RR Original Prom.</TableHead>
-                      <TableHead className="text-center">RR Nuevo Prom.</TableHead>
-                      <TableHead className="text-center">Δ RR Prom.</TableHead>
+                      <TableHead className="text-center">Win Rate</TableHead>
+                      <TableHead className="text-center">RR Nuevo</TableHead>
+                      <TableHead className="text-center">EV Original</TableHead>
+                      <TableHead className="text-center">EV Nuevo</TableHead>
+                      <TableHead className="text-center">Δ EV</TableHead>
                       <TableHead className="text-center">Detalle</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {presetAnalysis.map((a) => (
                       <>
-                        <TableRow key={a.level} className={a.reachPercent >= 80 ? "bg-success/5" : a.reachPercent >= 60 ? "" : "bg-destructive/5"}>
+                        <TableRow key={a.level} className={a.evDelta > 0 ? "bg-success/5" : a.evDelta > -0.05 ? "" : "bg-destructive/5"}>
                           <TableCell className="font-bold">{a.label}</TableCell>
                           <TableCell className="text-center">
-                            <div className="flex items-center justify-center gap-1.5">
-                              <Badge variant={a.reachPercent >= 80 ? "default" : a.reachPercent >= 60 ? "secondary" : "destructive"}>
-                                {a.tpsReach}/{a.totalTPs} ({a.reachPercent.toFixed(1)}%)
-                              </Badge>
+                            <Badge variant={a.reachPercent >= 80 ? "default" : a.reachPercent >= 60 ? "secondary" : "destructive"}>
+                              {a.tpsReach}/{a.totalTPs} ({a.reachPercent.toFixed(1)}%)
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <div className="flex flex-col items-center">
+                              <span className="text-xs text-muted-foreground line-through">{a.originalWinRate.toFixed(1)}%</span>
+                              <span className="font-mono font-bold">{a.newWinRate.toFixed(1)}%</span>
                             </div>
                           </TableCell>
-                          <TableCell className="text-center font-mono">
-                            {a.avgOriginalRR > 0 ? `${a.avgOriginalRR.toFixed(2)}R` : "—"}
-                          </TableCell>
                           <TableCell className="text-center font-mono font-bold text-primary">
-                            {a.avgNewRR > 0 ? `${a.avgNewRR.toFixed(2)}R` : "—"}
+                            {a.avgNewRR.toFixed(2)}R
                           </TableCell>
-                          <TableCell className="text-center font-mono font-bold text-success">
-                            {a.avgRRIncrease > 0 ? `+${a.avgRRIncrease.toFixed(2)}R` : "—"}
+                          <TableCell className="text-center font-mono text-muted-foreground">
+                            {a.originalEV.toFixed(3)}
+                          </TableCell>
+                          <TableCell className="text-center font-mono font-bold">
+                            {a.newEV.toFixed(3)}
+                          </TableCell>
+                          <TableCell className="text-center font-mono font-bold">
+                            <span className={a.evDelta > 0 ? "text-success" : "text-destructive"}>
+                              {a.evDelta > 0 ? "+" : ""}{a.evDelta.toFixed(3)}
+                            </span>
                           </TableCell>
                           <TableCell className="text-center">
                             <Button
@@ -377,13 +388,13 @@ export default function Optimization() {
                               onClick={() => setExpandedLevel(expandedLevel === a.level ? null : a.level)}
                               disabled={a.survivingTrades.length === 0}
                             >
-                              {expandedLevel === a.level ? "Ocultar" : `Ver ${a.survivingTrades.length} trades`}
+                              {expandedLevel === a.level ? "Ocultar" : `Ver ${a.survivingTrades.length}`}
                             </Button>
                           </TableCell>
                         </TableRow>
                         {expandedLevel === a.level && a.survivingTrades.length > 0 && (
                           <TableRow key={`${a.level}-detail`}>
-                            <TableCell colSpan={6} className="p-0">
+                            <TableCell colSpan={8} className="p-0">
                               <div className="bg-muted/30 p-4">
                                 <Table>
                                   <TableHeader>
