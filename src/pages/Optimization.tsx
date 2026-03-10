@@ -43,12 +43,13 @@ export default function Optimization() {
   const navigate = useNavigate();
   const [userName, setUserName] = useState<string | null>(null);
   const [source, setSource] = useState<string>("journal");
-  const [strategies, setStrategies] = useState<{ id: string; name: string }[]>([]);
+  const [strategies, setStrategies] = useState<{ id: string; name: string; risk_reward_ratio: string }[]>([]);
   const [selectedStrategy, setSelectedStrategy] = useState<string>("");
   const [trades, setTrades] = useState<DrawdownTrade[]>([]);
   const [customLevel, setCustomLevel] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [expandedLevel, setExpandedLevel] = useState<number | null>(null);
+  const [journalRR, setJournalRR] = useState<number>(2); // RR fijo para journal
 
   // Auth
   useEffect(() => {
