@@ -128,8 +128,9 @@ export default function Optimization() {
       .filter((t) => t.drawdown >= level)
       .map((t) => {
         const originalRR = baseRR;
-        // New RR: same TP distance, but SL distance shrinks by (1 - level)
-        const newRR = baseRR / (1 - level);
+        // New RR: TP increases by level * SL, SL shrinks by (1 - level)
+        // newRR = (originalRR + level) / (1 - level)
+        const newRR = (baseRR + level) / (1 - level);
         return {
           id: t.id,
           date: t.date,
@@ -153,10 +154,10 @@ export default function Optimization() {
       totalTPs,
       reachPercent: totalTPs > 0 ? (tpsReach / totalTPs) * 100 : 0,
       dontReachPercent: totalTPs > 0 ? (tpsDontReach / totalTPs) * 100 : 0,
-      potentialRRGain: `+${((baseRR / (1 - level)) - baseRR).toFixed(2)}R`,
+      potentialRRGain: `+${(((baseRR + level) / (1 - level)) - baseRR).toFixed(2)}R`,
       avgOriginalRR: baseRR,
-      avgNewRR: baseRR / (1 - level),
-      avgRRIncrease: (baseRR / (1 - level)) - baseRR,
+      avgNewRR: (baseRR + level) / (1 - level),
+      avgRRIncrease: ((baseRR + level) / (1 - level)) - baseRR,
       survivingTrades: surviving,
     };
   };
