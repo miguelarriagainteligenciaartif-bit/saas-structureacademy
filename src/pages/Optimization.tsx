@@ -128,8 +128,9 @@ export default function Optimization() {
       .filter((t) => t.drawdown >= level)
       .map((t) => {
         const originalRR = baseRR;
-        // New RR: same TP distance, but SL distance shrinks by (1 - level)
-        const newRR = baseRR / (1 - level);
+        // New RR: TP increases by level * SL, SL shrinks by (1 - level)
+        // newRR = (originalRR + level) / (1 - level)
+        const newRR = (baseRR + level) / (1 - level);
         return {
           id: t.id,
           date: t.date,
