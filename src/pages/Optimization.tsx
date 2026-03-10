@@ -452,6 +452,13 @@ export default function Optimization() {
               </CardContent>
             </Card>
 
+            {/* P&L Comparison Chart */}
+            <OptimizationPnLChart
+              allTrades={allDecisiveTrades}
+              baseRR={baseRR}
+              presetLevels={PRESET_LEVELS}
+            />
+
             {/* Custom Level */}
             <Card>
               <CardHeader>
