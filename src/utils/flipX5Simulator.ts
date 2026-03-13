@@ -37,7 +37,7 @@ export interface SimulationResult {
 export const simulateFlipX5 = (
   config: FlipConfig,
   tradeResults: TradeResult[],
-  actualAmounts?: number[]
+  _actualAmounts?: number[]
 ): SimulationResult => {
   const { accountSize, cycleSize, riskPerCycle, rrRatio, reinvestPercent, usePercentageRisk = false } = config;
 
