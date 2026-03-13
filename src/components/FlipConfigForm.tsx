@@ -82,7 +82,7 @@ export const FlipConfigForm = ({ initialConfig, onConfigChange }: FlipConfigForm
             disabled
             className="opacity-60"
           />
-          <p className="text-xs text-muted-foreground">Fijo en 2 trades</p>
+          <p className="text-xs text-muted-foreground">Máx. 2 trades por ciclo (reinicia al SL)</p>
         </div>
 
         <div className="space-y-2">

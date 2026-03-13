@@ -37,73 +37,44 @@ export interface SimulationResult {
 export const simulateFlipX5 = (
   config: FlipConfig,
   tradeResults: TradeResult[],
-  actualAmounts?: number[]
+  _actualAmounts?: number[]
 ): SimulationResult => {
   const { accountSize, cycleSize, riskPerCycle, rrRatio, reinvestPercent, usePercentageRisk = false } = config;
-  const useActualAmounts = actualAmounts && actualAmounts.length === tradeResults.length;
-  
+
   let balanceTraditional = accountSize;
   let balanceLeveraged = accountSize;
-  
+
   const trades: TradeRow[] = [];
-  const cycleData: { [key: number]: { tpCount: number; slCount: number; profit: number } } = {};
-  
+
   let currentCycle = 1;
   let tradesInCycle = 0;
   let previousTradeProfit = 0;
   let previousTradeResult: TradeResult | null = null;
-  
+
   tradeResults.forEach((result, index) => {
     const tradeNumber = index + 1;
-    
-    if (!cycleData[currentCycle]) {
-      cycleData[currentCycle] = { tpCount: 0, slCount: 0, profit: 0 };
-    }
-    
-    // Traditional calculation - SIEMPRE usa la configuración del usuario
-    let riskTraditional: number;
-    let pnlTraditional: number;
-    
-    if (usePercentageRisk) {
-      riskTraditional = (balanceTraditional * riskPerCycle) / 100;
-      pnlTraditional = result === 'TP' ? riskTraditional * rrRatio : -riskTraditional;
-    } else {
-      riskTraditional = riskPerCycle / cycleSize;
-      pnlTraditional = result === 'TP' ? riskTraditional * rrRatio : -riskTraditional;
-    }
-    
+
+    // Traditional calculation
+    const riskTraditional = usePercentageRisk
+      ? (balanceTraditional * riskPerCycle) / 100
+      : riskPerCycle / cycleSize;
+
+    const pnlTraditional = result === "TP" ? riskTraditional * rrRatio : -riskTraditional;
     balanceTraditional += pnlTraditional;
-    
-    // Leveraged calculation - aplica ciclos con reinversión usando config del usuario
-    let riskLeveraged: number;
-    let pnlLeveraged: number;
-    
-    if (usePercentageRisk) {
-      riskLeveraged = (balanceLeveraged * riskPerCycle) / 100;
-      
-      if (tradesInCycle > 0 && previousTradeResult === 'TP' && previousTradeProfit > 0) {
-        const reinvestAmount = (previousTradeProfit * reinvestPercent) / 100;
-        riskLeveraged = (balanceLeveraged * riskPerCycle) / 100 + reinvestAmount;
-      }
-      pnlLeveraged = result === 'TP' ? riskLeveraged * rrRatio : -riskLeveraged;
-    } else {
-      riskLeveraged = riskPerCycle / cycleSize;
-      
-      if (tradesInCycle > 0 && previousTradeResult === 'TP' && previousTradeProfit > 0) {
-        const reinvestAmount = (previousTradeProfit * reinvestPercent) / 100;
-        riskLeveraged = (riskPerCycle / cycleSize) + reinvestAmount;
-      }
-      pnlLeveraged = result === 'TP' ? riskLeveraged * rrRatio : -riskLeveraged;
+
+    // Leveraged calculation
+    let riskLeveraged = usePercentageRisk
+      ? (balanceLeveraged * riskPerCycle) / 100
+      : riskPerCycle / cycleSize;
+
+    if (tradesInCycle > 0 && previousTradeResult === "TP" && previousTradeProfit > 0) {
+      const reinvestAmount = (previousTradeProfit * reinvestPercent) / 100;
+      riskLeveraged += reinvestAmount;
     }
+
+    const pnlLeveraged = result === "TP" ? riskLeveraged * rrRatio : -riskLeveraged;
     balanceLeveraged += pnlLeveraged;
-    
-    if (result === 'TP') {
-      cycleData[currentCycle].tpCount++;
-    } else {
-      cycleData[currentCycle].slCount++;
-    }
-    cycleData[currentCycle].profit += pnlLeveraged;
-    
+
     trades.push({
       tradeNumber,
       cycle: currentCycle,
@@ -115,24 +86,29 @@ export const simulateFlipX5 = (
       pnlLeveraged,
       balanceLeveraged,
     });
-    
-    // Guardar el resultado y profit del trade actual para el siguiente
+
     previousTradeResult = result;
     previousTradeProfit = pnlLeveraged;
-    
     tradesInCycle++;
-    if (tradesInCycle >= cycleSize) {
+
+    // Regla de ciclo:
+    // 1) termina al completar el tamaño de ciclo
+    // 2) termina inmediatamente si hay SL
+    const endBySize = tradesInCycle >= cycleSize;
+    const endBySL = result === "SL";
+
+    if (endBySize || endBySL) {
       currentCycle++;
       tradesInCycle = 0;
       previousTradeProfit = 0;
       previousTradeResult = null;
     }
   });
-  
-  const totalTP = tradeResults.filter(r => r === 'TP').length;
-  const totalSL = tradeResults.filter(r => r === 'SL').length;
+
+  const totalTP = tradeResults.filter((r) => r === "TP").length;
+  const totalSL = tradeResults.filter((r) => r === "SL").length;
   const winRate = tradeResults.length > 0 ? (totalTP / tradeResults.length) * 100 : 0;
-  
+
   return {
     trades,
     finalBalanceTraditional: balanceTraditional,
