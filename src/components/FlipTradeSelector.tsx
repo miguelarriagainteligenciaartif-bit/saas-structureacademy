@@ -8,7 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
-import { Database, TrendingUp, TrendingDown, Plus, Calendar, Filter, CheckSquare, ClipboardPaste, FlaskConical } from "lucide-react";
+import { Database, TrendingUp, TrendingDown, Plus, Calendar, Filter, CheckSquare, ClipboardPaste, FlaskConical, Clock } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TradeResult } from "@/utils/flipX5Simulator";
