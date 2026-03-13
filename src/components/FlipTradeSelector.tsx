@@ -616,6 +616,7 @@ export const FlipTradeSelector = ({ onTradesSelected }: FlipTradeSelectorProps) 
                         />
                         <span className="text-xs text-muted-foreground w-6">#{index + 1}</span>
                         <span className="text-sm font-mono">{trade.date}</span>
+                        <span className="text-xs text-muted-foreground font-mono">{trade.entry_time?.substring(0, 5)}</span>
                         <Badge variant="outline" className="text-xs">
                           {trade.entry_model}
                         </Badge>
