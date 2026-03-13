@@ -66,6 +66,8 @@ export const FlipTradeSelector = ({ onTradesSelected }: FlipTradeSelectorProps) 
   const [btFilterModel, setBtFilterModel] = useState<string>("all");
   const [btTimeFrom, setBtTimeFrom] = useState<string>("");
   const [btTimeTo, setBtTimeTo] = useState<string>("");
+  const [btDateFrom, setBtDateFrom] = useState<string>("");
+  const [btDateTo, setBtDateTo] = useState<string>("");
 
   useEffect(() => {
     loadTrades();
