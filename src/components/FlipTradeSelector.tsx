@@ -21,6 +21,7 @@ export interface RealTrade {
   result_dollars: number;
   entry_model: string;
   trade_type: string;
+  entry_time: string;
 }
 
 interface BacktestStrategy {
