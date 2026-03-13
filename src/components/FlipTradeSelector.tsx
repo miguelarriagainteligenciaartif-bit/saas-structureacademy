@@ -66,6 +66,8 @@ export const FlipTradeSelector = ({ onTradesSelected }: FlipTradeSelectorProps) 
   const [btFilterModel, setBtFilterModel] = useState<string>("all");
   const [btTimeFrom, setBtTimeFrom] = useState<string>("");
   const [btTimeTo, setBtTimeTo] = useState<string>("");
+  const [btDateFrom, setBtDateFrom] = useState<string>("");
+  const [btDateTo, setBtDateTo] = useState<string>("");
 
   useEffect(() => {
     loadTrades();
@@ -139,6 +141,8 @@ export const FlipTradeSelector = ({ onTradesSelected }: FlipTradeSelectorProps) 
 
   const filteredBtTrades = btTrades.filter((t) => {
     if (btFilterModel !== "all" && t.entry_model !== btFilterModel) return false;
+    if (btDateFrom && t.date < btDateFrom) return false;
+    if (btDateTo && t.date > btDateTo) return false;
     if (btTimeFrom && t.entry_time) {
       const entryNorm = t.entry_time.substring(0, 5);
       if (entryNorm < btTimeFrom) return false;
@@ -339,7 +343,7 @@ export const FlipTradeSelector = ({ onTradesSelected }: FlipTradeSelectorProps) 
 
           {/* === BACKTEST TAB === */}
           <TabsContent value="backtest" className="mt-4 space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
               <div className="space-y-1">
                 <Label className="text-xs text-muted-foreground">Estrategia de Backtesting</Label>
                 <Select value={btSelectedStrategy} onValueChange={handleStrategyChange}>
@@ -370,6 +374,30 @@ export const FlipTradeSelector = ({ onTradesSelected }: FlipTradeSelectorProps) 
                     <SelectItem value="Continuación">Continuación</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Calendar className="h-3 w-3" /> Fecha desde
+                </Label>
+                <Input
+                  type="date"
+                  value={btDateFrom}
+                  onChange={(e) => setBtDateFrom(e.target.value)}
+                  className="h-8 text-sm"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Calendar className="h-3 w-3" /> Fecha hasta
+                </Label>
+                <Input
+                  type="date"
+                  value={btDateTo}
+                  onChange={(e) => setBtDateTo(e.target.value)}
+                  className="h-8 text-sm"
+                />
               </div>
               <div className="space-y-1">
                 <Label className="text-xs text-muted-foreground flex items-center gap-1">
