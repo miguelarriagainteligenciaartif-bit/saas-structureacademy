@@ -37,6 +37,7 @@ interface BacktestTrade {
   result_dollars: number;
   entry_model: string;
   no_trade_day: boolean;
+  entry_time: string;
 }
 
 interface FlipTradeSelectorProps {
