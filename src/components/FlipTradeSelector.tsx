@@ -484,7 +484,7 @@ export const FlipTradeSelector = ({ onTradesSelected }: FlipTradeSelectorProps) 
           {/* === DASHBOARD TAB (original) === */}
           <TabsContent value="database" className="mt-4 space-y-4">
             {/* Filters */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
               <div className="space-y-1">
                 <Label className="text-xs text-muted-foreground flex items-center gap-1">
                   <Filter className="h-3 w-3" /> Modelo
@@ -531,6 +531,28 @@ export const FlipTradeSelector = ({ onTradesSelected }: FlipTradeSelectorProps) 
                   type="date"
                   value={dateTo}
                   onChange={(e) => setDateTo(e.target.value)}
+                  className="h-8 text-sm"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Clock className="h-3 w-3" /> Hora desde
+                </Label>
+                <Input
+                  type="time"
+                  value={timeFrom}
+                  onChange={(e) => setTimeFrom(e.target.value)}
+                  className="h-8 text-sm"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Clock className="h-3 w-3" /> Hora hasta
+                </Label>
+                <Input
+                  type="time"
+                  value={timeTo}
+                  onChange={(e) => setTimeTo(e.target.value)}
                   className="h-8 text-sm"
                 />
               </div>
