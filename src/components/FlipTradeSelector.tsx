@@ -184,6 +184,14 @@ export const FlipTradeSelector = ({ onTradesSelected }: FlipTradeSelectorProps) 
     if (filterResult !== "all" && trade.result_type !== filterResult) return false;
     if (dateFrom && trade.date < dateFrom) return false;
     if (dateTo && trade.date > dateTo) return false;
+    if (timeFrom && trade.entry_time) {
+      const entryNorm = trade.entry_time.substring(0, 5);
+      if (entryNorm < timeFrom) return false;
+    }
+    if (timeTo && trade.entry_time) {
+      const entryNorm = trade.entry_time.substring(0, 5);
+      if (entryNorm > timeTo) return false;
+    }
     return true;
   });
 
