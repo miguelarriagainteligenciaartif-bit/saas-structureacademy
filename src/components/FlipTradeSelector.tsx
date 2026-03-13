@@ -141,6 +141,8 @@ export const FlipTradeSelector = ({ onTradesSelected }: FlipTradeSelectorProps) 
 
   const filteredBtTrades = btTrades.filter((t) => {
     if (btFilterModel !== "all" && t.entry_model !== btFilterModel) return false;
+    if (btDateFrom && t.date < btDateFrom) return false;
+    if (btDateTo && t.date > btDateTo) return false;
     if (btTimeFrom && t.entry_time) {
       const entryNorm = t.entry_time.substring(0, 5);
       if (entryNorm < btTimeFrom) return false;
