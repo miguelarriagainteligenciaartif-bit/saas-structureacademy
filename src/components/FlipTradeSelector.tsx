@@ -8,7 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
-import { Database, TrendingUp, TrendingDown, Plus, Calendar, Filter, CheckSquare, ClipboardPaste, FlaskConical } from "lucide-react";
+import { Database, TrendingUp, TrendingDown, Plus, Calendar, Filter, CheckSquare, ClipboardPaste, FlaskConical, Clock } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TradeResult } from "@/utils/flipX5Simulator";
@@ -21,6 +21,7 @@ export interface RealTrade {
   result_dollars: number;
   entry_model: string;
   trade_type: string;
+  entry_time: string;
 }
 
 interface BacktestStrategy {
@@ -36,6 +37,7 @@ interface BacktestTrade {
   result_dollars: number;
   entry_model: string;
   no_trade_day: boolean;
+  entry_time: string;
 }
 
 interface FlipTradeSelectorProps {
@@ -52,6 +54,8 @@ export const FlipTradeSelector = ({ onTradesSelected }: FlipTradeSelectorProps) 
   const [dateTo, setDateTo] = useState<string>("");
   const [selectCount, setSelectCount] = useState<number>(10);
   const [pastedSequence, setPastedSequence] = useState<string>("");
+  const [timeFrom, setTimeFrom] = useState<string>("");
+  const [timeTo, setTimeTo] = useState<string>("");
 
   // Backtest state
   const [btStrategies, setBtStrategies] = useState<BacktestStrategy[]>([]);
@@ -60,6 +64,8 @@ export const FlipTradeSelector = ({ onTradesSelected }: FlipTradeSelectorProps) 
   const [btLoading, setBtLoading] = useState(false);
   const [btSelectedIds, setBtSelectedIds] = useState<Set<string>>(new Set());
   const [btFilterModel, setBtFilterModel] = useState<string>("all");
+  const [btTimeFrom, setBtTimeFrom] = useState<string>("");
+  const [btTimeTo, setBtTimeTo] = useState<string>("");
 
   useEffect(() => {
     loadTrades();
@@ -71,7 +77,7 @@ export const FlipTradeSelector = ({ onTradesSelected }: FlipTradeSelectorProps) 
     try {
       const { data, error } = await supabase
         .from("trades")
-        .select("id, date, result_type, result_dollars, entry_model, trade_type")
+        .select("id, date, result_type, result_dollars, entry_model, trade_type, entry_time")
         .eq("no_trade_day", false)
         .in("result_type", ["TP", "SL"])
         .order("date", { ascending: true })
@@ -106,7 +112,7 @@ export const FlipTradeSelector = ({ onTradesSelected }: FlipTradeSelectorProps) 
     try {
       const { data, error } = await supabase
         .from("backtest_trades")
-        .select("id, date, result_type, result_dollars, entry_model, no_trade_day")
+        .select("id, date, result_type, result_dollars, entry_model, no_trade_day, entry_time")
         .eq("strategy_id", strategyId)
         .eq("no_trade_day", false)
         .in("result_type", ["TP", "SL"])
@@ -133,6 +139,14 @@ export const FlipTradeSelector = ({ onTradesSelected }: FlipTradeSelectorProps) 
 
   const filteredBtTrades = btTrades.filter((t) => {
     if (btFilterModel !== "all" && t.entry_model !== btFilterModel) return false;
+    if (btTimeFrom && t.entry_time) {
+      const entryNorm = t.entry_time.substring(0, 5);
+      if (entryNorm < btTimeFrom) return false;
+    }
+    if (btTimeTo && t.entry_time) {
+      const entryNorm = t.entry_time.substring(0, 5);
+      if (entryNorm > btTimeTo) return false;
+    }
     return true;
   });
 
@@ -170,6 +184,14 @@ export const FlipTradeSelector = ({ onTradesSelected }: FlipTradeSelectorProps) 
     if (filterResult !== "all" && trade.result_type !== filterResult) return false;
     if (dateFrom && trade.date < dateFrom) return false;
     if (dateTo && trade.date > dateTo) return false;
+    if (timeFrom && trade.entry_time) {
+      const entryNorm = trade.entry_time.substring(0, 5);
+      if (entryNorm < timeFrom) return false;
+    }
+    if (timeTo && trade.entry_time) {
+      const entryNorm = trade.entry_time.substring(0, 5);
+      if (entryNorm > timeTo) return false;
+    }
     return true;
   });
 
@@ -317,7 +339,7 @@ export const FlipTradeSelector = ({ onTradesSelected }: FlipTradeSelectorProps) 
 
           {/* === BACKTEST TAB === */}
           <TabsContent value="backtest" className="mt-4 space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
               <div className="space-y-1">
                 <Label className="text-xs text-muted-foreground">Estrategia de Backtesting</Label>
                 <Select value={btSelectedStrategy} onValueChange={handleStrategyChange}>
@@ -348,6 +370,28 @@ export const FlipTradeSelector = ({ onTradesSelected }: FlipTradeSelectorProps) 
                     <SelectItem value="Continuación">Continuación</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Clock className="h-3 w-3" /> Hora desde
+                </Label>
+                <Input
+                  type="time"
+                  value={btTimeFrom}
+                  onChange={(e) => setBtTimeFrom(e.target.value)}
+                  className="h-8 text-sm"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Clock className="h-3 w-3" /> Hora hasta
+                </Label>
+                <Input
+                  type="time"
+                  value={btTimeTo}
+                  onChange={(e) => setBtTimeTo(e.target.value)}
+                  className="h-8 text-sm"
+                />
               </div>
             </div>
 
@@ -389,6 +433,7 @@ export const FlipTradeSelector = ({ onTradesSelected }: FlipTradeSelectorProps) 
                             />
                             <span className="text-xs text-muted-foreground w-6">#{index + 1}</span>
                             <span className="text-sm font-mono">{trade.date}</span>
+                            <span className="text-xs text-muted-foreground font-mono">{trade.entry_time?.substring(0, 5)}</span>
                             <Badge variant="outline" className="text-xs">
                               {trade.entry_model}
                             </Badge>
@@ -440,7 +485,7 @@ export const FlipTradeSelector = ({ onTradesSelected }: FlipTradeSelectorProps) 
           {/* === DASHBOARD TAB (original) === */}
           <TabsContent value="database" className="mt-4 space-y-4">
             {/* Filters */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
               <div className="space-y-1">
                 <Label className="text-xs text-muted-foreground flex items-center gap-1">
                   <Filter className="h-3 w-3" /> Modelo
@@ -487,6 +532,28 @@ export const FlipTradeSelector = ({ onTradesSelected }: FlipTradeSelectorProps) 
                   type="date"
                   value={dateTo}
                   onChange={(e) => setDateTo(e.target.value)}
+                  className="h-8 text-sm"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Clock className="h-3 w-3" /> Hora desde
+                </Label>
+                <Input
+                  type="time"
+                  value={timeFrom}
+                  onChange={(e) => setTimeFrom(e.target.value)}
+                  className="h-8 text-sm"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Clock className="h-3 w-3" /> Hora hasta
+                </Label>
+                <Input
+                  type="time"
+                  value={timeTo}
+                  onChange={(e) => setTimeTo(e.target.value)}
                   className="h-8 text-sm"
                 />
               </div>
@@ -549,6 +616,7 @@ export const FlipTradeSelector = ({ onTradesSelected }: FlipTradeSelectorProps) 
                         />
                         <span className="text-xs text-muted-foreground w-6">#{index + 1}</span>
                         <span className="text-sm font-mono">{trade.date}</span>
+                        <span className="text-xs text-muted-foreground font-mono">{trade.entry_time?.substring(0, 5)}</span>
                         <Badge variant="outline" className="text-xs">
                           {trade.entry_model}
                         </Badge>
