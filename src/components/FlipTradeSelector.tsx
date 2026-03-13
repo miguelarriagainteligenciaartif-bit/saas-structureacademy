@@ -54,6 +54,8 @@ export const FlipTradeSelector = ({ onTradesSelected }: FlipTradeSelectorProps) 
   const [dateTo, setDateTo] = useState<string>("");
   const [selectCount, setSelectCount] = useState<number>(10);
   const [pastedSequence, setPastedSequence] = useState<string>("");
+  const [timeFrom, setTimeFrom] = useState<string>("");
+  const [timeTo, setTimeTo] = useState<string>("");
 
   // Backtest state
   const [btStrategies, setBtStrategies] = useState<BacktestStrategy[]>([]);
@@ -62,6 +64,8 @@ export const FlipTradeSelector = ({ onTradesSelected }: FlipTradeSelectorProps) 
   const [btLoading, setBtLoading] = useState(false);
   const [btSelectedIds, setBtSelectedIds] = useState<Set<string>>(new Set());
   const [btFilterModel, setBtFilterModel] = useState<string>("all");
+  const [btTimeFrom, setBtTimeFrom] = useState<string>("");
+  const [btTimeTo, setBtTimeTo] = useState<string>("");
 
   useEffect(() => {
     loadTrades();
