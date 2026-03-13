@@ -77,7 +77,7 @@ export const FlipTradeSelector = ({ onTradesSelected }: FlipTradeSelectorProps) 
     try {
       const { data, error } = await supabase
         .from("trades")
-        .select("id, date, result_type, result_dollars, entry_model, trade_type")
+        .select("id, date, result_type, result_dollars, entry_model, trade_type, entry_time")
         .eq("no_trade_day", false)
         .in("result_type", ["TP", "SL"])
         .order("date", { ascending: true })
