@@ -112,7 +112,7 @@ export const FlipTradeSelector = ({ onTradesSelected }: FlipTradeSelectorProps) 
     try {
       const { data, error } = await supabase
         .from("backtest_trades")
-        .select("id, date, result_type, result_dollars, entry_model, no_trade_day")
+        .select("id, date, result_type, result_dollars, entry_model, no_trade_day, entry_time")
         .eq("strategy_id", strategyId)
         .eq("no_trade_day", false)
         .in("result_type", ["TP", "SL"])
