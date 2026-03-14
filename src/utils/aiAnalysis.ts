@@ -155,7 +155,7 @@ export const buildOptimizationDataSummary = (stats: {
   let summary = `FUENTE: ${stats.source}${stats.strategyName ? ` (${stats.strategyName})` : ""}
 RR Base: 1:${stats.baseRR}
 
-ESTADÍSTICAS GENERALES:
+ESTADISTICAS GENERALES:
 - Total trades analizados: ${stats.totalTrades}
 - TPs con drawdown: ${stats.totalTPs}
 - SLs totales: ${stats.totalSLs}
@@ -163,9 +163,9 @@ ESTADÍSTICAS GENERALES:
 - EV original: ${stats.originalEV.toFixed(3)}
 - P&L original: ${stats.originalTotalR.toFixed(2)}R
 
-NIVEL ÓPTIMO RECOMENDADO: ${stats.bestLevel ? `${stats.bestLevel.label} (Δ P&L: +${stats.bestLevel.totalRDelta.toFixed(2)}R)` : "Ninguno mejora el P&L"}
+NIVEL OPTIMO RECOMENDADO: ${stats.bestLevel ? `${stats.bestLevel.label} (Delta P&L: +${stats.bestLevel.totalRDelta.toFixed(2)}R)` : "Ninguno mejora el P&L"}
 
-ANÁLISIS POR NIVEL:`;
+ANALISIS POR NIVEL:`;
 
   stats.levels.forEach((l) => {
     summary += `\n- ${l.label}: Supervivencia ${l.reachPercent.toFixed(1)}%, WR ${l.newWinRate.toFixed(1)}%, RR ${l.avgNewRR.toFixed(2)}, EV ${l.newEV.toFixed(3)}, Δ P&L ${l.totalRDelta > 0 ? "+" : ""}${l.totalRDelta.toFixed(2)}R`;
