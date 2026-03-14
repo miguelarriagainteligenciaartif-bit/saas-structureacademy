@@ -120,17 +120,37 @@ export default function Index() {
     }
   };
 
-  // Use ALL trades for metrics, not limited trades
-  const filteredTradesForMetrics = selectedAccount === "all" 
-    ? allTrades 
-    : allTrades.filter(t => t.account_id === selectedAccount);
-  
+  // Apply all filters: account, date range, model
+  const applyFilters = (tradeList: Trade[]) => {
+    let filtered = tradeList;
+    if (selectedAccount !== "all") {
+      filtered = filtered.filter(t => t.account_id === selectedAccount);
+    }
+    if (filterDateFrom) {
+      const fromStr = filterDateFrom.toISOString().split("T")[0];
+      filtered = filtered.filter(t => t.date >= fromStr);
+    }
+    if (filterDateTo) {
+      const toStr = filterDateTo.toISOString().split("T")[0];
+      filtered = filtered.filter(t => t.date <= toStr);
+    }
+    if (filterModel !== "all") {
+      filtered = filtered.filter(t => t.entry_model === filterModel);
+    }
+    return filtered;
+  };
+
+  const filteredTradesForMetrics = applyFilters(allTrades);
   const actualTrades = filteredTradesForMetrics.filter(t => !t.no_trade_day);
 
-  // For table display, use limited trades
-  const filteredTradesForTable = selectedAccount === "all" 
-    ? trades 
-    : trades.filter(t => t.account_id === selectedAccount);
+  // For table display, use limited then filtered
+  const filteredTradesForTable = applyFilters(trades);
+
+  const clearFilters = () => {
+    setFilterDateFrom(undefined);
+    setFilterDateTo(undefined);
+    setFilterModel("all");
+  };
 
   // Calcular rachas consecutivas (orden cronológico real: fecha + hora de entrada)
   let currentTPStreak = 0;
