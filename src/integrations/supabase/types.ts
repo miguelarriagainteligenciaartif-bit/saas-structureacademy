@@ -451,6 +451,7 @@ export type Database = {
         Row: {
           account_id: string | null
           asset: string
+          continuation_subtype: string | null
           created_at: string | null
           custom_news_description: string | null
           date: string
@@ -479,6 +480,7 @@ export type Database = {
         Insert: {
           account_id?: string | null
           asset?: string
+          continuation_subtype?: string | null
           created_at?: string | null
           custom_news_description?: string | null
           date: string
@@ -507,6 +509,7 @@ export type Database = {
         Update: {
           account_id?: string | null
           asset?: string
+          continuation_subtype?: string | null
           created_at?: string | null
           custom_news_description?: string | null
           date?: string
