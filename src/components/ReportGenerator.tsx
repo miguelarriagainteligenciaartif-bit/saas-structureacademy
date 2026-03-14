@@ -102,33 +102,32 @@ export const ReportGenerator = ({ trades }: ReportGeneratorProps) => {
         }
       });
 
-      // By entry model
-      const modelStats = ["M1", "M3", "Continuación"].map(model => {
-        const modelTrades = actualTrades.filter(t => t.entry_model === model);
-        const modelWins = modelTrades.filter(t => t.result_type === "TP");
-        const modelPnL = modelTrades.reduce((sum, t) => sum + (t.result_dollars || 0), 0);
-        const modelWinRate = modelTrades.length > 0 ? (modelWins.length / modelTrades.length * 100) : 0;
-        return { model, trades: modelTrades.length, pnl: modelPnL, winRate: modelWinRate };
-      });
+      // Build full model comparison stats (matching dashboard)
+      const buildModelRow = (label: string, trds: Trade[], isSubrow = false) => {
+        const wins = trds.filter(t => t.result_type === "TP");
+        const losses = trds.filter(t => t.result_type === "SL");
+        const pnl = trds.reduce((sum, t) => sum + (t.result_dollars || 0), 0);
+        const decisive = trds.filter(t => t.result_type === "TP" || t.result_type === "SL");
+        const wr = decisive.length > 0 ? wins.length / decisive.length : 0;
+        const avgW = wins.length > 0 ? wins.reduce((s, t) => s + (t.result_dollars || 0), 0) / wins.length : 0;
+        const avgL = losses.length > 0 ? Math.abs(losses.reduce((s, t) => s + (t.result_dollars || 0), 0) / losses.length) : 0;
+        const ev = decisive.length > 0 ? (wr * avgW) - ((1 - wr) * avgL) : 0;
+        return { label, trades: trds.length, wins: wins.length, losses: losses.length,
+          winRate: trds.length > 0 ? (wins.length / trds.length * 100) : 0, pnl, ev, isSubrow };
+      };
 
-      // Continuation subtype breakdown (Bloque vs FVG)
-      const continuationSubtypeStats = ["Bloque", "FVG"].map((subtype) => {
-        const subtypeTrades = actualTrades.filter(
-          (t) =>
-            t.entry_model === "Continuación" &&
-            (t.continuation_subtype || "").toLowerCase() === subtype.toLowerCase()
-        );
-        const subtypeWins = subtypeTrades.filter((t) => t.result_type === "TP");
-        const subtypePnL = subtypeTrades.reduce((sum, t) => sum + (t.result_dollars || 0), 0);
-        const subtypeWinRate = subtypeTrades.length > 0 ? (subtypeWins.length / subtypeTrades.length * 100) : 0;
+      const comparisonRows = [
+        buildModelRow("M1", actualTrades.filter(t => t.entry_model === "M1")),
+        buildModelRow("M3", actualTrades.filter(t => t.entry_model === "M3")),
+        buildModelRow("Continuación", actualTrades.filter(t => t.entry_model === "Continuación")),
+        buildModelRow("└ Bloque", actualTrades.filter(t => t.entry_model === "Continuación" && t.continuation_subtype === "Bloque"), true),
+        buildModelRow("└ FVG", actualTrades.filter(t => t.entry_model === "Continuación" && t.continuation_subtype === "FVG"), true),
+        buildModelRow("Total", actualTrades),
+      ];
 
-        return {
-          subtype,
-          trades: subtypeTrades.length,
-          pnl: subtypePnL,
-          winRate: subtypeWinRate,
-        };
-      });
+      const modelStats = comparisonRows.filter(r => !r.isSubrow && r.label !== "Total").map(r => ({
+        model: r.label, trades: r.trades, pnl: r.pnl, winRate: r.winRate,
+      }));
 
       // By day of week
       const dayStats = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"].map(day => {
@@ -294,45 +293,43 @@ export const ReportGenerator = ({ trades }: ReportGeneratorProps) => {
 
       yPos += boxHeight + 15;
 
-      // Model Analysis Table
-      yPos = addSectionTitle(doc, "Análisis por Modelo de Entrada", yPos);
+      // Comparativa por Modelo (full table with subtypes + EV)
+      yPos = addSectionTitle(doc, "Comparativa por Modelo", yPos);
 
       autoTable(doc, {
         startY: yPos,
-        head: [['Modelo', 'Operaciones', 'P&L', 'Win Rate']],
-        body: modelStats.map(m => [
-          m.model,
-          m.trades.toString(),
-          `$${m.pnl.toFixed(2)}`,
-          `${m.winRate.toFixed(1)}%`
+        head: [['Modelo', 'Trades', 'TP', 'SL', 'Win Rate', 'P&L Total', 'Expected Value']],
+        body: comparisonRows.map(r => [
+          r.label,
+          r.trades.toString(),
+          r.wins.toString(),
+          r.losses.toString(),
+          r.trades > 0 ? `${r.winRate.toFixed(1)}%` : '—',
+          r.trades > 0 ? `$${r.pnl.toFixed(2)}` : '—',
+          r.trades > 0 ? `$${r.ev.toFixed(2)}` : '—',
         ]),
         theme: 'striped',
         ...tableStyles,
         columnStyles: {
-          2: { halign: 'right' },
-          3: { halign: 'right' }
+          0: { fontStyle: 'bold' },
+          1: { halign: 'center' }, 2: { halign: 'center' }, 3: { halign: 'center' },
+          4: { halign: 'center' }, 5: { halign: 'right' }, 6: { halign: 'right' },
         },
-        margin: { left: 14, right: 14 }
-      });
-
-      yPos = (doc as any).lastAutoTable.finalY + 12;
-
-      // Continuation subtype analysis (Bloque vs FVG)
-      yPos = addSectionTitle(doc, "Desglose Continuación", yPos);
-      autoTable(doc, {
-        startY: yPos,
-        head: [['Subtipo', 'Operaciones', 'P&L', 'Win Rate']],
-        body: continuationSubtypeStats.map((s) => [
-          s.subtype,
-          s.trades.toString(),
-          `$${s.pnl.toFixed(2)}`,
-          `${s.winRate.toFixed(1)}%`,
-        ]),
-        theme: 'striped',
-        ...tableStyles,
-        columnStyles: {
-          2: { halign: 'right' },
-          3: { halign: 'right' }
+        didParseCell: (data: any) => {
+          if (data.section === 'body') {
+            const row = comparisonRows[data.row.index];
+            if (row?.isSubrow) {
+              data.cell.styles.fillColor = [235, 238, 242];
+              if (data.column.index === 0) { data.cell.styles.textColor = [120, 120, 130]; data.cell.styles.fontStyle = 'normal'; }
+            }
+            if (row?.label === 'Total') data.cell.styles.fontStyle = 'bold';
+            if (data.column.index === 2) data.cell.styles.textColor = brandColors.success;
+            if (data.column.index === 3) data.cell.styles.textColor = brandColors.danger;
+            if (row && row.trades > 0 && (data.column.index === 5 || data.column.index === 6)) {
+              const val = data.column.index === 5 ? row.pnl : row.ev;
+              data.cell.styles.textColor = val >= 0 ? brandColors.success : brandColors.danger;
+            }
+          }
         },
         margin: { left: 14, right: 14 }
       });
