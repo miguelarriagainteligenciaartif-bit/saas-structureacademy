@@ -110,7 +110,7 @@ export function ModelComparisonTable({ trades }: ModelComparisonTableProps) {
               <TableHead className="text-center">SL</TableHead>
               <TableHead className="text-center">Win Rate</TableHead>
               <TableHead className="text-right">P&L Total</TableHead>
-              <TableHead className="text-right">P&L Promedio</TableHead>
+              <TableHead className="text-right">Expected Value</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
