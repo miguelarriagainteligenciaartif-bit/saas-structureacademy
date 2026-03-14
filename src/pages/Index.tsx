@@ -11,6 +11,8 @@ import { TradeDetailsDialog } from "@/components/TradeDetailsDialog";
 import { ExcelImporter } from "@/components/ExcelImporter";
 import { MonthlyResults } from "@/components/MonthlyResults";
 import { DollarSign, TrendingUp, TrendingDown, Target, Calendar, Layers, Trash2 } from "lucide-react";
+import { DashboardFilters } from "@/components/DashboardFilters";
+import { ModelComparisonTable } from "@/components/ModelComparisonTable";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
