@@ -64,6 +64,12 @@ export function ModelComparisonTable({ trades }: ModelComparisonTableProps) {
         const subLosses = subTrades.filter(t => t.result_type === "SL").length;
         const subPnL = subTrades.reduce((sum, t) => sum + (t.result_dollars || 0), 0);
 
+        const subDecisive = subTrades.filter(t => t.result_type === "TP" || t.result_type === "SL");
+        const subWr = subDecisive.length > 0 ? subWins / subDecisive.length : 0;
+        const subAvgWin = subWins > 0 ? subTrades.filter(t => t.result_type === "TP").reduce((s, t) => s + (t.result_dollars || 0), 0) / subWins : 0;
+        const subAvgLoss = subLosses > 0 ? Math.abs(subTrades.filter(t => t.result_type === "SL").reduce((s, t) => s + (t.result_dollars || 0), 0) / subLosses) : 0;
+        const subEv = subDecisive.length > 0 ? (subWr * subAvgWin) - ((1 - subWr) * subAvgLoss) : 0;
+
         modelStats.push({
           model: `└ ${subtype}`,
           subtype,
@@ -72,7 +78,7 @@ export function ModelComparisonTable({ trades }: ModelComparisonTableProps) {
           losses: subLosses,
           winRate: subTrades.length > 0 ? (subWins / subTrades.length) * 100 : 0,
           totalPnL: subPnL,
-          avgPnL: subTrades.length > 0 ? subPnL / subTrades.length : 0,
+          expectedValue: subEv,
           isSubrow: true,
         });
       });
