@@ -339,13 +339,8 @@ export const BacktestReportGenerator = ({ trades, strategy }: BacktestReportGene
 
       // AI Analysis Section
       toast.info("Generando análisis con IA...");
-      const continuationSubtypeStats = ["Bloque", "FVG"].map(subtype => {
-        const subTrades = actualTrades.filter(t => t.entry_model === "Continuación" && (t as any).continuation_subtype === subtype);
-        const wins = subTrades.filter(t => t.result_type === "TP").length;
-        const pnl = subTrades.reduce((sum, t) => sum + Number(t.result_dollars), 0);
-        const wr = subTrades.length > 0 ? (wins / subTrades.length * 100) : 0;
-        return { subtype, trades: subTrades.length, pnl, winRate: wr };
-      });
+      // backtest_trades does not have continuation_subtype column, so skip subtype analysis
+
       const dataSummary = buildBacktestDataSummary({
         strategyName: strategy.name,
         rrRatio: strategy.risk_reward_ratio,
