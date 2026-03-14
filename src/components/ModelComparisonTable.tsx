@@ -152,9 +152,9 @@ export function ModelComparisonTable({ trades }: ModelComparisonTableProps) {
                 <TableCell className={cn(
                   "text-right font-mono font-medium",
                   stat.totalTrades === 0 ? "text-muted-foreground" :
-                  stat.avgPnL >= 0 ? "text-success" : "text-destructive"
+                  stat.expectedValue >= 0 ? "text-success" : "text-destructive"
                 )}>
-                  {stat.totalTrades > 0 ? `$${stat.avgPnL.toFixed(2)}` : "—"}
+                  {stat.totalTrades > 0 ? `$${stat.expectedValue.toFixed(2)}` : "—"}
                 </TableCell>
               </TableRow>
             ))}
