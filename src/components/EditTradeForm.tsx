@@ -116,6 +116,7 @@ export const EditTradeForm = ({ trade, onSuccess, isBacktest = false }: EditTrad
       date: trade.date || "",
       day_of_week: trade.day_of_week || undefined,
       notes: trade.notes || "",
+      continuation_subtype: trade.continuation_subtype || undefined,
     },
   });
 
