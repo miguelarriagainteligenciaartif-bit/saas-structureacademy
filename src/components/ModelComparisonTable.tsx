@@ -40,6 +40,12 @@ export function ModelComparisonTable({ trades }: ModelComparisonTableProps) {
     const losses = modelTrades.filter(t => t.result_type === "SL").length;
     const totalPnL = modelTrades.reduce((sum, t) => sum + (t.result_dollars || 0), 0);
 
+    const decisiveTrades = modelTrades.filter(t => t.result_type === "TP" || t.result_type === "SL");
+    const wr = decisiveTrades.length > 0 ? wins / decisiveTrades.length : 0;
+    const avgWin = wins > 0 ? modelTrades.filter(t => t.result_type === "TP").reduce((s, t) => s + (t.result_dollars || 0), 0) / wins : 0;
+    const avgLoss = losses > 0 ? Math.abs(modelTrades.filter(t => t.result_type === "SL").reduce((s, t) => s + (t.result_dollars || 0), 0) / losses) : 0;
+    const ev = decisiveTrades.length > 0 ? (wr * avgWin) - ((1 - wr) * avgLoss) : 0;
+
     modelStats.push({
       model,
       totalTrades: modelTrades.length,
@@ -47,7 +53,7 @@ export function ModelComparisonTable({ trades }: ModelComparisonTableProps) {
       losses,
       winRate: modelTrades.length > 0 ? (wins / modelTrades.length) * 100 : 0,
       totalPnL,
-      avgPnL: modelTrades.length > 0 ? totalPnL / modelTrades.length : 0,
+      expectedValue: ev,
     });
 
     // Add subtypes for Continuación
