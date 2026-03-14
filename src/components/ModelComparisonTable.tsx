@@ -52,7 +52,7 @@ export function ModelComparisonTable({ trades }: ModelComparisonTableProps) {
 
     // Add subtypes for Continuación
     if (model === "Continuación") {
-      ["Bloque", "FBGE"].forEach(subtype => {
+      ["Bloque", "FVG"].forEach(subtype => {
         const subTrades = modelTrades.filter(t => t.continuation_subtype === subtype);
         const subWins = subTrades.filter(t => t.result_type === "TP").length;
         const subLosses = subTrades.filter(t => t.result_type === "SL").length;
