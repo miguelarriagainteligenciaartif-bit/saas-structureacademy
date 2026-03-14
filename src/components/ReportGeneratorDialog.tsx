@@ -23,6 +23,8 @@ import {
   getBrandedTableStyles,
   addSectionTitle,
 } from "@/utils/pdfBranding";
+import { fetchAIAnalysis, buildJournalDataSummary } from "@/utils/aiAnalysis";
+import { addAIAnalysisSection } from "@/utils/pdfAISection";
 
 interface Trade {
   id: string;
@@ -593,6 +595,29 @@ export const ReportGeneratorDialog = ({ trades }: ReportGeneratorDialogProps) =>
           }
         }
       });
+
+      // AI Analysis Section
+      toast.info("Generando análisis con IA...");
+      const dataSummary = buildJournalDataSummary({
+        totalTrades: actualTrades.length,
+        totalPnL,
+        winRate,
+        expectedValue,
+        avgWin,
+        avgLoss,
+        bestTPStreak,
+        worstSLStreak,
+        modelStats,
+        dayStats,
+      });
+
+      const aiResult = await fetchAIAnalysis("journal", dataSummary);
+      if (aiResult.analysis) {
+        doc.addPage();
+        addAIAnalysisSection(doc, aiResult.analysis, 20);
+      } else if (aiResult.error) {
+        toast.warning(`Informe generado sin análisis IA: ${aiResult.error}`);
+      }
 
       // Add branded footer to all pages
       addBrandedFooter(doc);
