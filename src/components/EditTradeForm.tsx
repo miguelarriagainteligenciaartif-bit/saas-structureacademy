@@ -255,7 +255,13 @@ export const EditTradeForm = ({ trade, onSuccess, isBacktest = false }: EditTrad
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={form.handleSubmit(onSubmit, (errors) => {
+        console.error("Form validation errors:", JSON.stringify(errors, null, 2));
+        const firstError = Object.entries(errors)[0];
+        if (firstError) {
+          toast.error(`Error en campo "${firstError[0]}": ${firstError[1]?.message || "valor inválido"}`);
+        }
+      })} className="space-y-4">
         <FormField
           control={form.control}
           name="no_trade_day"
