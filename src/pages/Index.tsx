@@ -517,7 +517,11 @@ export default function Index() {
                           )}
                         </TableCell>
                         <TableCell>
-                          <Badge variant="outline">{trade.entry_model || "N/A"}</Badge>
+                          <Badge variant="outline">
+                            {trade.entry_model === "Continuación" && trade.continuation_subtype
+                              ? `Cont. ${trade.continuation_subtype}`
+                              : trade.entry_model || "N/A"}
+                          </Badge>
                         </TableCell>
                         <TableCell>
                           {trade.no_trade_day ? (
