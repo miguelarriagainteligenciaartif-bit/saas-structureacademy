@@ -11,33 +11,46 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 
+const ASSET_OPTIONS = ["Nasdaq 100", "Oro", "BTC", "EUR/USD", "GBP/USD", "Petróleo", "S&P 500", "Otro"] as const;
+const DAY_OPTIONS = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"] as const;
+const TRADE_TYPE_OPTIONS = ["Compra", "Venta"] as const;
+const RESULT_TYPE_OPTIONS = ["TP", "SL"] as const;
+const DRAWDOWN_OPTIONS = ["0", "0.33", "0.50", "0.66", "0.90", "1.00"] as const;
+const NEWS_DESCRIPTION_OPTIONS = ["NFP", "CPI", "PMI Servicios", "PMI Manufacturing", "PCE", "Flash PMI", "FOMC", "Ventas Minoristas", "Otra"] as const;
+const NEWS_TIME_OPTIONS = ["08:30", "09:45", "10:00"] as const;
+const EXECUTION_TIMING_OPTIONS = ["Antes de noticia", "Después de noticia"] as const;
+const ENTRY_MODEL_OPTIONS = ["M1", "M3", "Continuación"] as const;
+const CONTINUATION_SUBTYPE_OPTIONS = ["Bloque", "FVG"] as const;
+
+type DrawdownOption = (typeof DRAWDOWN_OPTIONS)[number];
+
 const formSchema = z.object({
   no_trade_day: z.boolean().default(false),
   account_id: z.string().optional(),
-  asset: z.enum(["Nasdaq 100", "Oro", "BTC", "EUR/USD", "GBP/USD", "Petróleo", "S&P 500", "Otro"]).default("Nasdaq 100"),
+  asset: z.enum(ASSET_OPTIONS).default("Nasdaq 100"),
   date: z.string().min(1, "Fecha requerida").refine((val) => {
     const inputDate = new Date(val + "T00:00:00");
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     return inputDate <= today;
   }, { message: "La fecha no puede ser futura" }),
-  day_of_week: z.enum(["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"]),
+  day_of_week: z.enum(DAY_OPTIONS),
   entry_time: z.string().optional(),
   exit_time: z.string().optional(),
-  trade_type: z.enum(["Compra", "Venta"]).optional(),
-  result_type: z.enum(["TP", "SL"]).optional(),
-  drawdown: z.enum(["0", "0.33", "0.50", "0.66", "0.90", "1.00"]).optional(),
+  trade_type: z.enum(TRADE_TYPE_OPTIONS).optional(),
+  result_type: z.enum(RESULT_TYPE_OPTIONS).optional(),
+  drawdown: z.enum(DRAWDOWN_OPTIONS).optional(),
   max_rr: z.union([
     z.string(),
     z.number(),
   ]).optional(),
   had_news: z.boolean().default(false),
-  news_description: z.enum(["NFP", "CPI", "PMI Servicios", "PMI Manufacturing", "PCE", "Flash PMI", "FOMC", "Ventas Minoristas", "Otra"]).optional(),
+  news_description: z.enum(NEWS_DESCRIPTION_OPTIONS).optional(),
   custom_news_description: z.string().optional(),
-  news_time: z.enum(["08:30", "09:45", "10:00"]).optional(),
-  execution_timing: z.enum(["Antes de noticia", "Después de noticia"]).optional(),
-  entry_model: z.enum(["M1", "M3", "Continuación"]).optional(),
-  continuation_subtype: z.enum(["Bloque", "FVG"]).optional(),
+  news_time: z.enum(NEWS_TIME_OPTIONS).optional(),
+  execution_timing: z.enum(EXECUTION_TIMING_OPTIONS).optional(),
+  entry_model: z.enum(ENTRY_MODEL_OPTIONS).optional(),
+  continuation_subtype: z.enum(CONTINUATION_SUBTYPE_OPTIONS).optional(),
   result_dollars: z.string().optional(),
   image_link: z.string().url().optional().or(z.literal("")),
   risk_percentage: z.string().default("1"),
