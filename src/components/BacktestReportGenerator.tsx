@@ -355,7 +355,7 @@ export const BacktestReportGenerator = ({ trades, strategy }: BacktestReportGene
         worstSLStreak,
         modelStats,
         dayStats,
-        continuationSubtypeStats,
+        continuationSubtypeStats: undefined,
       });
 
       const aiResult = await fetchAIAnalysis("backtest", dataSummary);
