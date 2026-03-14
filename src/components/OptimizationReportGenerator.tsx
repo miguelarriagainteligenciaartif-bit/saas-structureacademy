@@ -355,8 +355,6 @@ export const OptimizationReportGenerator = ({
 
       // AI Analysis Section
       toast.info("Generando análisis con IA...");
-      const first = presetAnalysis[0];
-      const totalTrades = first.totalTPs + first.totalSLs;
       const optDataSummary = buildOptimizationDataSummary({
         source: source === "journal" ? "Journal (Trades Reales)" : `Backtesting: ${strategyName || "Estrategia"}`,
         strategyName,
