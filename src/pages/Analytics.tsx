@@ -5,6 +5,7 @@ import { Header } from "@/components/Header";
 import { StatsCard } from "@/components/StatsCard";
 import { ReportGenerator } from "@/components/ReportGenerator";
 import { DollarSign, TrendingUp, TrendingDown, Target, Calendar, BarChart3, Clock, Flame, Award } from "lucide-react";
+import { ContinuationSubtypeAnalysis } from "@/components/ContinuationSubtypeAnalysis";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, LineChart, Line, AreaChart, Area } from "recharts";
 
