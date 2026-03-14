@@ -206,6 +206,8 @@ export const EditTradeForm = ({ trade, onSuccess, isBacktest = false }: EditTrad
       const weekOfMonth = Math.ceil(dayOfMonth / 7);
 
       const tableName = isBacktest ? "backtest_trades" : "trades";
+      const hasNews = values.had_news && !values.no_trade_day;
+
       const updateData: any = {
         no_trade_day: values.no_trade_day,
         asset: values.asset,
@@ -218,11 +220,11 @@ export const EditTradeForm = ({ trade, onSuccess, isBacktest = false }: EditTrad
         result_type: values.no_trade_day ? "TP" : values.result_type,
         drawdown: values.drawdown ? parseFloat(values.drawdown) : null,
         max_rr: values.max_rr ? parseFloat(values.max_rr.toString()) : null,
-        had_news: values.had_news,
-        news_description: values.news_description || null,
-        custom_news_description: values.custom_news_description || null,
-        news_time: values.news_time || null,
-        execution_timing: values.execution_timing || null,
+        had_news: hasNews,
+        news_description: hasNews ? (values.news_description || null) : null,
+        custom_news_description: hasNews ? (values.custom_news_description || null) : null,
+        news_time: hasNews ? (values.news_time || null) : null,
+        execution_timing: hasNews ? (values.execution_timing || null) : null,
         entry_model: values.no_trade_day ? "M1" : values.entry_model,
         continuation_subtype: values.entry_model === "Continuación" ? (values.continuation_subtype || null) : null,
         result_dollars: values.no_trade_day ? 0 : (values.result_dollars ? parseFloat(values.result_dollars) : 0),
