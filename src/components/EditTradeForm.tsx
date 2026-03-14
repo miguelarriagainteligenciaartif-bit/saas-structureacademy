@@ -480,12 +480,12 @@ export const EditTradeForm = ({ trade, onSuccess, isBacktest = false }: EditTrad
                   <Select onValueChange={field.onChange} value={field.value || ""}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Bloque o FBGE" />
+                        <SelectValue placeholder="Bloque o FVG" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
                       <SelectItem value="Bloque">Bloque</SelectItem>
-                      <SelectItem value="FBGE">FBGE</SelectItem>
+                      <SelectItem value="FVG">FVG</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
