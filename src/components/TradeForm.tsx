@@ -38,6 +38,7 @@ const formSchema = z.object({
   news_time: z.enum(["08:30", "09:45", "10:00"]).optional(),
   execution_timing: z.enum(["Antes de noticia", "Después de noticia"]).optional(),
   entry_model: z.enum(["M1", "M3", "Continuación"]).optional(),
+  continuation_subtype: z.enum(["Bloque", "FBGE"]).optional(),
   result_dollars: z.string().optional(),
   image_link: z.string().url().optional().or(z.literal("")),
   risk_percentage: z.string().default("1"),
