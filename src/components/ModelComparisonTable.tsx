@@ -9,6 +9,7 @@ interface Trade {
   result_dollars: number | null;
   entry_model: string | null;
   no_trade_day: boolean;
+  continuation_subtype?: string | null;
 }
 
 interface ModelComparisonTableProps {
@@ -17,25 +18,29 @@ interface ModelComparisonTableProps {
 
 interface ModelStats {
   model: string;
+  subtype?: string;
   totalTrades: number;
   wins: number;
   losses: number;
   winRate: number;
   totalPnL: number;
   avgPnL: number;
+  isSubrow?: boolean;
 }
 
 export function ModelComparisonTable({ trades }: ModelComparisonTableProps) {
   const actualTrades = trades.filter(t => !t.no_trade_day);
   const models = ["M1", "M3", "Continuación"];
 
-  const modelStats: ModelStats[] = models.map(model => {
+  const modelStats: ModelStats[] = [];
+
+  models.forEach(model => {
     const modelTrades = actualTrades.filter(t => t.entry_model === model);
     const wins = modelTrades.filter(t => t.result_type === "TP").length;
     const losses = modelTrades.filter(t => t.result_type === "SL").length;
     const totalPnL = modelTrades.reduce((sum, t) => sum + (t.result_dollars || 0), 0);
 
-    return {
+    modelStats.push({
       model,
       totalTrades: modelTrades.length,
       wins,
@@ -43,11 +48,34 @@ export function ModelComparisonTable({ trades }: ModelComparisonTableProps) {
       winRate: modelTrades.length > 0 ? (wins / modelTrades.length) * 100 : 0,
       totalPnL,
       avgPnL: modelTrades.length > 0 ? totalPnL / modelTrades.length : 0,
-    };
+    });
+
+    // Add subtypes for Continuación
+    if (model === "Continuación") {
+      ["Bloque", "FBGE"].forEach(subtype => {
+        const subTrades = modelTrades.filter(t => t.continuation_subtype === subtype);
+        const subWins = subTrades.filter(t => t.result_type === "TP").length;
+        const subLosses = subTrades.filter(t => t.result_type === "SL").length;
+        const subPnL = subTrades.reduce((sum, t) => sum + (t.result_dollars || 0), 0);
+
+        modelStats.push({
+          model: `└ ${subtype}`,
+          subtype,
+          totalTrades: subTrades.length,
+          wins: subWins,
+          losses: subLosses,
+          winRate: subTrades.length > 0 ? (subWins / subTrades.length) * 100 : 0,
+          totalPnL: subPnL,
+          avgPnL: subTrades.length > 0 ? subPnL / subTrades.length : 0,
+          isSubrow: true,
+        });
+      });
+    }
   });
 
-  const bestModel = modelStats.reduce((best, curr) => 
-    curr.totalPnL > best.totalPnL ? curr : best, modelStats[0]);
+  const mainStats = modelStats.filter(s => !s.isSubrow);
+  const bestModel = mainStats.reduce((best, curr) => 
+    curr.totalPnL > best.totalPnL ? curr : best, mainStats[0]);
 
   return (
     <Card>
@@ -74,9 +102,11 @@ export function ModelComparisonTable({ trades }: ModelComparisonTableProps) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {modelStats.map((stat) => (
-              <TableRow key={stat.model}>
-                <TableCell className="font-semibold">{stat.model}</TableCell>
+            {modelStats.map((stat, idx) => (
+              <TableRow key={idx} className={stat.isSubrow ? "bg-muted/30" : ""}>
+                <TableCell className={cn("font-semibold", stat.isSubrow && "pl-6 text-muted-foreground text-sm")}>
+                  {stat.model}
+                </TableCell>
                 <TableCell className="text-center">{stat.totalTrades}</TableCell>
                 <TableCell className="text-center">
                   <span className="text-success font-medium">{stat.wins}</span>

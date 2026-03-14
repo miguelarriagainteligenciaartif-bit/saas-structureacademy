@@ -470,6 +470,30 @@ export const EditTradeForm = ({ trade, onSuccess, isBacktest = false }: EditTrad
             )}
           />
 
+          {form.watch("entry_model") === "Continuación" && !noTradeDay && (
+            <FormField
+              control={form.control}
+              name="continuation_subtype"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Subtipo Continuación</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value || ""}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Bloque o FBGE" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="Bloque">Bloque</SelectItem>
+                      <SelectItem value="FBGE">FBGE</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
+
           <FormField
             control={form.control}
             name="result_dollars"
