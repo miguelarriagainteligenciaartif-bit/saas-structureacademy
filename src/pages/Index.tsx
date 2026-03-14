@@ -60,6 +60,9 @@ export default function Index() {
   const [hasMoreTrades, setHasMoreTrades] = useState(false);
   const [selectedTradeIds, setSelectedTradeIds] = useState<Set<string>>(new Set());
   const [isDeleting, setIsDeleting] = useState(false);
+  const [filterDateFrom, setFilterDateFrom] = useState<Date | undefined>();
+  const [filterDateTo, setFilterDateTo] = useState<Date | undefined>();
+  const [filterModel, setFilterModel] = useState<string>("all");
 
   useEffect(() => {
     checkUser();
