@@ -44,6 +44,7 @@ interface Trade {
   image_link: string | null;
   account_id: string | null;
   risk_percentage: number;
+  continuation_subtype: string | null;
 }
 
 export default function Index() {
