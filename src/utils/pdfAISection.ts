@@ -30,7 +30,7 @@ export const addAIAnalysisSection = (
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(8);
   doc.setFont("helvetica", "bold");
-  doc.text("🤖 Análisis generado por IA · Quantum Trading Analyst", pageWidth / 2, y + 7, { align: "center" });
+  doc.text("Analisis generado por IA - Quantum Trading Analyst", pageWidth / 2, y + 7, { align: "center" });
   y += 18;
 
   const lines = analysisText.split("\n");
