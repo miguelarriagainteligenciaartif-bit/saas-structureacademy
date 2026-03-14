@@ -487,7 +487,7 @@ export const TradeForm = ({ onSuccess, isBacktest = false, strategyId }: TradeFo
                 )}
               />
 
-              {form.watch("entry_model") === "Continuación" && !noTradeDay && (
+              {form.watch("entry_model") === "Continuación" && !noTradeDay && !isBacktest && (
                 <FormField
                   control={form.control}
                   name="continuation_subtype"
