@@ -190,6 +190,25 @@ export const ReportGeneratorDialog = ({ trades }: ReportGeneratorDialogProps) =>
         return { model, trades: modelTrades.length, pnl: modelPnL, winRate: modelWinRate };
       });
 
+      // Continuation subtype breakdown (Bloque vs FVG)
+      const continuationSubtypeStats = ["Bloque", "FVG"].map((subtype) => {
+        const subtypeTrades = actualTrades.filter(
+          (t) =>
+            t.entry_model === "Continuación" &&
+            (t.continuation_subtype || "").toLowerCase() === subtype.toLowerCase()
+        );
+        const subtypeWins = subtypeTrades.filter((t) => t.result_type === "TP");
+        const subtypePnL = subtypeTrades.reduce((sum, t) => sum + (t.result_dollars || 0), 0);
+        const subtypeWinRate = subtypeTrades.length > 0 ? (subtypeWins.length / subtypeTrades.length * 100) : 0;
+
+        return {
+          subtype,
+          trades: subtypeTrades.length,
+          pnl: subtypePnL,
+          winRate: subtypeWinRate,
+        };
+      });
+
       // By day of week
       const dayStats = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"].map(day => {
         const dayTrades = actualTrades.filter(t => t.day_of_week?.toLowerCase() === day.toLowerCase());
