@@ -226,7 +226,6 @@ export const EditTradeForm = ({ trade, onSuccess, isBacktest = false }: EditTrad
         news_time: hasNews ? (values.news_time || null) : null,
         execution_timing: hasNews ? (values.execution_timing || null) : null,
         entry_model: values.no_trade_day ? "M1" : values.entry_model,
-        continuation_subtype: values.entry_model === "Continuación" ? (values.continuation_subtype || null) : null,
         result_dollars: values.no_trade_day ? 0 : (values.result_dollars ? parseFloat(values.result_dollars) : 0),
         image_link: values.image_link || null,
         risk_percentage: values.risk_percentage ? parseFloat(values.risk_percentage) : 1,
@@ -235,6 +234,7 @@ export const EditTradeForm = ({ trade, onSuccess, isBacktest = false }: EditTrad
 
       if (!isBacktest) {
         updateData.account_id = values.account_id || null;
+        updateData.continuation_subtype = values.entry_model === "Continuación" ? (values.continuation_subtype || null) : null;
       }
 
       const { error } = await supabase
@@ -512,7 +512,7 @@ export const EditTradeForm = ({ trade, onSuccess, isBacktest = false }: EditTrad
             )}
           />
 
-          {form.watch("entry_model") === "Continuación" && !noTradeDay && (
+          {form.watch("entry_model") === "Continuación" && !noTradeDay && !isBacktest && (
             <FormField
               control={form.control}
               name="continuation_subtype"
