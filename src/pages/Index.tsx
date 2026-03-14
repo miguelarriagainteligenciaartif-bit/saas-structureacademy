@@ -401,8 +401,11 @@ export default function Index() {
         {/* Trade Form */}
         <TradeForm onSuccess={loadTrades} />
 
+        {/* Model Comparison Table */}
+        <ModelComparisonTable trades={filteredTradesForMetrics} />
+
         {/* Monthly Results */}
-        <MonthlyResults trades={allTrades} />
+        <MonthlyResults trades={filteredTradesForMetrics} />
 
         {/* Recent Trades Table */}
         <Card>
