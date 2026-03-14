@@ -513,7 +513,7 @@ export const EditTradeForm = ({ trade, onSuccess, isBacktest = false }: EditTrad
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Subtipo Continuación</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value || ""}>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Bloque o FVG" />
