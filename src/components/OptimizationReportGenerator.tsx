@@ -10,6 +10,8 @@ import {
   getBrandedTableStyles,
   addSectionTitle,
 } from "@/utils/pdfBranding";
+import { fetchAIAnalysis, buildOptimizationDataSummary } from "@/utils/aiAnalysis";
+import { addAIAnalysisSection } from "@/utils/pdfAISection";
 
 interface LevelAnalysis {
   level: number;
