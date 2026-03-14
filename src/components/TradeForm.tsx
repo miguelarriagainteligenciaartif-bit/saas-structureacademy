@@ -38,6 +38,7 @@ const formSchema = z.object({
   news_time: z.enum(["08:30", "09:45", "10:00"]).optional(),
   execution_timing: z.enum(["Antes de noticia", "Después de noticia"]).optional(),
   entry_model: z.enum(["M1", "M3", "Continuación"]).optional(),
+  continuation_subtype: z.enum(["Bloque", "FBGE"]).optional(),
   result_dollars: z.string().optional(),
   image_link: z.string().url().optional().or(z.literal("")),
   risk_percentage: z.string().default("1"),
@@ -177,6 +178,7 @@ export const TradeForm = ({ onSuccess, isBacktest = false, strategyId }: TradeFo
         news_time: values.news_time || null,
         execution_timing: values.execution_timing || null,
         entry_model: values.no_trade_day ? "M1" : values.entry_model,
+        continuation_subtype: values.entry_model === "Continuación" ? (values.continuation_subtype || null) : null,
         result_dollars: values.no_trade_day ? 0 : (values.result_dollars ? parseFloat(values.result_dollars) : 0),
         image_link: values.image_link || null,
         risk_percentage: values.risk_percentage ? parseFloat(values.risk_percentage) : 1,
@@ -484,6 +486,30 @@ export const TradeForm = ({ onSuccess, isBacktest = false, strategyId }: TradeFo
                   </FormItem>
                 )}
               />
+
+              {form.watch("entry_model") === "Continuación" && !noTradeDay && (
+                <FormField
+                  control={form.control}
+                  name="continuation_subtype"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Subtipo Continuación</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value || ""}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Bloque o FBGE" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="Bloque">Bloque</SelectItem>
+                          <SelectItem value="FBGE">FBGE</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
 
               <FormField
                 control={form.control}

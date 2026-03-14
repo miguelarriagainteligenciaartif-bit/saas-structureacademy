@@ -1,0 +1,1 @@
+ALTER TABLE public.trades ADD COLUMN continuation_subtype text;
