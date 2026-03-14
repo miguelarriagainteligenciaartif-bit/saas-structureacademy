@@ -10,6 +10,8 @@ import {
   getBrandedTableStyles,
   addSectionTitle,
 } from "@/utils/pdfBranding";
+import { fetchAIAnalysis, buildBacktestDataSummary } from "@/utils/aiAnalysis";
+import { addAIAnalysisSection } from "@/utils/pdfAISection";
 
 interface BacktestTrade {
   id: string;
