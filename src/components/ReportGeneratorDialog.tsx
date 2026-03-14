@@ -199,8 +199,8 @@ export const ReportGeneratorDialog = ({ trades }: ReportGeneratorDialogProps) =>
         buildModelRow("M1", actualTrades.filter(t => t.entry_model === "M1")),
         buildModelRow("M3", actualTrades.filter(t => t.entry_model === "M3")),
         buildModelRow("Continuación", actualTrades.filter(t => t.entry_model === "Continuación")),
-        buildModelRow("└ Bloque", actualTrades.filter(t => t.entry_model === "Continuación" && t.continuation_subtype === "Bloque"), true),
-        buildModelRow("└ FVG", actualTrades.filter(t => t.entry_model === "Continuación" && t.continuation_subtype === "FVG"), true),
+        buildModelRow("  - Bloque", actualTrades.filter(t => t.entry_model === "Continuación" && t.continuation_subtype === "Bloque"), true),
+        buildModelRow("  - FVG", actualTrades.filter(t => t.entry_model === "Continuación" && t.continuation_subtype === "FVG"), true),
         buildModelRow("Total", actualTrades),
       ];
 
