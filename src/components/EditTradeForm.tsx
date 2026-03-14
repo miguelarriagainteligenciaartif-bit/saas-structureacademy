@@ -11,33 +11,46 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 
+const ASSET_OPTIONS = ["Nasdaq 100", "Oro", "BTC", "EUR/USD", "GBP/USD", "Petróleo", "S&P 500", "Otro"] as const;
+const DAY_OPTIONS = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"] as const;
+const TRADE_TYPE_OPTIONS = ["Compra", "Venta"] as const;
+const RESULT_TYPE_OPTIONS = ["TP", "SL"] as const;
+const DRAWDOWN_OPTIONS = ["0", "0.33", "0.50", "0.66", "0.90", "1.00"] as const;
+const NEWS_DESCRIPTION_OPTIONS = ["NFP", "CPI", "PMI Servicios", "PMI Manufacturing", "PCE", "Flash PMI", "FOMC", "Ventas Minoristas", "Otra"] as const;
+const NEWS_TIME_OPTIONS = ["08:30", "09:45", "10:00"] as const;
+const EXECUTION_TIMING_OPTIONS = ["Antes de noticia", "Después de noticia"] as const;
+const ENTRY_MODEL_OPTIONS = ["M1", "M3", "Continuación"] as const;
+const CONTINUATION_SUBTYPE_OPTIONS = ["Bloque", "FVG"] as const;
+
+type DrawdownOption = (typeof DRAWDOWN_OPTIONS)[number];
+
 const formSchema = z.object({
   no_trade_day: z.boolean().default(false),
   account_id: z.string().optional(),
-  asset: z.enum(["Nasdaq 100", "Oro", "BTC", "EUR/USD", "GBP/USD", "Petróleo", "S&P 500", "Otro"]).default("Nasdaq 100"),
+  asset: z.enum(ASSET_OPTIONS).default("Nasdaq 100"),
   date: z.string().min(1, "Fecha requerida").refine((val) => {
     const inputDate = new Date(val + "T00:00:00");
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     return inputDate <= today;
   }, { message: "La fecha no puede ser futura" }),
-  day_of_week: z.enum(["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"]),
+  day_of_week: z.enum(DAY_OPTIONS),
   entry_time: z.string().optional(),
   exit_time: z.string().optional(),
-  trade_type: z.enum(["Compra", "Venta"]).optional(),
-  result_type: z.enum(["TP", "SL"]).optional(),
-  drawdown: z.enum(["0", "0.33", "0.50", "0.66", "0.90", "1.00"]).optional(),
+  trade_type: z.enum(TRADE_TYPE_OPTIONS).optional(),
+  result_type: z.enum(RESULT_TYPE_OPTIONS).optional(),
+  drawdown: z.enum(DRAWDOWN_OPTIONS).optional(),
   max_rr: z.union([
     z.string(),
     z.number(),
   ]).optional(),
   had_news: z.boolean().default(false),
-  news_description: z.enum(["NFP", "CPI", "PMI Servicios", "PMI Manufacturing", "PCE", "Flash PMI", "FOMC", "Ventas Minoristas", "Otra"]).optional(),
+  news_description: z.enum(NEWS_DESCRIPTION_OPTIONS).optional(),
   custom_news_description: z.string().optional(),
-  news_time: z.enum(["08:30", "09:45", "10:00"]).optional(),
-  execution_timing: z.enum(["Antes de noticia", "Después de noticia"]).optional(),
-  entry_model: z.enum(["M1", "M3", "Continuación"]).optional(),
-  continuation_subtype: z.enum(["Bloque", "FVG"]).optional(),
+  news_time: z.enum(NEWS_TIME_OPTIONS).optional(),
+  execution_timing: z.enum(EXECUTION_TIMING_OPTIONS).optional(),
+  entry_model: z.enum(ENTRY_MODEL_OPTIONS).optional(),
+  continuation_subtype: z.enum(CONTINUATION_SUBTYPE_OPTIONS).optional(),
   result_dollars: z.string().optional(),
   image_link: z.string().url().optional().or(z.literal("")),
   risk_percentage: z.string().default("1"),
@@ -92,6 +105,27 @@ export const EditTradeForm = ({ trade, onSuccess, isBacktest = false }: EditTrad
   const [loading, setLoading] = useState(false);
   const [accounts, setAccounts] = useState<any[]>([]);
 
+  const formattedDrawdown = trade.drawdown != null ? Number(trade.drawdown).toFixed(2).replace(/^0\.00$/, "0") : undefined;
+  const normalizedDrawdown = DRAWDOWN_OPTIONS.includes(formattedDrawdown as DrawdownOption)
+    ? (formattedDrawdown as DrawdownOption)
+    : undefined;
+
+  const normalizedContinuationSubtype = CONTINUATION_SUBTYPE_OPTIONS.includes(trade.continuation_subtype)
+    ? trade.continuation_subtype
+    : undefined;
+
+  const normalizedNewsDescription = trade.had_news
+    ? (NEWS_DESCRIPTION_OPTIONS.includes(trade.news_description)
+        ? trade.news_description
+        : trade.news_description
+          ? "Otra"
+          : undefined)
+    : undefined;
+
+  const normalizedCustomNewsDescription = normalizedNewsDescription === "Otra"
+    ? (trade.custom_news_description || trade.news_description || "")
+    : (trade.custom_news_description || "");
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -100,23 +134,23 @@ export const EditTradeForm = ({ trade, onSuccess, isBacktest = false }: EditTrad
       result_dollars: trade.result_dollars?.toString() || "0",
       account_id: trade.account_id || "",
       risk_percentage: trade.risk_percentage?.toString() || "1",
-      asset: trade.asset || "Nasdaq 100",
+      asset: ASSET_OPTIONS.includes(trade.asset) ? trade.asset : "Nasdaq 100",
       entry_time: trade.entry_time || "",
       exit_time: trade.exit_time || "",
-      trade_type: trade.trade_type || undefined,
-      result_type: trade.result_type || undefined,
-      drawdown: trade.drawdown != null ? (Number(trade.drawdown).toFixed(2).replace(/^0\.00$/, "0") as "0" | "0.33" | "0.50" | "0.66" | "0.90" | "1.00") : undefined,
+      trade_type: TRADE_TYPE_OPTIONS.includes(trade.trade_type) ? trade.trade_type : undefined,
+      result_type: RESULT_TYPE_OPTIONS.includes(trade.result_type) ? trade.result_type : undefined,
+      drawdown: normalizedDrawdown,
       max_rr: trade.max_rr?.toString() || undefined,
-      entry_model: trade.entry_model || undefined,
+      entry_model: ENTRY_MODEL_OPTIONS.includes(trade.entry_model) ? trade.entry_model : undefined,
       image_link: trade.image_link || "",
-      news_description: trade.news_description || undefined,
-      custom_news_description: trade.custom_news_description || "",
-      news_time: trade.news_time || undefined,
-      execution_timing: trade.execution_timing || undefined,
+      news_description: normalizedNewsDescription,
+      custom_news_description: normalizedCustomNewsDescription,
+      news_time: trade.had_news && NEWS_TIME_OPTIONS.includes(trade.news_time) ? trade.news_time : undefined,
+      execution_timing: trade.had_news && EXECUTION_TIMING_OPTIONS.includes(trade.execution_timing) ? trade.execution_timing : undefined,
       date: trade.date || "",
-      day_of_week: trade.day_of_week || undefined,
+      day_of_week: DAY_OPTIONS.includes(trade.day_of_week) ? trade.day_of_week : undefined,
       notes: trade.notes || "",
-      continuation_subtype: trade.continuation_subtype || undefined,
+      continuation_subtype: normalizedContinuationSubtype,
     },
   });
 
@@ -172,6 +206,8 @@ export const EditTradeForm = ({ trade, onSuccess, isBacktest = false }: EditTrad
       const weekOfMonth = Math.ceil(dayOfMonth / 7);
 
       const tableName = isBacktest ? "backtest_trades" : "trades";
+      const hasNews = values.had_news && !values.no_trade_day;
+
       const updateData: any = {
         no_trade_day: values.no_trade_day,
         asset: values.asset,
@@ -184,11 +220,11 @@ export const EditTradeForm = ({ trade, onSuccess, isBacktest = false }: EditTrad
         result_type: values.no_trade_day ? "TP" : values.result_type,
         drawdown: values.drawdown ? parseFloat(values.drawdown) : null,
         max_rr: values.max_rr ? parseFloat(values.max_rr.toString()) : null,
-        had_news: values.had_news,
-        news_description: values.news_description || null,
-        custom_news_description: values.custom_news_description || null,
-        news_time: values.news_time || null,
-        execution_timing: values.execution_timing || null,
+        had_news: hasNews,
+        news_description: hasNews ? (values.news_description || null) : null,
+        custom_news_description: hasNews ? (values.custom_news_description || null) : null,
+        news_time: hasNews ? (values.news_time || null) : null,
+        execution_timing: hasNews ? (values.execution_timing || null) : null,
         entry_model: values.no_trade_day ? "M1" : values.entry_model,
         continuation_subtype: values.entry_model === "Continuación" ? (values.continuation_subtype || null) : null,
         result_dollars: values.no_trade_day ? 0 : (values.result_dollars ? parseFloat(values.result_dollars) : 0),
@@ -477,7 +513,7 @@ export const EditTradeForm = ({ trade, onSuccess, isBacktest = false }: EditTrad
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Subtipo Continuación</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value || ""}>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Bloque o FVG" />
