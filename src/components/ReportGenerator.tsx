@@ -317,6 +317,28 @@ export const ReportGenerator = ({ trades }: ReportGeneratorProps) => {
 
       yPos = (doc as any).lastAutoTable.finalY + 12;
 
+      // Continuation subtype analysis (Bloque vs FVG)
+      yPos = addSectionTitle(doc, "Desglose Continuación", yPos);
+      autoTable(doc, {
+        startY: yPos,
+        head: [['Subtipo', 'Operaciones', 'P&L', 'Win Rate']],
+        body: continuationSubtypeStats.map((s) => [
+          s.subtype,
+          s.trades.toString(),
+          `$${s.pnl.toFixed(2)}`,
+          `${s.winRate.toFixed(1)}%`,
+        ]),
+        theme: 'striped',
+        ...tableStyles,
+        columnStyles: {
+          2: { halign: 'right' },
+          3: { halign: 'right' }
+        },
+        margin: { left: 14, right: 14 }
+      });
+
+      yPos = (doc as any).lastAutoTable.finalY + 12;
+
       // Day Analysis Table
       yPos = addSectionTitle(doc, "Análisis por Día de la Semana", yPos);
 
