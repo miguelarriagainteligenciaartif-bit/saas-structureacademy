@@ -11,6 +11,8 @@ import { TradeDetailsDialog } from "@/components/TradeDetailsDialog";
 import { ExcelImporter } from "@/components/ExcelImporter";
 import { MonthlyResults } from "@/components/MonthlyResults";
 import { DollarSign, TrendingUp, TrendingDown, Target, Calendar, Layers, Trash2 } from "lucide-react";
+import { DashboardFilters } from "@/components/DashboardFilters";
+import { ModelComparisonTable } from "@/components/ModelComparisonTable";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -58,6 +60,9 @@ export default function Index() {
   const [hasMoreTrades, setHasMoreTrades] = useState(false);
   const [selectedTradeIds, setSelectedTradeIds] = useState<Set<string>>(new Set());
   const [isDeleting, setIsDeleting] = useState(false);
+  const [filterDateFrom, setFilterDateFrom] = useState<Date | undefined>();
+  const [filterDateTo, setFilterDateTo] = useState<Date | undefined>();
+  const [filterModel, setFilterModel] = useState<string>("all");
 
   useEffect(() => {
     checkUser();
@@ -115,17 +120,37 @@ export default function Index() {
     }
   };
 
-  // Use ALL trades for metrics, not limited trades
-  const filteredTradesForMetrics = selectedAccount === "all" 
-    ? allTrades 
-    : allTrades.filter(t => t.account_id === selectedAccount);
-  
+  // Apply all filters: account, date range, model
+  const applyFilters = (tradeList: Trade[]) => {
+    let filtered = tradeList;
+    if (selectedAccount !== "all") {
+      filtered = filtered.filter(t => t.account_id === selectedAccount);
+    }
+    if (filterDateFrom) {
+      const fromStr = filterDateFrom.toISOString().split("T")[0];
+      filtered = filtered.filter(t => t.date >= fromStr);
+    }
+    if (filterDateTo) {
+      const toStr = filterDateTo.toISOString().split("T")[0];
+      filtered = filtered.filter(t => t.date <= toStr);
+    }
+    if (filterModel !== "all") {
+      filtered = filtered.filter(t => t.entry_model === filterModel);
+    }
+    return filtered;
+  };
+
+  const filteredTradesForMetrics = applyFilters(allTrades);
   const actualTrades = filteredTradesForMetrics.filter(t => !t.no_trade_day);
 
-  // For table display, use limited trades
-  const filteredTradesForTable = selectedAccount === "all" 
-    ? trades 
-    : trades.filter(t => t.account_id === selectedAccount);
+  // For table display, use limited then filtered
+  const filteredTradesForTable = applyFilters(trades);
+
+  const clearFilters = () => {
+    setFilterDateFrom(undefined);
+    setFilterDateTo(undefined);
+    setFilterModel("all");
+  };
 
   // Calcular rachas consecutivas (orden cronológico real: fecha + hora de entrada)
   let currentTPStreak = 0;
@@ -305,6 +330,17 @@ export default function Index() {
           <ReportGeneratorDialog trades={allTrades} />
         </div>
 
+        {/* Dashboard Filters */}
+        <DashboardFilters
+          dateFrom={filterDateFrom}
+          dateTo={filterDateTo}
+          selectedModel={filterModel}
+          onDateFromChange={setFilterDateFrom}
+          onDateToChange={setFilterDateTo}
+          onModelChange={setFilterModel}
+          onClearFilters={clearFilters}
+        />
+
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-7 gap-4">
           <StatsCard
@@ -365,8 +401,11 @@ export default function Index() {
         {/* Trade Form */}
         <TradeForm onSuccess={loadTrades} />
 
+        {/* Model Comparison Table */}
+        <ModelComparisonTable trades={filteredTradesForMetrics} />
+
         {/* Monthly Results */}
-        <MonthlyResults trades={allTrades} />
+        <MonthlyResults trades={filteredTradesForMetrics} />
 
         {/* Recent Trades Table */}
         <Card>

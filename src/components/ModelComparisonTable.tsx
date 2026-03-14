@@ -1,0 +1,147 @@
+import { TrendingUp, TrendingDown } from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { cn } from "@/lib/utils";
+
+interface Trade {
+  id: string;
+  result_type: string | null;
+  result_dollars: number | null;
+  entry_model: string | null;
+  no_trade_day: boolean;
+}
+
+interface ModelComparisonTableProps {
+  trades: Trade[];
+}
+
+interface ModelStats {
+  model: string;
+  totalTrades: number;
+  wins: number;
+  losses: number;
+  winRate: number;
+  totalPnL: number;
+  avgPnL: number;
+}
+
+export function ModelComparisonTable({ trades }: ModelComparisonTableProps) {
+  const actualTrades = trades.filter(t => !t.no_trade_day);
+  const models = ["M1", "M3", "Continuación"];
+
+  const modelStats: ModelStats[] = models.map(model => {
+    const modelTrades = actualTrades.filter(t => t.entry_model === model);
+    const wins = modelTrades.filter(t => t.result_type === "TP").length;
+    const losses = modelTrades.filter(t => t.result_type === "SL").length;
+    const totalPnL = modelTrades.reduce((sum, t) => sum + (t.result_dollars || 0), 0);
+
+    return {
+      model,
+      totalTrades: modelTrades.length,
+      wins,
+      losses,
+      winRate: modelTrades.length > 0 ? (wins / modelTrades.length) * 100 : 0,
+      totalPnL,
+      avgPnL: modelTrades.length > 0 ? totalPnL / modelTrades.length : 0,
+    };
+  });
+
+  const bestModel = modelStats.reduce((best, curr) => 
+    curr.totalPnL > best.totalPnL ? curr : best, modelStats[0]);
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Comparativa por Modelo</CardTitle>
+        <CardDescription>
+          Rendimiento de cada modelo de entrada
+          {bestModel.totalTrades > 0 && (
+            <> • Mejor modelo: <span className="font-semibold text-foreground">{bestModel.model}</span></>
+          )}
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Modelo</TableHead>
+              <TableHead className="text-center">Trades</TableHead>
+              <TableHead className="text-center">TP</TableHead>
+              <TableHead className="text-center">SL</TableHead>
+              <TableHead className="text-center">Win Rate</TableHead>
+              <TableHead className="text-right">P&L Total</TableHead>
+              <TableHead className="text-right">P&L Promedio</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {modelStats.map((stat) => (
+              <TableRow key={stat.model}>
+                <TableCell className="font-semibold">{stat.model}</TableCell>
+                <TableCell className="text-center">{stat.totalTrades}</TableCell>
+                <TableCell className="text-center">
+                  <span className="text-success font-medium">{stat.wins}</span>
+                </TableCell>
+                <TableCell className="text-center">
+                  <span className="text-destructive font-medium">{stat.losses}</span>
+                </TableCell>
+                <TableCell className="text-center">
+                  <div className="flex items-center justify-center gap-1">
+                    {stat.winRate >= 50 ? (
+                      <TrendingUp className="h-3 w-3 text-success" />
+                    ) : stat.totalTrades > 0 ? (
+                      <TrendingDown className="h-3 w-3 text-destructive" />
+                    ) : null}
+                    <span className={cn(
+                      "font-mono font-medium",
+                      stat.totalTrades === 0 ? "text-muted-foreground" : 
+                      stat.winRate >= 50 ? "text-success" : "text-destructive"
+                    )}>
+                      {stat.totalTrades > 0 ? `${stat.winRate.toFixed(1)}%` : "—"}
+                    </span>
+                  </div>
+                </TableCell>
+                <TableCell className={cn(
+                  "text-right font-mono font-medium",
+                  stat.totalTrades === 0 ? "text-muted-foreground" :
+                  stat.totalPnL >= 0 ? "text-success" : "text-destructive"
+                )}>
+                  {stat.totalTrades > 0 ? `$${stat.totalPnL.toFixed(2)}` : "—"}
+                </TableCell>
+                <TableCell className={cn(
+                  "text-right font-mono font-medium",
+                  stat.totalTrades === 0 ? "text-muted-foreground" :
+                  stat.avgPnL >= 0 ? "text-success" : "text-destructive"
+                )}>
+                  {stat.totalTrades > 0 ? `$${stat.avgPnL.toFixed(2)}` : "—"}
+                </TableCell>
+              </TableRow>
+            ))}
+            {/* Total row */}
+            <TableRow className="border-t-2 font-semibold">
+              <TableCell>Total</TableCell>
+              <TableCell className="text-center">{actualTrades.length}</TableCell>
+              <TableCell className="text-center text-success">
+                {actualTrades.filter(t => t.result_type === "TP").length}
+              </TableCell>
+              <TableCell className="text-center text-destructive">
+                {actualTrades.filter(t => t.result_type === "SL").length}
+              </TableCell>
+              <TableCell className="text-center font-mono">
+                {actualTrades.length > 0 
+                  ? `${((actualTrades.filter(t => t.result_type === "TP").length / actualTrades.length) * 100).toFixed(1)}%`
+                  : "—"}
+              </TableCell>
+              <TableCell className={cn(
+                "text-right font-mono",
+                actualTrades.reduce((s, t) => s + (t.result_dollars || 0), 0) >= 0 ? "text-success" : "text-destructive"
+              )}>
+                ${actualTrades.reduce((s, t) => s + (t.result_dollars || 0), 0).toFixed(2)}
+              </TableCell>
+              <TableCell className="text-right font-mono text-muted-foreground">—</TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+      </CardContent>
+    </Card>
+  );
+}
