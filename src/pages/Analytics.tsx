@@ -5,6 +5,7 @@ import { Header } from "@/components/Header";
 import { StatsCard } from "@/components/StatsCard";
 import { ReportGenerator } from "@/components/ReportGenerator";
 import { DollarSign, TrendingUp, TrendingDown, Target, Calendar, BarChart3, Clock, Flame, Award } from "lucide-react";
+import { ContinuationSubtypeAnalysis } from "@/components/ContinuationSubtypeAnalysis";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, LineChart, Line, AreaChart, Area } from "recharts";
 
@@ -29,6 +30,7 @@ interface Trade {
   image_link: string | null;
   account_id: string | null;
   max_rr: number | null;
+  continuation_subtype: string | null;
 }
 
 export default function Analytics() {
@@ -586,6 +588,9 @@ export default function Analytics() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Continuation Subtype Analysis */}
+        <ContinuationSubtypeAnalysis trades={trades} />
 
         {/* News Analysis */}
         <Card>
