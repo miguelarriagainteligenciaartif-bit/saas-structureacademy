@@ -589,6 +589,9 @@ export default function Analytics() {
           </CardContent>
         </Card>
 
+        {/* Continuation Subtype Analysis */}
+        <ContinuationSubtypeAnalysis trades={trades} />
+
         {/* News Analysis */}
         <Card>
           <CardHeader>
