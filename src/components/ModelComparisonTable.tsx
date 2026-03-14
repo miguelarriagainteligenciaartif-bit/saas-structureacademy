@@ -24,7 +24,7 @@ interface ModelStats {
   losses: number;
   winRate: number;
   totalPnL: number;
-  avgPnL: number;
+  expectedValue: number;
   isSubrow?: boolean;
 }
 
@@ -40,6 +40,12 @@ export function ModelComparisonTable({ trades }: ModelComparisonTableProps) {
     const losses = modelTrades.filter(t => t.result_type === "SL").length;
     const totalPnL = modelTrades.reduce((sum, t) => sum + (t.result_dollars || 0), 0);
 
+    const decisiveTrades = modelTrades.filter(t => t.result_type === "TP" || t.result_type === "SL");
+    const wr = decisiveTrades.length > 0 ? wins / decisiveTrades.length : 0;
+    const avgWin = wins > 0 ? modelTrades.filter(t => t.result_type === "TP").reduce((s, t) => s + (t.result_dollars || 0), 0) / wins : 0;
+    const avgLoss = losses > 0 ? Math.abs(modelTrades.filter(t => t.result_type === "SL").reduce((s, t) => s + (t.result_dollars || 0), 0) / losses) : 0;
+    const ev = decisiveTrades.length > 0 ? (wr * avgWin) - ((1 - wr) * avgLoss) : 0;
+
     modelStats.push({
       model,
       totalTrades: modelTrades.length,
@@ -47,7 +53,7 @@ export function ModelComparisonTable({ trades }: ModelComparisonTableProps) {
       losses,
       winRate: modelTrades.length > 0 ? (wins / modelTrades.length) * 100 : 0,
       totalPnL,
-      avgPnL: modelTrades.length > 0 ? totalPnL / modelTrades.length : 0,
+      expectedValue: ev,
     });
 
     // Add subtypes for Continuación
@@ -58,6 +64,12 @@ export function ModelComparisonTable({ trades }: ModelComparisonTableProps) {
         const subLosses = subTrades.filter(t => t.result_type === "SL").length;
         const subPnL = subTrades.reduce((sum, t) => sum + (t.result_dollars || 0), 0);
 
+        const subDecisive = subTrades.filter(t => t.result_type === "TP" || t.result_type === "SL");
+        const subWr = subDecisive.length > 0 ? subWins / subDecisive.length : 0;
+        const subAvgWin = subWins > 0 ? subTrades.filter(t => t.result_type === "TP").reduce((s, t) => s + (t.result_dollars || 0), 0) / subWins : 0;
+        const subAvgLoss = subLosses > 0 ? Math.abs(subTrades.filter(t => t.result_type === "SL").reduce((s, t) => s + (t.result_dollars || 0), 0) / subLosses) : 0;
+        const subEv = subDecisive.length > 0 ? (subWr * subAvgWin) - ((1 - subWr) * subAvgLoss) : 0;
+
         modelStats.push({
           model: `└ ${subtype}`,
           subtype,
@@ -66,7 +78,7 @@ export function ModelComparisonTable({ trades }: ModelComparisonTableProps) {
           losses: subLosses,
           winRate: subTrades.length > 0 ? (subWins / subTrades.length) * 100 : 0,
           totalPnL: subPnL,
-          avgPnL: subTrades.length > 0 ? subPnL / subTrades.length : 0,
+          expectedValue: subEv,
           isSubrow: true,
         });
       });
@@ -98,7 +110,7 @@ export function ModelComparisonTable({ trades }: ModelComparisonTableProps) {
               <TableHead className="text-center">SL</TableHead>
               <TableHead className="text-center">Win Rate</TableHead>
               <TableHead className="text-right">P&L Total</TableHead>
-              <TableHead className="text-right">P&L Promedio</TableHead>
+              <TableHead className="text-right">Expected Value</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -140,9 +152,9 @@ export function ModelComparisonTable({ trades }: ModelComparisonTableProps) {
                 <TableCell className={cn(
                   "text-right font-mono font-medium",
                   stat.totalTrades === 0 ? "text-muted-foreground" :
-                  stat.avgPnL >= 0 ? "text-success" : "text-destructive"
+                  stat.expectedValue >= 0 ? "text-success" : "text-destructive"
                 )}>
-                  {stat.totalTrades > 0 ? `$${stat.avgPnL.toFixed(2)}` : "—"}
+                  {stat.totalTrades > 0 ? `$${stat.expectedValue.toFixed(2)}` : "—"}
                 </TableCell>
               </TableRow>
             ))}
@@ -167,7 +179,19 @@ export function ModelComparisonTable({ trades }: ModelComparisonTableProps) {
               )}>
                 ${actualTrades.reduce((s, t) => s + (t.result_dollars || 0), 0).toFixed(2)}
               </TableCell>
-              <TableCell className="text-right font-mono text-muted-foreground">—</TableCell>
+              <TableCell className="text-right font-mono text-muted-foreground">
+                {(() => {
+                  const allDecisive = actualTrades.filter(t => t.result_type === "TP" || t.result_type === "SL");
+                  const allWins = actualTrades.filter(t => t.result_type === "TP");
+                  const allLosses = actualTrades.filter(t => t.result_type === "SL");
+                  if (allDecisive.length === 0) return "—";
+                  const wr = allWins.length / allDecisive.length;
+                  const avgW = allWins.length > 0 ? allWins.reduce((s, t) => s + (t.result_dollars || 0), 0) / allWins.length : 0;
+                  const avgL = allLosses.length > 0 ? Math.abs(allLosses.reduce((s, t) => s + (t.result_dollars || 0), 0) / allLosses.length) : 0;
+                  const ev = (wr * avgW) - ((1 - wr) * avgL);
+                  return `$${ev.toFixed(2)}`;
+                })()}
+              </TableCell>
             </TableRow>
           </TableBody>
         </Table>
