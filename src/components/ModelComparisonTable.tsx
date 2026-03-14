@@ -179,7 +179,19 @@ export function ModelComparisonTable({ trades }: ModelComparisonTableProps) {
               )}>
                 ${actualTrades.reduce((s, t) => s + (t.result_dollars || 0), 0).toFixed(2)}
               </TableCell>
-              <TableCell className="text-right font-mono text-muted-foreground">—</TableCell>
+              <TableCell className="text-right font-mono text-muted-foreground">
+                {(() => {
+                  const allDecisive = actualTrades.filter(t => t.result_type === "TP" || t.result_type === "SL");
+                  const allWins = actualTrades.filter(t => t.result_type === "TP");
+                  const allLosses = actualTrades.filter(t => t.result_type === "SL");
+                  if (allDecisive.length === 0) return "—";
+                  const wr = allWins.length / allDecisive.length;
+                  const avgW = allWins.length > 0 ? allWins.reduce((s, t) => s + (t.result_dollars || 0), 0) / allWins.length : 0;
+                  const avgL = allLosses.length > 0 ? Math.abs(allLosses.reduce((s, t) => s + (t.result_dollars || 0), 0) / allLosses.length) : 0;
+                  const ev = (wr * avgW) - ((1 - wr) * avgL);
+                  return `$${ev.toFixed(2)}`;
+                })()}
+              </TableCell>
             </TableRow>
           </TableBody>
         </Table>
