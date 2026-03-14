@@ -95,22 +95,23 @@ export const buildBacktestDataSummary = (stats: {
   worstSLStreak: number;
   modelStats: { model: string; trades: number; pnl: number; winRate: number }[];
   dayStats: { day: string; trades: number; pnl: number; winRate: number }[];
+  continuationSubtypeStats?: { subtype: string; trades: number; pnl: number; winRate: number }[];
 }): string => {
   let summary = `ESTRATEGIA: ${stats.strategyName}
 R:R: ${stats.rrRatio}
 Capital Inicial: $${stats.initialCapital.toFixed(2)}
 
-ESTADÍSTICAS GENERALES:
+ESTADISTICAS GENERALES:
 - Total operaciones: ${stats.totalTrades}
 - P&L Total: $${stats.totalPnL.toFixed(2)}
 - Win Rate: ${stats.winRate.toFixed(1)}%
 - Expected Value: $${stats.expectedValue.toFixed(2)}
 - Ganancia promedio: $${stats.avgWin.toFixed(2)}
-- Pérdida promedio: $${stats.avgLoss.toFixed(2)}
+- Perdida promedio: $${stats.avgLoss.toFixed(2)}
 - Mejor racha TP: ${stats.bestTPStreak}
 - Peor racha SL: ${stats.worstSLStreak}
 
-ANÁLISIS POR MODELO DE ENTRADA:`;
+ANALISIS POR MODELO DE ENTRADA:`;
 
   stats.modelStats.forEach((m) => {
     if (m.trades > 0) {
@@ -118,7 +119,17 @@ ANÁLISIS POR MODELO DE ENTRADA:`;
     }
   });
 
-  summary += `\n\nANÁLISIS POR DÍA:`;
+  if (stats.continuationSubtypeStats && stats.continuationSubtypeStats.length > 0) {
+    summary += `\n\nDESGLOSE DEL MODELO CONTINUACION (subtipos):`;
+    stats.continuationSubtypeStats.forEach((s) => {
+      if (s.trades > 0) {
+        summary += `\n- Continuacion ${s.subtype}: ${s.trades} trades, P&L $${s.pnl.toFixed(2)}, WR ${s.winRate.toFixed(1)}%`;
+      }
+    });
+    summary += `\nIMPORTANTE: Analiza y compara el rendimiento de Bloque vs FVG dentro del modelo Continuacion. Indica cual subtipo es mas rentable y por que.`;
+  }
+
+  summary += `\n\nANALISIS POR DIA:`;
   stats.dayStats.forEach((d) => {
     if (d.trades > 0) {
       summary += `\n- ${d.day}: ${d.trades} trades, P&L $${d.pnl.toFixed(2)}, WR ${d.winRate.toFixed(1)}%`;
