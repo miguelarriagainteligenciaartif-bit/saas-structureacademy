@@ -178,7 +178,6 @@ export const TradeForm = ({ onSuccess, isBacktest = false, strategyId }: TradeFo
         news_time: values.news_time || null,
         execution_timing: values.execution_timing || null,
         entry_model: values.no_trade_day ? "M1" : values.entry_model,
-        continuation_subtype: values.entry_model === "Continuación" ? (values.continuation_subtype || null) : null,
         result_dollars: values.no_trade_day ? 0 : (values.result_dollars ? parseFloat(values.result_dollars) : 0),
         image_link: values.image_link || null,
         risk_percentage: values.risk_percentage ? parseFloat(values.risk_percentage) : 1,
@@ -190,6 +189,7 @@ export const TradeForm = ({ onSuccess, isBacktest = false, strategyId }: TradeFo
         insertData.strategy_id = strategyId;
       } else {
         insertData.account_id = values.account_id || null;
+        insertData.continuation_subtype = values.entry_model === "Continuación" ? (values.continuation_subtype || null) : null;
       }
 
       const { error } = await supabase.from(tableName).insert(insertData);
