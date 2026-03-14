@@ -30,6 +30,7 @@ interface Trade {
   image_link: string | null;
   account_id: string | null;
   max_rr: number | null;
+  continuation_subtype: string | null;
 }
 
 export default function Analytics() {
