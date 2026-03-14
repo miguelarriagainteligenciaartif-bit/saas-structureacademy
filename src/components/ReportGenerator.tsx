@@ -489,6 +489,13 @@ export const ReportGenerator = ({ trades }: ReportGeneratorProps) => {
 
       // AI Analysis Section
       toast.info("Generando análisis con IA...");
+      const continuationSubtypeStats = ["Bloque", "FVG"].map(subtype => {
+        const subTrades = actualTrades.filter(t => t.entry_model === "Continuación" && t.continuation_subtype === subtype);
+        const wins = subTrades.filter(t => t.result_type === "TP").length;
+        const pnl = subTrades.reduce((sum, t) => sum + (t.result_dollars || 0), 0);
+        const wr = subTrades.length > 0 ? (wins / subTrades.length * 100) : 0;
+        return { subtype, trades: subTrades.length, pnl, winRate: wr };
+      });
       const dataSummary = buildJournalDataSummary({
         totalTrades: actualTrades.length,
         totalPnL,
@@ -500,6 +507,7 @@ export const ReportGenerator = ({ trades }: ReportGeneratorProps) => {
         worstSLStreak,
         modelStats,
         dayStats,
+        continuationSubtypeStats,
       });
 
       const aiResult = await fetchAIAnalysis("journal", dataSummary);
