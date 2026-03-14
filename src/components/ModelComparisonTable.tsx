@@ -24,7 +24,7 @@ interface ModelStats {
   losses: number;
   winRate: number;
   totalPnL: number;
-  avgPnL: number;
+  expectedValue: number;
   isSubrow?: boolean;
 }
 
