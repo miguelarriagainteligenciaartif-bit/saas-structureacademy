@@ -293,45 +293,43 @@ export const ReportGenerator = ({ trades }: ReportGeneratorProps) => {
 
       yPos += boxHeight + 15;
 
-      // Model Analysis Table
-      yPos = addSectionTitle(doc, "Análisis por Modelo de Entrada", yPos);
+      // Comparativa por Modelo (full table with subtypes + EV)
+      yPos = addSectionTitle(doc, "Comparativa por Modelo", yPos);
 
       autoTable(doc, {
         startY: yPos,
-        head: [['Modelo', 'Operaciones', 'P&L', 'Win Rate']],
-        body: modelStats.map(m => [
-          m.model,
-          m.trades.toString(),
-          `$${m.pnl.toFixed(2)}`,
-          `${m.winRate.toFixed(1)}%`
+        head: [['Modelo', 'Trades', 'TP', 'SL', 'Win Rate', 'P&L Total', 'Expected Value']],
+        body: comparisonRows.map(r => [
+          r.label,
+          r.trades.toString(),
+          r.wins.toString(),
+          r.losses.toString(),
+          r.trades > 0 ? `${r.winRate.toFixed(1)}%` : '—',
+          r.trades > 0 ? `$${r.pnl.toFixed(2)}` : '—',
+          r.trades > 0 ? `$${r.ev.toFixed(2)}` : '—',
         ]),
         theme: 'striped',
         ...tableStyles,
         columnStyles: {
-          2: { halign: 'right' },
-          3: { halign: 'right' }
+          0: { fontStyle: 'bold' },
+          1: { halign: 'center' }, 2: { halign: 'center' }, 3: { halign: 'center' },
+          4: { halign: 'center' }, 5: { halign: 'right' }, 6: { halign: 'right' },
         },
-        margin: { left: 14, right: 14 }
-      });
-
-      yPos = (doc as any).lastAutoTable.finalY + 12;
-
-      // Continuation subtype analysis (Bloque vs FVG)
-      yPos = addSectionTitle(doc, "Desglose Continuación", yPos);
-      autoTable(doc, {
-        startY: yPos,
-        head: [['Subtipo', 'Operaciones', 'P&L', 'Win Rate']],
-        body: continuationSubtypeStats.map((s) => [
-          s.subtype,
-          s.trades.toString(),
-          `$${s.pnl.toFixed(2)}`,
-          `${s.winRate.toFixed(1)}%`,
-        ]),
-        theme: 'striped',
-        ...tableStyles,
-        columnStyles: {
-          2: { halign: 'right' },
-          3: { halign: 'right' }
+        didParseCell: (data: any) => {
+          if (data.section === 'body') {
+            const row = comparisonRows[data.row.index];
+            if (row?.isSubrow) {
+              data.cell.styles.fillColor = [235, 238, 242];
+              if (data.column.index === 0) { data.cell.styles.textColor = [120, 120, 130]; data.cell.styles.fontStyle = 'normal'; }
+            }
+            if (row?.label === 'Total') data.cell.styles.fontStyle = 'bold';
+            if (data.column.index === 2) data.cell.styles.textColor = brandColors.success;
+            if (data.column.index === 3) data.cell.styles.textColor = brandColors.danger;
+            if (row && row.trades > 0 && (data.column.index === 5 || data.column.index === 6)) {
+              const val = data.column.index === 5 ? row.pnl : row.ev;
+              data.cell.styles.textColor = val >= 0 ? brandColors.success : brandColors.danger;
+            }
+          }
         },
         margin: { left: 14, right: 14 }
       });
