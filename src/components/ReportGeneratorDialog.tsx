@@ -38,6 +38,7 @@ interface Trade {
   drawdown?: number | null;
   max_rr?: number | null;
   entry_model: string | null;
+  continuation_subtype?: string | null;
   result_dollars: number | null;
   had_news: boolean;
   news_description: string | null;
@@ -47,6 +48,13 @@ interface Trade {
   no_trade_day: boolean;
   image_link: string | null;
 }
+
+const formatModel = (trade: Trade) => {
+  if (trade.entry_model === "Continuación" && trade.continuation_subtype) {
+    return `Cont. ${trade.continuation_subtype}`;
+  }
+  return trade.entry_model || "N/A";
+};
 
 interface ReportGeneratorDialogProps {
   trades: Trade[];
@@ -568,7 +576,7 @@ export const ReportGeneratorDialog = ({ trades }: ReportGeneratorDialogProps) =>
           trade.day_of_week || 'N/A',
           trade.entry_time || 'N/A',
           trade.trade_type || 'N/A',
-          trade.entry_model || 'N/A',
+          formatModel(trade),
           trade.result_type || 'N/A',
           `$${(trade.result_dollars || 0).toFixed(2)}`
         ]),
