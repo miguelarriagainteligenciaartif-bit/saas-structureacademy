@@ -105,7 +105,7 @@ export const EditTradeForm = ({ trade, onSuccess, isBacktest = false }: EditTrad
       exit_time: trade.exit_time || "",
       trade_type: trade.trade_type || undefined,
       result_type: trade.result_type || undefined,
-      drawdown: trade.drawdown?.toString() || undefined,
+      drawdown: trade.drawdown != null ? (Number(trade.drawdown).toFixed(2).replace(/^0\.00$/, "0") as "0" | "0.33" | "0.50" | "0.66" | "0.90" | "1.00") : undefined,
       max_rr: trade.max_rr?.toString() || undefined,
       entry_model: trade.entry_model || undefined,
       image_link: trade.image_link || "",
