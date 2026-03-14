@@ -102,33 +102,32 @@ export const ReportGenerator = ({ trades }: ReportGeneratorProps) => {
         }
       });
 
-      // By entry model
-      const modelStats = ["M1", "M3", "Continuación"].map(model => {
-        const modelTrades = actualTrades.filter(t => t.entry_model === model);
-        const modelWins = modelTrades.filter(t => t.result_type === "TP");
-        const modelPnL = modelTrades.reduce((sum, t) => sum + (t.result_dollars || 0), 0);
-        const modelWinRate = modelTrades.length > 0 ? (modelWins.length / modelTrades.length * 100) : 0;
-        return { model, trades: modelTrades.length, pnl: modelPnL, winRate: modelWinRate };
-      });
+      // Build full model comparison stats (matching dashboard)
+      const buildModelRow = (label: string, trds: Trade[], isSubrow = false) => {
+        const wins = trds.filter(t => t.result_type === "TP");
+        const losses = trds.filter(t => t.result_type === "SL");
+        const pnl = trds.reduce((sum, t) => sum + (t.result_dollars || 0), 0);
+        const decisive = trds.filter(t => t.result_type === "TP" || t.result_type === "SL");
+        const wr = decisive.length > 0 ? wins.length / decisive.length : 0;
+        const avgW = wins.length > 0 ? wins.reduce((s, t) => s + (t.result_dollars || 0), 0) / wins.length : 0;
+        const avgL = losses.length > 0 ? Math.abs(losses.reduce((s, t) => s + (t.result_dollars || 0), 0) / losses.length) : 0;
+        const ev = decisive.length > 0 ? (wr * avgW) - ((1 - wr) * avgL) : 0;
+        return { label, trades: trds.length, wins: wins.length, losses: losses.length,
+          winRate: trds.length > 0 ? (wins.length / trds.length * 100) : 0, pnl, ev, isSubrow };
+      };
 
-      // Continuation subtype breakdown (Bloque vs FVG)
-      const continuationSubtypeStats = ["Bloque", "FVG"].map((subtype) => {
-        const subtypeTrades = actualTrades.filter(
-          (t) =>
-            t.entry_model === "Continuación" &&
-            (t.continuation_subtype || "").toLowerCase() === subtype.toLowerCase()
-        );
-        const subtypeWins = subtypeTrades.filter((t) => t.result_type === "TP");
-        const subtypePnL = subtypeTrades.reduce((sum, t) => sum + (t.result_dollars || 0), 0);
-        const subtypeWinRate = subtypeTrades.length > 0 ? (subtypeWins.length / subtypeTrades.length * 100) : 0;
+      const comparisonRows = [
+        buildModelRow("M1", actualTrades.filter(t => t.entry_model === "M1")),
+        buildModelRow("M3", actualTrades.filter(t => t.entry_model === "M3")),
+        buildModelRow("Continuación", actualTrades.filter(t => t.entry_model === "Continuación")),
+        buildModelRow("└ Bloque", actualTrades.filter(t => t.entry_model === "Continuación" && t.continuation_subtype === "Bloque"), true),
+        buildModelRow("└ FVG", actualTrades.filter(t => t.entry_model === "Continuación" && t.continuation_subtype === "FVG"), true),
+        buildModelRow("Total", actualTrades),
+      ];
 
-        return {
-          subtype,
-          trades: subtypeTrades.length,
-          pnl: subtypePnL,
-          winRate: subtypeWinRate,
-        };
-      });
+      const modelStats = comparisonRows.filter(r => !r.isSubrow && r.label !== "Total").map(r => ({
+        model: r.label, trades: r.trades, pnl: r.pnl, winRate: r.winRate,
+      }));
 
       // By day of week
       const dayStats = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"].map(day => {
