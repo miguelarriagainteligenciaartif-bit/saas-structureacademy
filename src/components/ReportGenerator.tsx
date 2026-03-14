@@ -421,7 +421,7 @@ export const ReportGenerator = ({ trades }: ReportGeneratorProps) => {
           trade.day_of_week || 'N/A',
           trade.entry_time || 'N/A',
           trade.trade_type || 'N/A',
-          trade.entry_model || 'N/A',
+          formatModel(trade),
           trade.result_type || 'N/A',
           `$${(trade.result_dollars || 0).toFixed(2)}`
         ]),
