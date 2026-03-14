@@ -353,6 +353,43 @@ export const OptimizationReportGenerator = ({
         methY += 6;
       });
 
+      // AI Analysis Section
+      toast.info("Generando análisis con IA...");
+      const first = presetAnalysis[0];
+      const totalTrades = first.totalTPs + first.totalSLs;
+      const optDataSummary = buildOptimizationDataSummary({
+        source: source === "journal" ? "Journal (Trades Reales)" : `Backtesting: ${strategyName || "Estrategia"}`,
+        strategyName,
+        baseRR,
+        totalTrades,
+        totalTPs: first.totalTPs,
+        totalSLs: first.totalSLs,
+        originalWinRate: first.originalWinRate,
+        originalEV: first.originalEV,
+        originalTotalR: first.originalTotalR,
+        bestLevel: bestLevel ? {
+          label: bestLevel.label,
+          newWinRate: bestLevel.newWinRate,
+          avgNewRR: bestLevel.avgNewRR,
+          newTotalR: bestLevel.newTotalR,
+          totalRDelta: bestLevel.totalRDelta,
+        } : null,
+        levels: presetAnalysis.map(a => ({
+          label: a.label,
+          reachPercent: a.reachPercent,
+          newWinRate: a.newWinRate,
+          avgNewRR: a.avgNewRR,
+          newEV: a.newEV,
+          totalRDelta: a.totalRDelta,
+        })),
+      });
+
+      const aiResult = await fetchAIAnalysis("optimization", optDataSummary);
+      if (aiResult.analysis) {
+        doc.addPage();
+        addAIAnalysisSection(doc, aiResult.analysis, 20);
+      }
+
       // Branded footer on all pages
       addBrandedFooter(doc);
 

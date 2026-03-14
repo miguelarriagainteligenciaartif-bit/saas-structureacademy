@@ -441,6 +441,27 @@ export const ReportGenerator = ({ trades }: ReportGeneratorProps) => {
         }
       });
 
+      // AI Analysis Section
+      toast.info("Generando análisis con IA...");
+      const dataSummary = buildJournalDataSummary({
+        totalTrades: actualTrades.length,
+        totalPnL,
+        winRate,
+        expectedValue,
+        avgWin,
+        avgLoss,
+        bestTPStreak,
+        worstSLStreak,
+        modelStats,
+        dayStats,
+      });
+
+      const aiResult = await fetchAIAnalysis("journal", dataSummary);
+      if (aiResult.analysis) {
+        doc.addPage();
+        addAIAnalysisSection(doc, aiResult.analysis, 20);
+      }
+
       // Add branded footer to all pages
       addBrandedFooter(doc);
 
