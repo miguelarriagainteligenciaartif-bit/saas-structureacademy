@@ -1,1 +1,10 @@
 project_id = "rxysjvgeoyurirwvkyur"
+
+[functions.forex-calendar]
+verify_jwt = false
+
+[functions.sync-forex-calendar]
+verify_jwt = false
+
+[functions.analyze-trading]
+verify_jwt = false

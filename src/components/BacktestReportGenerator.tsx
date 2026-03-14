@@ -10,6 +10,8 @@ import {
   getBrandedTableStyles,
   addSectionTitle,
 } from "@/utils/pdfBranding";
+import { fetchAIAnalysis, buildBacktestDataSummary } from "@/utils/aiAnalysis";
+import { addAIAnalysisSection } from "@/utils/pdfAISection";
 
 interface BacktestTrade {
   id: string;
@@ -334,6 +336,30 @@ export const BacktestReportGenerator = ({ trades, strategy }: BacktestReportGene
           }
         }
       });
+
+      // AI Analysis Section
+      toast.info("Generando análisis con IA...");
+      const dataSummary = buildBacktestDataSummary({
+        strategyName: strategy.name,
+        rrRatio: strategy.risk_reward_ratio,
+        initialCapital: strategy.initial_capital,
+        totalTrades,
+        totalPnL: totalProfit,
+        winRate,
+        expectedValue,
+        avgWin,
+        avgLoss,
+        bestTPStreak,
+        worstSLStreak,
+        modelStats,
+        dayStats,
+      });
+
+      const aiResult = await fetchAIAnalysis("backtest", dataSummary);
+      if (aiResult.analysis) {
+        doc.addPage();
+        addAIAnalysisSection(doc, aiResult.analysis, 20);
+      }
 
       addBrandedFooter(doc);
 
