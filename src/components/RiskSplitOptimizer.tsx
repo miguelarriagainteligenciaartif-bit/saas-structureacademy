@@ -82,64 +82,72 @@ export function RiskSplitOptimizer({ tpTrades, slCount, baseRR }: RiskSplitOptim
     };
   }, [weights, tpTrades, slCount, baseRR, levelStats]);
 
-  // Auto-optimize: find the level with max (reaching * newRR)
-  const handleAutoOptimize = () => {
-    // For each level, calculate total R contribution if 100% is placed there
-    const contributions = SPLIT_LEVELS.map((level, i) => {
-      return levelStats[i].reaching * levelStats[i].newRR;
-    });
-
-    // Find the best single level
-    let bestIdx = 0;
-    let bestVal = contributions[0];
-    for (let i = 1; i < contributions.length; i++) {
-      if (contributions[i] > bestVal) {
-        bestVal = contributions[i];
-        bestIdx = i;
+  // Round to nearest 10 for practical execution
+  const roundToTen = (weights: number[]): number[] => {
+    const rounded = weights.map(w => Math.round(w / 10) * 10);
+    // Fix sum to 100
+    let diff = 100 - rounded.reduce((a, b) => a + b, 0);
+    while (diff !== 0) {
+      // Find the weight with largest rounding error to adjust
+      const errors = weights.map((w, i) => ({ i, error: w - rounded[i] }));
+      errors.sort((a, b) => diff > 0 ? b.error - a.error : a.error - b.error);
+      for (const { i } of errors) {
+        if (diff > 0 && rounded[i] < 100) { rounded[i] += 10; diff -= 10; break; }
+        if (diff < 0 && rounded[i] > 0) { rounded[i] -= 10; diff += 10; break; }
       }
     }
+    return rounded.map(w => Math.max(0, Math.min(100, w)));
+  };
 
+  // Auto-optimize: best single level (100% concentration)
+  const handleAutoOptimize = () => {
+    const contributions = SPLIT_LEVELS.map((_, i) => levelStats[i].reaching * levelStats[i].newRR);
+    let bestIdx = 0;
+    for (let i = 1; i < contributions.length; i++) {
+      if (contributions[i] > contributions[bestIdx]) bestIdx = i;
+    }
     const newWeights = [0, 0, 0, 0, 0];
     newWeights[bestIdx] = 100;
     setWeights(newWeights);
   };
 
-  // Smart split: allocate proportionally to each level's marginal value
+  // Smart split: allocate based on EV per unit risk at each level, rounded to 10s
   const handleSmartSplit = () => {
-    // Calculate marginal value: for trades that reach exactly this level but not the next
-    // This gives a more nuanced split
-    const marginalValues = SPLIT_LEVELS.map((level, i) => {
-      const nextLevel = i < SPLIT_LEVELS.length - 1 ? SPLIT_LEVELS[i + 1] : 1;
-      // Trades that reach this level but NOT the next
-      const exclusiveCount = tpTrades.filter(t =>
-        t.drawdown >= level && t.drawdown < nextLevel
-      ).length;
-      // Plus trades that reach this AND all higher levels benefit from better RR
-      return levelStats[i].reaching * levelStats[i].newRR;
+    const totalTrades = tpTrades.length + slCount;
+    if (totalTrades === 0) return;
+
+    // EV per unit risk at each level
+    const evPerUnit = SPLIT_LEVELS.map((_, i) => {
+      const pTP = levelStats[i].reaching / totalTrades;
+      const pSL = slCount / totalTrades;
+      return pTP * levelStats[i].newRR - pSL;
     });
 
-    const total = marginalValues.reduce((a, b) => a + b, 0);
+    // Only allocate to levels with positive EV
+    const positiveEVs = evPerUnit.map(ev => Math.max(0, ev));
+    const total = positiveEVs.reduce((a, b) => a + b, 0);
     if (total === 0) return;
 
-    const newWeights = marginalValues.map(v => Math.round((v / total) * 100));
-    // Adjust rounding to sum to 100
-    const diff = 100 - newWeights.reduce((a, b) => a + b, 0);
-    const maxIdx = newWeights.indexOf(Math.max(...newWeights));
-    newWeights[maxIdx] += diff;
-
-    setWeights(newWeights);
+    const raw = positiveEVs.map(v => (v / total) * 100);
+    setWeights(roundToTen(raw));
   };
+
+  // Equal split across all 5 levels
+  const handleEqualSplit = () => setWeights([20, 20, 20, 20, 20]);
 
   const handleReset = () => setWeights([100, 0, 0, 0, 0]);
 
   const handleWeightChange = (index: number, value: number) => {
+    // Snap to multiples of 10
+    const snapped = Math.round(value / 10) * 10;
     const newWeights = [...weights];
     const oldValue = newWeights[index];
-    const diff = value - oldValue;
+    const diff = snapped - oldValue;
+    if (diff === 0) return;
 
-    newWeights[index] = value;
+    newWeights[index] = snapped;
 
-    // Distribute the difference proportionally across other non-zero sliders
+    // Distribute the difference across other sliders
     const otherIndices = SPLIT_LEVELS.map((_, i) => i).filter(i => i !== index);
     const otherTotal = otherIndices.reduce((sum, i) => sum + newWeights[i], 0);
 
@@ -147,16 +155,14 @@ export function RiskSplitOptimizer({ tpTrades, slCount, baseRR }: RiskSplitOptim
       let remaining = -diff;
       for (const i of otherIndices) {
         const proportion = newWeights[i] / otherTotal;
-        const adjustment = Math.round(proportion * remaining);
-        newWeights[i] = Math.max(0, newWeights[i] + adjustment);
+        const adj = Math.round((proportion * remaining) / 10) * 10;
+        newWeights[i] = Math.max(0, newWeights[i] + adj);
       }
     } else if (diff < 0) {
-      // All others are 0, put remainder in first available
-      const firstOther = otherIndices[0];
-      newWeights[firstOther] = Math.max(0, -diff);
+      newWeights[otherIndices[0]] = Math.max(0, -diff);
     }
 
-    // Ensure sum = 100
+    // Fix sum to 100
     const sum = newWeights.reduce((a, b) => a + b, 0);
     if (sum !== 100) {
       const adjustIdx = otherIndices.find(i => newWeights[i] > 0) ?? index;
@@ -196,13 +202,16 @@ export function RiskSplitOptimizer({ tpTrades, slCount, baseRR }: RiskSplitOptim
               <RotateCcw className="h-3.5 w-3.5 mr-1" />
               Reset
             </Button>
+            <Button variant="outline" size="sm" onClick={handleEqualSplit}>
+              20-20-20-20-20
+            </Button>
             <Button variant="outline" size="sm" onClick={handleSmartSplit}>
               <Zap className="h-3.5 w-3.5 mr-1" />
-              Split Proporcional
+              Split Óptimo
             </Button>
             <Button variant="default" size="sm" onClick={handleAutoOptimize}>
               <TrendingUp className="h-3.5 w-3.5 mr-1" />
-              Auto-Optimizar
+              Mejor Nivel Único
             </Button>
           </div>
         </div>
@@ -231,7 +240,7 @@ export function RiskSplitOptimizer({ tpTrades, slCount, baseRR }: RiskSplitOptim
                 onValueChange={([v]) => handleWeightChange(i, v)}
                 max={100}
                 min={0}
-                step={5}
+                step={10}
                 className="w-full"
               />
             </div>
