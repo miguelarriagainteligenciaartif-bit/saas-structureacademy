@@ -134,13 +134,13 @@ export function DrawdownByModel({ trades }: DrawdownByModelProps) {
           <TableHeader>
             <TableRow>
               <TableHead>Modelo</TableHead>
-              <TableHead className="text-center">Trades c/DD</TableHead>
-              <TableHead className="text-center">Prom. DD</TableHead>
-              <TableHead className="text-center">Mediana DD</TableHead>
-              <TableHead className="text-center">Min DD</TableHead>
-              <TableHead className="text-center">Max DD</TableHead>
-              <TableHead className="text-center">DD Prom. TP</TableHead>
-              <TableHead className="text-center">DD Prom. SL</TableHead>
+              <TableHead className="text-center">Trades con Datos</TableHead>
+              <TableHead className="text-center">Retroceso Prom.</TableHead>
+              <TableHead className="text-center">Retroceso Mediana</TableHead>
+              <TableHead className="text-center">Retroceso Mín.</TableHead>
+              <TableHead className="text-center">Retroceso Máx.</TableHead>
+              <TableHead className="text-center">Retroceso Prom. (TP)</TableHead>
+              <TableHead className="text-center">Retroceso Prom. (SL)</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
