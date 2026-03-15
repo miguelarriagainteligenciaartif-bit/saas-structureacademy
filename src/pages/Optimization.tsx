@@ -12,6 +12,7 @@ import { TrendingUp, TrendingDown, Search, Target, ArrowDownRight, Info } from "
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { OptimizationPnLChart } from "@/components/OptimizationPnLChart";
 import { OptimizationReportGenerator } from "@/components/OptimizationReportGenerator";
+import { RiskSplitOptimizer } from "@/components/RiskSplitOptimizer";
 
 interface DrawdownTrade {
   id: string;
@@ -532,6 +533,13 @@ export default function Optimization() {
               allTrades={filteredAllTrades}
               baseRR={baseRR}
               presetLevels={PRESET_LEVELS}
+            />
+
+            {/* Risk Split Optimizer */}
+            <RiskSplitOptimizer
+              tpTrades={filteredTrades.map(t => ({ id: t.id, drawdown: t.drawdown, result_type: t.result_type }))}
+              slCount={filteredSLCount}
+              baseRR={baseRR}
             />
 
             {/* Custom Level */}
