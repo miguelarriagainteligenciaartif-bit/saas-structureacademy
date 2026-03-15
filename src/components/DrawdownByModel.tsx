@@ -22,7 +22,7 @@ interface DrawdownByModelProps {
 }
 
 // Retracement levels to analyze
-const RETRACEMENT_LEVELS = [0, 0.10, 0.20, 0.25, 0.30, 0.33, 0.382, 0.50, 0.618, 0.66, 0.75, 0.786];
+const RETRACEMENT_LEVELS = [0, 0.33, 0.50, 0.65, 0.66, 0.90];
 
 type ModelOption = "all" | "M1" | "M3" | "Continuación" | "Cont. Bloque" | "Cont. FVG";
 
