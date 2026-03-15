@@ -146,7 +146,7 @@ export default function Optimization() {
       } else {
         if (!selectedStrategy) {
           setTrades([]);
-          setTotalSLs(0);
+          setSlTrades([]);
           setAllDecisiveTrades([]);
           setLoading(false);
           return;
@@ -159,7 +159,7 @@ export default function Optimization() {
           .not("drawdown", "is", null);
         slQuery = supabase
           .from("backtest_trades")
-          .select("id, entry_model", { count: "exact" })
+          .select("id, entry_model")
           .eq("result_type", "SL")
           .eq("strategy_id", selectedStrategy);
         allQuery = supabase
@@ -179,7 +179,7 @@ export default function Optimization() {
       if (!tpResult.error && tpResult.data) {
         setTrades(tpResult.data as DrawdownTrade[]);
       }
-      setTotalSLs(slResult.count ?? 0);
+      setSlTrades(slResult.data ?? []);
       if (!allResult.error && allResult.data) {
         setAllDecisiveTrades(allResult.data);
       }
@@ -189,12 +189,18 @@ export default function Optimization() {
     loadTrades();
   }, [source, selectedStrategy]);
 
+  // Filtered data by model
+  const filteredTrades = useMemo(() => filterTradesByModel(trades, modelFilter), [trades, modelFilter]);
+  const filteredSLCount = useMemo(() => filterTradesByModel(slTrades, modelFilter).length, [slTrades, modelFilter]);
+  const filteredAllTrades = useMemo(() => filterTradesByModel(allDecisiveTrades, modelFilter), [allDecisiveTrades, modelFilter]);
+
   // Analysis
   const analyzeLevel = (level: number): LevelAnalysis => {
-    const totalTPs = trades.length;
+    const totalTPs = filteredTrades.length;
+    const totalSLs = filteredSLCount;
     const newRR = (baseRR + level) / (1 - level);
     
-    const surviving = trades
+    const surviving = filteredTrades
       .filter((t) => t.drawdown >= level)
       .map((t) => ({
         id: t.id,
@@ -247,13 +253,13 @@ export default function Optimization() {
     };
   };
 
-  const presetAnalysis = useMemo(() => PRESET_LEVELS.map(analyzeLevel), [trades, baseRR, totalSLs]);
+  const presetAnalysis = useMemo(() => PRESET_LEVELS.map(analyzeLevel), [filteredTrades, baseRR, filteredSLCount]);
 
   const customLevelNum = parseFloat(customLevel);
   const customAnalysis = useMemo(() => {
     if (isNaN(customLevelNum) || customLevelNum <= 0 || customLevelNum >= 1) return null;
     return analyzeLevel(customLevelNum);
-  }, [customLevelNum, trades, baseRR, totalSLs]);
+  }, [customLevelNum, filteredTrades, baseRR, filteredSLCount]);
 
   // Best level: highest level where total R improves (aligned with P&L chart)
   const bestLevel = useMemo(() => {
