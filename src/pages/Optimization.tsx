@@ -22,6 +22,28 @@ interface DrawdownTrade {
   asset: string;
   entry_model: string;
   max_rr: number | null;
+  continuation_subtype?: string | null;
+}
+
+type ModelFilter = "all" | "M1" | "M3" | "Continuación" | "Cont. Bloque" | "Cont. FVG";
+
+const MODEL_FILTER_OPTIONS: { value: ModelFilter; label: string }[] = [
+  { value: "all", label: "Todos los modelos" },
+  { value: "M1", label: "M1" },
+  { value: "M3", label: "M3" },
+  { value: "Continuación", label: "Continuación (todos)" },
+  { value: "Cont. Bloque", label: "Continuación — Bloque" },
+  { value: "Cont. FVG", label: "Continuación — FVG" },
+];
+
+function filterTradesByModel<T extends { entry_model?: string; continuation_subtype?: string | null }>(trades: T[], model: ModelFilter): T[] {
+  if (model === "all") return trades;
+  if (model === "M1") return trades.filter(t => t.entry_model === "M1");
+  if (model === "M3") return trades.filter(t => t.entry_model === "M3");
+  if (model === "Continuación") return trades.filter(t => t.entry_model === "Continuación");
+  if (model === "Cont. Bloque") return trades.filter(t => t.entry_model === "Continuación" && t.continuation_subtype === "Bloque");
+  if (model === "Cont. FVG") return trades.filter(t => t.entry_model === "Continuación" && t.continuation_subtype === "FVG");
+  return trades;
 }
 
 interface LevelAnalysis {
