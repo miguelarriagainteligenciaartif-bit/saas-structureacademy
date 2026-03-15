@@ -345,7 +345,7 @@ export default function Optimization() {
             )}
 
             <Badge variant="outline" className="self-center whitespace-nowrap">
-              {trades.length} TPs · {totalSLs} SLs
+              {filteredTrades.length} TPs · {filteredSLCount} SLs
             </Badge>
           </CardContent>
         </Card>
