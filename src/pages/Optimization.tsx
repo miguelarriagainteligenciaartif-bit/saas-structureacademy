@@ -535,6 +535,13 @@ export default function Optimization() {
               presetLevels={PRESET_LEVELS}
             />
 
+            {/* Risk Split Optimizer */}
+            <RiskSplitOptimizer
+              tpTrades={filteredTrades.map(t => ({ id: t.id, drawdown: t.drawdown, result_type: t.result_type }))}
+              slCount={filteredSLCount}
+              baseRR={baseRR}
+            />
+
             {/* Custom Level */}
             <Card>
               <CardHeader>
