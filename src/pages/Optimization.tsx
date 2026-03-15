@@ -131,16 +131,16 @@ export default function Optimization() {
       if (source === "journal") {
         tpQuery = supabase
           .from("trades")
-          .select("id, date, drawdown, result_type, result_dollars, asset, entry_model, max_rr")
+          .select("id, date, drawdown, result_type, result_dollars, asset, entry_model, max_rr, continuation_subtype")
           .eq("result_type", "TP")
           .not("drawdown", "is", null);
         slQuery = supabase
           .from("trades")
-          .select("id", { count: "exact", head: true })
+          .select("id, entry_model, continuation_subtype", { count: "exact" })
           .eq("result_type", "SL");
         allQuery = supabase
           .from("trades")
-          .select("id, date, drawdown, result_type")
+          .select("id, date, drawdown, result_type, entry_model, continuation_subtype")
           .in("result_type", ["TP", "SL"])
           .order("date", { ascending: true });
       } else {
@@ -159,12 +159,12 @@ export default function Optimization() {
           .not("drawdown", "is", null);
         slQuery = supabase
           .from("backtest_trades")
-          .select("id", { count: "exact", head: true })
+          .select("id, entry_model", { count: "exact" })
           .eq("result_type", "SL")
           .eq("strategy_id", selectedStrategy);
         allQuery = supabase
           .from("backtest_trades")
-          .select("id, date, drawdown, result_type")
+          .select("id, date, drawdown, result_type, entry_model")
           .eq("strategy_id", selectedStrategy)
           .in("result_type", ["TP", "SL"])
           .order("date", { ascending: true });
