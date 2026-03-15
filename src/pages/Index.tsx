@@ -13,6 +13,7 @@ import { MonthlyResults } from "@/components/MonthlyResults";
 import { DollarSign, TrendingUp, TrendingDown, Target, Calendar, Layers, Trash2 } from "lucide-react";
 import { DashboardFilters } from "@/components/DashboardFilters";
 import { ModelComparisonTable } from "@/components/ModelComparisonTable";
+import { DrawdownByModel } from "@/components/DrawdownByModel";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -35,6 +36,7 @@ interface Trade {
   result_type: string | null;
   entry_model: string | null;
   result_dollars: number | null;
+  drawdown: number | null;
   had_news: boolean;
   news_description: string | null;
   custom_news_description: string | null;
@@ -404,6 +406,9 @@ export default function Index() {
 
         {/* Model Comparison Table */}
         <ModelComparisonTable trades={filteredTradesForMetrics} />
+
+        {/* Drawdown by Model */}
+        <DrawdownByModel trades={filteredTradesForMetrics} />
 
         {/* Monthly Results */}
         <MonthlyResults trades={filteredTradesForMetrics} />
