@@ -138,13 +138,16 @@ export function RiskSplitOptimizer({ tpTrades, slCount, baseRR }: RiskSplitOptim
   const handleReset = () => setWeights([100, 0, 0, 0, 0]);
 
   const handleWeightChange = (index: number, value: number) => {
+    // Snap to multiples of 10
+    const snapped = Math.round(value / 10) * 10;
     const newWeights = [...weights];
     const oldValue = newWeights[index];
-    const diff = value - oldValue;
+    const diff = snapped - oldValue;
+    if (diff === 0) return;
 
-    newWeights[index] = value;
+    newWeights[index] = snapped;
 
-    // Distribute the difference proportionally across other non-zero sliders
+    // Distribute the difference across other sliders
     const otherIndices = SPLIT_LEVELS.map((_, i) => i).filter(i => i !== index);
     const otherTotal = otherIndices.reduce((sum, i) => sum + newWeights[i], 0);
 
@@ -152,16 +155,14 @@ export function RiskSplitOptimizer({ tpTrades, slCount, baseRR }: RiskSplitOptim
       let remaining = -diff;
       for (const i of otherIndices) {
         const proportion = newWeights[i] / otherTotal;
-        const adjustment = Math.round(proportion * remaining);
-        newWeights[i] = Math.max(0, newWeights[i] + adjustment);
+        const adj = Math.round((proportion * remaining) / 10) * 10;
+        newWeights[i] = Math.max(0, newWeights[i] + adj);
       }
     } else if (diff < 0) {
-      // All others are 0, put remainder in first available
-      const firstOther = otherIndices[0];
-      newWeights[firstOther] = Math.max(0, -diff);
+      newWeights[otherIndices[0]] = Math.max(0, -diff);
     }
 
-    // Ensure sum = 100
+    // Fix sum to 100
     const sum = newWeights.reduce((a, b) => a + b, 0);
     if (sum !== 100) {
       const adjustIdx = otherIndices.find(i => newWeights[i] > 0) ?? index;
