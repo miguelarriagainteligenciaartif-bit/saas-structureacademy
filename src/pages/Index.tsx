@@ -36,6 +36,7 @@ interface Trade {
   result_type: string | null;
   entry_model: string | null;
   result_dollars: number | null;
+  drawdown: number | null;
   had_news: boolean;
   news_description: string | null;
   custom_news_description: string | null;
