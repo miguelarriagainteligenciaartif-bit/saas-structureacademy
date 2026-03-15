@@ -529,7 +529,7 @@ export default function Optimization() {
 
             {/* P&L Comparison Chart */}
             <OptimizationPnLChart
-              allTrades={allDecisiveTrades}
+              allTrades={filteredAllTrades}
               baseRR={baseRR}
               presetLevels={PRESET_LEVELS}
             />
