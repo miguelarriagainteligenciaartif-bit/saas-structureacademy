@@ -12,6 +12,7 @@ import { TrendingUp, TrendingDown, Search, Target, ArrowDownRight, Info } from "
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { OptimizationPnLChart } from "@/components/OptimizationPnLChart";
 import { OptimizationReportGenerator } from "@/components/OptimizationReportGenerator";
+import { RiskSplitOptimizer } from "@/components/RiskSplitOptimizer";
 
 interface DrawdownTrade {
   id: string;
