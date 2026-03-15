@@ -350,6 +350,33 @@ export default function Optimization() {
           </CardContent>
         </Card>
 
+        {/* Model Filter */}
+        {trades.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Filtrar por Modelo de Entrada</CardTitle>
+              <CardDescription>Analiza la optimización solo para un modelo específico</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Select value={modelFilter} onValueChange={(v) => setModelFilter(v as ModelFilter)}>
+                <SelectTrigger className="w-full sm:w-[260px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {MODEL_FILTER_OPTIONS.map(opt => (
+                    <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {modelFilter !== "all" && (
+                <p className="text-sm text-muted-foreground mt-2">
+                  Mostrando solo trades de <span className="font-semibold text-foreground">{MODEL_FILTER_OPTIONS.find(o => o.value === modelFilter)?.label}</span>
+                </p>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
         {loading ? (
           <div className="text-center py-12 text-muted-foreground">Cargando trades...</div>
         ) : trades.length === 0 ? (
