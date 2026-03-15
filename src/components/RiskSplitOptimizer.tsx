@@ -202,13 +202,16 @@ export function RiskSplitOptimizer({ tpTrades, slCount, baseRR }: RiskSplitOptim
               <RotateCcw className="h-3.5 w-3.5 mr-1" />
               Reset
             </Button>
+            <Button variant="outline" size="sm" onClick={handleEqualSplit}>
+              20-20-20-20-20
+            </Button>
             <Button variant="outline" size="sm" onClick={handleSmartSplit}>
               <Zap className="h-3.5 w-3.5 mr-1" />
-              Split Proporcional
+              Split Óptimo
             </Button>
             <Button variant="default" size="sm" onClick={handleAutoOptimize}>
               <TrendingUp className="h-3.5 w-3.5 mr-1" />
-              Auto-Optimizar
+              Mejor Nivel Único
             </Button>
           </div>
         </div>
