@@ -641,6 +641,8 @@ export default function Analytics() {
             </div>
           </CardContent>
         </Card>
+        {/* Drawdown by Model */}
+        <DrawdownByModel trades={trades} />
       </main>
     </div>
   );

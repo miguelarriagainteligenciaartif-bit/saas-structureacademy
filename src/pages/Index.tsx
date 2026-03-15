@@ -407,6 +407,9 @@ export default function Index() {
         {/* Model Comparison Table */}
         <ModelComparisonTable trades={filteredTradesForMetrics} />
 
+        {/* Drawdown by Model */}
+        <DrawdownByModel trades={filteredTradesForMetrics} />
+
         {/* Monthly Results */}
         <MonthlyResults trades={filteredTradesForMetrics} />
 
