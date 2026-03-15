@@ -22,6 +22,28 @@ interface DrawdownTrade {
   asset: string;
   entry_model: string;
   max_rr: number | null;
+  continuation_subtype?: string | null;
+}
+
+type ModelFilter = "all" | "M1" | "M3" | "Continuación" | "Cont. Bloque" | "Cont. FVG";
+
+const MODEL_FILTER_OPTIONS: { value: ModelFilter; label: string }[] = [
+  { value: "all", label: "Todos los modelos" },
+  { value: "M1", label: "M1" },
+  { value: "M3", label: "M3" },
+  { value: "Continuación", label: "Continuación (todos)" },
+  { value: "Cont. Bloque", label: "Continuación — Bloque" },
+  { value: "Cont. FVG", label: "Continuación — FVG" },
+];
+
+function filterTradesByModel<T extends { entry_model?: string; continuation_subtype?: string | null }>(trades: T[], model: ModelFilter): T[] {
+  if (model === "all") return trades;
+  if (model === "M1") return trades.filter(t => t.entry_model === "M1");
+  if (model === "M3") return trades.filter(t => t.entry_model === "M3");
+  if (model === "Continuación") return trades.filter(t => t.entry_model === "Continuación");
+  if (model === "Cont. Bloque") return trades.filter(t => t.entry_model === "Continuación" && t.continuation_subtype === "Bloque");
+  if (model === "Cont. FVG") return trades.filter(t => t.entry_model === "Continuación" && t.continuation_subtype === "FVG");
+  return trades;
 }
 
 interface LevelAnalysis {
@@ -57,8 +79,9 @@ export default function Optimization() {
   const [strategies, setStrategies] = useState<{ id: string; name: string; risk_reward_ratio: string }[]>([]);
   const [selectedStrategy, setSelectedStrategy] = useState<string>("");
   const [trades, setTrades] = useState<DrawdownTrade[]>([]);
-  const [totalSLs, setTotalSLs] = useState<number>(0);
-  const [allDecisiveTrades, setAllDecisiveTrades] = useState<{ id: string; date: string; drawdown: number | null; result_type: string }[]>([]);
+  const [slTrades, setSlTrades] = useState<{ id: string; entry_model?: string; continuation_subtype?: string | null }[]>([]);
+  const [allDecisiveTrades, setAllDecisiveTrades] = useState<{ id: string; date: string; drawdown: number | null; result_type: string; entry_model?: string; continuation_subtype?: string | null }[]>([]);
+  const [modelFilter, setModelFilter] = useState<ModelFilter>("all");
   const [customLevel, setCustomLevel] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [expandedLevel, setExpandedLevel] = useState<number | null>(null);
@@ -108,22 +131,22 @@ export default function Optimization() {
       if (source === "journal") {
         tpQuery = supabase
           .from("trades")
-          .select("id, date, drawdown, result_type, result_dollars, asset, entry_model, max_rr")
+          .select("id, date, drawdown, result_type, result_dollars, asset, entry_model, max_rr, continuation_subtype")
           .eq("result_type", "TP")
           .not("drawdown", "is", null);
         slQuery = supabase
           .from("trades")
-          .select("id", { count: "exact", head: true })
+          .select("id, entry_model, continuation_subtype", { count: "exact" })
           .eq("result_type", "SL");
         allQuery = supabase
           .from("trades")
-          .select("id, date, drawdown, result_type")
+          .select("id, date, drawdown, result_type, entry_model, continuation_subtype")
           .in("result_type", ["TP", "SL"])
           .order("date", { ascending: true });
       } else {
         if (!selectedStrategy) {
           setTrades([]);
-          setTotalSLs(0);
+          setSlTrades([]);
           setAllDecisiveTrades([]);
           setLoading(false);
           return;
@@ -136,12 +159,12 @@ export default function Optimization() {
           .not("drawdown", "is", null);
         slQuery = supabase
           .from("backtest_trades")
-          .select("id", { count: "exact", head: true })
+          .select("id, entry_model")
           .eq("result_type", "SL")
           .eq("strategy_id", selectedStrategy);
         allQuery = supabase
           .from("backtest_trades")
-          .select("id, date, drawdown, result_type")
+          .select("id, date, drawdown, result_type, entry_model")
           .eq("strategy_id", selectedStrategy)
           .in("result_type", ["TP", "SL"])
           .order("date", { ascending: true });
@@ -156,7 +179,7 @@ export default function Optimization() {
       if (!tpResult.error && tpResult.data) {
         setTrades(tpResult.data as DrawdownTrade[]);
       }
-      setTotalSLs(slResult.count ?? 0);
+      setSlTrades(slResult.data ?? []);
       if (!allResult.error && allResult.data) {
         setAllDecisiveTrades(allResult.data);
       }
@@ -166,12 +189,18 @@ export default function Optimization() {
     loadTrades();
   }, [source, selectedStrategy]);
 
+  // Filtered data by model
+  const filteredTrades = useMemo(() => filterTradesByModel(trades, modelFilter), [trades, modelFilter]);
+  const filteredSLCount = useMemo(() => filterTradesByModel(slTrades, modelFilter).length, [slTrades, modelFilter]);
+  const filteredAllTrades = useMemo(() => filterTradesByModel(allDecisiveTrades, modelFilter), [allDecisiveTrades, modelFilter]);
+
   // Analysis
   const analyzeLevel = (level: number): LevelAnalysis => {
-    const totalTPs = trades.length;
+    const totalTPs = filteredTrades.length;
+    const totalSLs = filteredSLCount;
     const newRR = (baseRR + level) / (1 - level);
     
-    const surviving = trades
+    const surviving = filteredTrades
       .filter((t) => t.drawdown >= level)
       .map((t) => ({
         id: t.id,
@@ -224,13 +253,13 @@ export default function Optimization() {
     };
   };
 
-  const presetAnalysis = useMemo(() => PRESET_LEVELS.map(analyzeLevel), [trades, baseRR, totalSLs]);
+  const presetAnalysis = useMemo(() => PRESET_LEVELS.map(analyzeLevel), [filteredTrades, baseRR, filteredSLCount]);
 
   const customLevelNum = parseFloat(customLevel);
   const customAnalysis = useMemo(() => {
     if (isNaN(customLevelNum) || customLevelNum <= 0 || customLevelNum >= 1) return null;
     return analyzeLevel(customLevelNum);
-  }, [customLevelNum, trades, baseRR, totalSLs]);
+  }, [customLevelNum, filteredTrades, baseRR, filteredSLCount]);
 
   // Best level: highest level where total R improves (aligned with P&L chart)
   const bestLevel = useMemo(() => {
@@ -316,10 +345,37 @@ export default function Optimization() {
             )}
 
             <Badge variant="outline" className="self-center whitespace-nowrap">
-              {trades.length} TPs · {totalSLs} SLs
+              {filteredTrades.length} TPs · {filteredSLCount} SLs
             </Badge>
           </CardContent>
         </Card>
+
+        {/* Model Filter */}
+        {trades.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Filtrar por Modelo de Entrada</CardTitle>
+              <CardDescription>Analiza la optimización solo para un modelo específico</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Select value={modelFilter} onValueChange={(v) => setModelFilter(v as ModelFilter)}>
+                <SelectTrigger className="w-full sm:w-[260px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {MODEL_FILTER_OPTIONS.map(opt => (
+                    <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {modelFilter !== "all" && (
+                <p className="text-sm text-muted-foreground mt-2">
+                  Mostrando solo trades de <span className="font-semibold text-foreground">{MODEL_FILTER_OPTIONS.find(o => o.value === modelFilter)?.label}</span>
+                </p>
+              )}
+            </CardContent>
+          </Card>
+        )}
 
         {loading ? (
           <div className="text-center py-12 text-muted-foreground">Cargando trades...</div>
@@ -473,7 +529,7 @@ export default function Optimization() {
 
             {/* P&L Comparison Chart */}
             <OptimizationPnLChart
-              allTrades={allDecisiveTrades}
+              allTrades={filteredAllTrades}
               baseRR={baseRR}
               presetLevels={PRESET_LEVELS}
             />
