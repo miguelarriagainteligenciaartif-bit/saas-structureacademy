@@ -240,7 +240,7 @@ export function RiskSplitOptimizer({ tpTrades, slCount, baseRR }: RiskSplitOptim
                 onValueChange={([v]) => handleWeightChange(i, v)}
                 max={100}
                 min={0}
-                step={5}
+                step={10}
                 className="w-full"
               />
             </div>
