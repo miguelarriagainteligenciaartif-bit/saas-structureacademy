@@ -192,6 +192,10 @@ export const TradeForm = ({ onSuccess, isBacktest = false, strategyId }: TradeFo
       } else {
         insertData.account_id = values.account_id || null;
         insertData.continuation_subtype = values.entry_model === "Continuación" ? (values.continuation_subtype || null) : null;
+        // FVG count and entry subtype for M1/M3
+        const isM1M3 = values.entry_model === "M1" || values.entry_model === "M3";
+        insertData.fvg_count = isM1M3 ? (values.fvg_count ? parseInt(values.fvg_count) : null) : null;
+        insertData.entry_subtype = isM1M3 ? (values.entry_subtype || null) : null;
       }
 
       const { error } = await supabase.from(tableName).insert(insertData);
