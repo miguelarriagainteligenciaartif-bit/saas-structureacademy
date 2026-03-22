@@ -115,7 +115,7 @@ export const CSVExportButton = ({ trades }: CSVExportButtonProps) => {
 
     // Trade details
     csvContent += "=== DETALLE DE OPERACIONES ===\n";
-    csvContent += "Fecha,Día,Semana,Hora Entrada,Hora Salida,Tipo,Modelo,Resultado,P&L,Max RR,Drawdown,Noticias,Descripción Noticias,Hora Noticias,Timing Ejecución,Notas,No Trade Day\n";
+    csvContent += "Fecha,Día,Semana,Hora Entrada,Hora Salida,Tipo,Modelo,FVG Count,Subtipo Entrada,Subtipo Continuación,Resultado,P&L,Max RR,Drawdown,Noticias,Descripción Noticias,Hora Noticias,Timing Ejecución,Notas,No Trade Day\n";
 
     const sorted = [...trades].sort((a, b) => {
       const dateCompare = a.date.localeCompare(b.date);
