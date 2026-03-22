@@ -517,6 +517,54 @@ export const TradeForm = ({ onSuccess, isBacktest = false, strategyId }: TradeFo
                 />
               )}
 
+              {(form.watch("entry_model") === "M1" || form.watch("entry_model") === "M3") && !noTradeDay && !isBacktest && (
+                <>
+                  <FormField
+                    control={form.control}
+                    name="fvg_count"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Cantidad de FVGs</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value || ""}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="¿Cuántos FVGs?" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="1">1 FVG</SelectItem>
+                            <SelectItem value="2">2 FVGs</SelectItem>
+                            <SelectItem value="3">3 FVGs</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="entry_subtype"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Tipo de Entrada</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value || ""}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecciona tipo" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="Envolvente + Bloque">Envolvente + Bloque</SelectItem>
+                            <SelectItem value="Envolvente + FVG">Envolvente + FVG</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </>
+              )}
+
               <FormField
                 control={form.control}
                 name="result_dollars"
