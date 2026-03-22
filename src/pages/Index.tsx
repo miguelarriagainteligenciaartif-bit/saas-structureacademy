@@ -66,6 +66,8 @@ export default function Index() {
   const [filterDateFrom, setFilterDateFrom] = useState<Date | undefined>();
   const [filterDateTo, setFilterDateTo] = useState<Date | undefined>();
   const [filterModel, setFilterModel] = useState<string>("all");
+  const [filterTimeFrom, setFilterTimeFrom] = useState<string>("");
+  const [filterTimeTo, setFilterTimeTo] = useState<string>("");
 
   useEffect(() => {
     checkUser();
