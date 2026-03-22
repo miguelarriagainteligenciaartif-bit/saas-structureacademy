@@ -10,6 +10,8 @@ interface Trade {
   entry_model: string | null;
   no_trade_day: boolean;
   continuation_subtype?: string | null;
+  fvg_count?: number | null;
+  entry_subtype?: string | null;
 }
 
 interface ModelComparisonTableProps {
