@@ -562,7 +562,9 @@ export default function Index() {
                           <Badge variant="outline">
                             {trade.entry_model === "Continuación" && trade.continuation_subtype
                               ? `Cont. ${trade.continuation_subtype}`
-                              : trade.entry_model || "N/A"}
+                              : (trade.entry_model === "M1" || trade.entry_model === "M3")
+                                ? `${trade.entry_model}${trade.fvg_count ? ` ${trade.fvg_count}FVG` : ""}${trade.entry_subtype ? ` ${trade.entry_subtype.replace("Envolvente + ", "")}` : ""}`
+                                : trade.entry_model || "N/A"}
                           </Badge>
                         </TableCell>
                         <TableCell>

@@ -194,6 +194,24 @@ export const TradeDetailsDialog = ({ trade, open, onOpenChange, onUpdated }: Tra
                     <p className="text-sm text-muted-foreground">Modelo de Entrada</p>
                     <Badge variant="outline">{trade.entry_model || "N/A"}</Badge>
                   </div>
+                  {trade.entry_model === "Continuación" && trade.continuation_subtype && (
+                    <div>
+                      <p className="text-sm text-muted-foreground">Subtipo Continuación</p>
+                      <Badge variant="outline">{trade.continuation_subtype}</Badge>
+                    </div>
+                  )}
+                  {(trade.entry_model === "M1" || trade.entry_model === "M3") && trade.fvg_count && (
+                    <div>
+                      <p className="text-sm text-muted-foreground">Cantidad FVGs</p>
+                      <Badge variant="outline">{trade.fvg_count} FVG{trade.fvg_count > 1 ? "s" : ""}</Badge>
+                    </div>
+                  )}
+                  {(trade.entry_model === "M1" || trade.entry_model === "M3") && trade.entry_subtype && (
+                    <div>
+                      <p className="text-sm text-muted-foreground">Tipo de Entrada</p>
+                      <Badge variant="outline">{trade.entry_subtype}</Badge>
+                    </div>
+                  )}
                   <div>
                     <p className="text-sm text-muted-foreground">Hora de Entrada</p>
                     <p className="font-medium">{trade.entry_time || "N/A"}</p>
