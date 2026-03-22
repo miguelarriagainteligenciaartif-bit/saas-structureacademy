@@ -348,9 +348,13 @@ export default function Index() {
           dateFrom={filterDateFrom}
           dateTo={filterDateTo}
           selectedModel={filterModel}
+          timeFrom={filterTimeFrom}
+          timeTo={filterTimeTo}
           onDateFromChange={setFilterDateFrom}
           onDateToChange={setFilterDateTo}
           onModelChange={setFilterModel}
+          onTimeFromChange={setFilterTimeFrom}
+          onTimeToChange={setFilterTimeTo}
           onClearFilters={clearFilters}
         />
 
