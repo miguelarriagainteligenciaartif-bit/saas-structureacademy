@@ -14,6 +14,9 @@ interface Trade {
   drawdown?: number | null;
   max_rr?: number | null;
   entry_model: string | null;
+  continuation_subtype?: string | null;
+  fvg_count?: number | null;
+  entry_subtype?: string | null;
   result_dollars: number | null;
   had_news: boolean;
   news_description: string | null;
