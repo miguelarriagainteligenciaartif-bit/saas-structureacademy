@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { CalendarIcon, Clock, Filter, X } from "lucide-react";
@@ -16,11 +15,17 @@ interface DashboardFiltersProps {
   selectedModel: string;
   timeFrom: string;
   timeTo: string;
+  fvgCount: string;
+  entrySubtype: string;
+  continuationSubtype: string;
   onDateFromChange: (date: Date | undefined) => void;
   onDateToChange: (date: Date | undefined) => void;
   onModelChange: (model: string) => void;
   onTimeFromChange: (time: string) => void;
   onTimeToChange: (time: string) => void;
+  onFvgCountChange: (value: string) => void;
+  onEntrySubtypeChange: (value: string) => void;
+  onContinuationSubtypeChange: (value: string) => void;
   onClearFilters: () => void;
 }
 
@@ -30,14 +35,23 @@ export function DashboardFilters({
   selectedModel,
   timeFrom,
   timeTo,
+  fvgCount,
+  entrySubtype,
+  continuationSubtype,
   onDateFromChange,
   onDateToChange,
   onModelChange,
   onTimeFromChange,
   onTimeToChange,
+  onFvgCountChange,
+  onEntrySubtypeChange,
+  onContinuationSubtypeChange,
   onClearFilters,
 }: DashboardFiltersProps) {
-  const hasActiveFilters = dateFrom || dateTo || selectedModel !== "all" || timeFrom || timeTo;
+  const hasActiveFilters = dateFrom || dateTo || selectedModel !== "all" || timeFrom || timeTo || fvgCount !== "all" || entrySubtype !== "all" || continuationSubtype !== "all";
+
+  const showM1M3Filters = selectedModel === "all" || selectedModel === "M1" || selectedModel === "M3";
+  const showContinuationFilter = selectedModel === "all" || selectedModel === "Continuación";
 
   return (
     <div className="flex flex-wrap items-center gap-3">
@@ -134,6 +148,49 @@ export function DashboardFilters({
         </SelectContent>
       </Select>
 
+      {/* FVG Count Filter (M1/M3) */}
+      {showM1M3Filters && (
+        <Select value={fvgCount} onValueChange={onFvgCountChange}>
+          <SelectTrigger className="w-[130px] h-9">
+            <SelectValue placeholder="FVGs" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos FVGs</SelectItem>
+            <SelectItem value="1">1 FVG</SelectItem>
+            <SelectItem value="2">2 FVGs</SelectItem>
+            <SelectItem value="3">3 FVGs</SelectItem>
+          </SelectContent>
+        </Select>
+      )}
+
+      {/* Entry Subtype Filter (M1/M3) */}
+      {showM1M3Filters && (
+        <Select value={entrySubtype} onValueChange={onEntrySubtypeChange}>
+          <SelectTrigger className="w-[190px] h-9">
+            <SelectValue placeholder="Tipo entrada" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos los tipos</SelectItem>
+            <SelectItem value="Envolvente + Bloque">Envolvente + Bloque</SelectItem>
+            <SelectItem value="Envolvente + FVG">Envolvente + FVG</SelectItem>
+          </SelectContent>
+        </Select>
+      )}
+
+      {/* Continuation Subtype Filter */}
+      {showContinuationFilter && (
+        <Select value={continuationSubtype} onValueChange={onContinuationSubtypeChange}>
+          <SelectTrigger className="w-[180px] h-9">
+            <SelectValue placeholder="Tipo continuación" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Toda continuación</SelectItem>
+            <SelectItem value="Bloque">Bloque</SelectItem>
+            <SelectItem value="FVG">FVG</SelectItem>
+          </SelectContent>
+        </Select>
+      )}
+
       {/* Clear Filters */}
       {hasActiveFilters && (
         <Button variant="ghost" size="sm" onClick={onClearFilters} className="text-muted-foreground">
@@ -168,6 +225,21 @@ export function DashboardFilters({
           {selectedModel !== "all" && (
             <Badge variant="secondary" className="text-xs">
               Modelo: {selectedModel}
+            </Badge>
+          )}
+          {fvgCount !== "all" && (
+            <Badge variant="secondary" className="text-xs">
+              FVGs: {fvgCount}
+            </Badge>
+          )}
+          {entrySubtype !== "all" && (
+            <Badge variant="secondary" className="text-xs">
+              {entrySubtype}
+            </Badge>
+          )}
+          {continuationSubtype !== "all" && (
+            <Badge variant="secondary" className="text-xs">
+              Cont: {continuationSubtype}
             </Badge>
           )}
         </div>

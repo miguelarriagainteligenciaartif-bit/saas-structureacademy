@@ -47,6 +47,8 @@ interface Trade {
   account_id: string | null;
   risk_percentage: number;
   continuation_subtype: string | null;
+  fvg_count: number | null;
+  entry_subtype: string | null;
 }
 
 export default function Index() {
@@ -68,6 +70,9 @@ export default function Index() {
   const [filterModel, setFilterModel] = useState<string>("all");
   const [filterTimeFrom, setFilterTimeFrom] = useState<string>("");
   const [filterTimeTo, setFilterTimeTo] = useState<string>("");
+  const [filterFvgCount, setFilterFvgCount] = useState<string>("all");
+  const [filterEntrySubtype, setFilterEntrySubtype] = useState<string>("all");
+  const [filterContinuationSubtype, setFilterContinuationSubtype] = useState<string>("all");
 
   useEffect(() => {
     checkUser();
@@ -148,6 +153,15 @@ export default function Index() {
     if (filterTimeTo && filtered.length > 0) {
       filtered = filtered.filter(t => t.entry_time && t.entry_time <= filterTimeTo);
     }
+    if (filterFvgCount !== "all") {
+      filtered = filtered.filter(t => t.fvg_count === parseInt(filterFvgCount));
+    }
+    if (filterEntrySubtype !== "all") {
+      filtered = filtered.filter(t => t.entry_subtype === filterEntrySubtype);
+    }
+    if (filterContinuationSubtype !== "all") {
+      filtered = filtered.filter(t => t.continuation_subtype === filterContinuationSubtype);
+    }
     return filtered;
   };
 
@@ -163,6 +177,9 @@ export default function Index() {
     setFilterModel("all");
     setFilterTimeFrom("");
     setFilterTimeTo("");
+    setFilterFvgCount("all");
+    setFilterEntrySubtype("all");
+    setFilterContinuationSubtype("all");
   };
 
   // Calcular rachas consecutivas (orden cronológico real: fecha + hora de entrada)
@@ -350,11 +367,17 @@ export default function Index() {
           selectedModel={filterModel}
           timeFrom={filterTimeFrom}
           timeTo={filterTimeTo}
+          fvgCount={filterFvgCount}
+          entrySubtype={filterEntrySubtype}
+          continuationSubtype={filterContinuationSubtype}
           onDateFromChange={setFilterDateFrom}
           onDateToChange={setFilterDateTo}
           onModelChange={setFilterModel}
           onTimeFromChange={setFilterTimeFrom}
           onTimeToChange={setFilterTimeTo}
+          onFvgCountChange={setFilterFvgCount}
+          onEntrySubtypeChange={setFilterEntrySubtype}
+          onContinuationSubtypeChange={setFilterContinuationSubtype}
           onClearFilters={clearFilters}
         />
 
