@@ -153,6 +153,8 @@ export const EditTradeForm = ({ trade, onSuccess, isBacktest = false }: EditTrad
       day_of_week: DAY_OPTIONS.includes(trade.day_of_week) ? trade.day_of_week : undefined,
       notes: trade.notes || "",
       continuation_subtype: normalizedContinuationSubtype,
+      fvg_count: trade.fvg_count ? trade.fvg_count.toString() : undefined,
+      entry_subtype: trade.entry_subtype || undefined,
     },
   });
 
