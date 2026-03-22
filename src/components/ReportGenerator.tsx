@@ -26,6 +26,8 @@ interface Trade {
   max_rr?: number | null;
   entry_model: string | null;
   continuation_subtype?: string | null;
+  fvg_count?: number | null;
+  entry_subtype?: string | null;
   result_dollars: number | null;
   had_news: boolean;
   news_description: string | null;
@@ -39,6 +41,12 @@ interface Trade {
 const formatModel = (trade: Trade) => {
   if (trade.entry_model === "Continuación" && trade.continuation_subtype) {
     return `Cont. ${trade.continuation_subtype}`;
+  }
+  if ((trade.entry_model === "M1" || trade.entry_model === "M3") && (trade.fvg_count || trade.entry_subtype)) {
+    let label = trade.entry_model;
+    if (trade.fvg_count) label += ` ${trade.fvg_count}FVG`;
+    if (trade.entry_subtype) label += ` ${trade.entry_subtype.replace("Envolvente + ", "")}`;
+    return label;
   }
   return trade.entry_model || "N/A";
 };
