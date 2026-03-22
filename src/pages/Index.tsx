@@ -367,11 +367,17 @@ export default function Index() {
           selectedModel={filterModel}
           timeFrom={filterTimeFrom}
           timeTo={filterTimeTo}
+          fvgCount={filterFvgCount}
+          entrySubtype={filterEntrySubtype}
+          continuationSubtype={filterContinuationSubtype}
           onDateFromChange={setFilterDateFrom}
           onDateToChange={setFilterDateTo}
           onModelChange={setFilterModel}
           onTimeFromChange={setFilterTimeFrom}
           onTimeToChange={setFilterTimeTo}
+          onFvgCountChange={setFilterFvgCount}
+          onEntrySubtypeChange={setFilterEntrySubtype}
+          onContinuationSubtypeChange={setFilterContinuationSubtype}
           onClearFilters={clearFilters}
         />
 
