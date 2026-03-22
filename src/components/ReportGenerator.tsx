@@ -126,12 +126,22 @@ export const ReportGenerator = ({ trades }: ReportGeneratorProps) => {
 
       const comparisonRows = [
         buildModelRow("M1", actualTrades.filter(t => t.entry_model === "M1")),
+        buildModelRow("  - 1 FVG", actualTrades.filter(t => t.entry_model === "M1" && t.fvg_count === 1), true),
+        buildModelRow("  - 2 FVGs", actualTrades.filter(t => t.entry_model === "M1" && t.fvg_count === 2), true),
+        buildModelRow("  - 3 FVGs", actualTrades.filter(t => t.entry_model === "M1" && t.fvg_count === 3), true),
+        buildModelRow("  - Env+Bloque", actualTrades.filter(t => t.entry_model === "M1" && t.entry_subtype === "Envolvente + Bloque"), true),
+        buildModelRow("  - Env+FVG", actualTrades.filter(t => t.entry_model === "M1" && t.entry_subtype === "Envolvente + FVG"), true),
         buildModelRow("M3", actualTrades.filter(t => t.entry_model === "M3")),
+        buildModelRow("  - 1 FVG", actualTrades.filter(t => t.entry_model === "M3" && t.fvg_count === 1), true),
+        buildModelRow("  - 2 FVGs", actualTrades.filter(t => t.entry_model === "M3" && t.fvg_count === 2), true),
+        buildModelRow("  - 3 FVGs", actualTrades.filter(t => t.entry_model === "M3" && t.fvg_count === 3), true),
+        buildModelRow("  - Env+Bloque", actualTrades.filter(t => t.entry_model === "M3" && t.entry_subtype === "Envolvente + Bloque"), true),
+        buildModelRow("  - Env+FVG", actualTrades.filter(t => t.entry_model === "M3" && t.entry_subtype === "Envolvente + FVG"), true),
         buildModelRow("Continuación", actualTrades.filter(t => t.entry_model === "Continuación")),
         buildModelRow("  - Bloque", actualTrades.filter(t => t.entry_model === "Continuación" && t.continuation_subtype === "Bloque"), true),
         buildModelRow("  - FVG", actualTrades.filter(t => t.entry_model === "Continuación" && t.continuation_subtype === "FVG"), true),
         buildModelRow("Total", actualTrades),
-      ];
+      ].filter(r => r.trades > 0 || !r.isSubrow);
 
       const modelStats = comparisonRows.filter(r => !r.isSubrow && r.label !== "Total").map(r => ({
         model: r.label, trades: r.trades, pnl: r.pnl, winRate: r.winRate,
