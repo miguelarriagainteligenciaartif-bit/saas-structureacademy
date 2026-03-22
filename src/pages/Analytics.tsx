@@ -32,6 +32,8 @@ interface Trade {
   account_id: string | null;
   max_rr: number | null;
   continuation_subtype: string | null;
+  fvg_count: number | null;
+  entry_subtype: string | null;
 }
 
 export default function Analytics() {
