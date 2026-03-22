@@ -70,6 +70,9 @@ export default function Index() {
   const [filterModel, setFilterModel] = useState<string>("all");
   const [filterTimeFrom, setFilterTimeFrom] = useState<string>("");
   const [filterTimeTo, setFilterTimeTo] = useState<string>("");
+  const [filterFvgCount, setFilterFvgCount] = useState<string>("all");
+  const [filterEntrySubtype, setFilterEntrySubtype] = useState<string>("all");
+  const [filterContinuationSubtype, setFilterContinuationSubtype] = useState<string>("all");
 
   useEffect(() => {
     checkUser();
