@@ -458,9 +458,11 @@ export type Database = {
           day_of_week: string
           drawdown: number | null
           entry_model: string
+          entry_subtype: string | null
           entry_time: string
           execution_timing: string | null
           exit_time: string | null
+          fvg_count: number | null
           had_news: boolean | null
           id: string
           image_link: string | null
@@ -487,9 +489,11 @@ export type Database = {
           day_of_week: string
           drawdown?: number | null
           entry_model: string
+          entry_subtype?: string | null
           entry_time: string
           execution_timing?: string | null
           exit_time?: string | null
+          fvg_count?: number | null
           had_news?: boolean | null
           id?: string
           image_link?: string | null
@@ -516,9 +520,11 @@ export type Database = {
           day_of_week?: string
           drawdown?: number | null
           entry_model?: string
+          entry_subtype?: string | null
           entry_time?: string
           execution_timing?: string | null
           exit_time?: string | null
+          fvg_count?: number | null
           had_news?: boolean | null
           id?: string
           image_link?: string | null
