@@ -177,6 +177,9 @@ export default function Index() {
     setFilterModel("all");
     setFilterTimeFrom("");
     setFilterTimeTo("");
+    setFilterFvgCount("all");
+    setFilterEntrySubtype("all");
+    setFilterContinuationSubtype("all");
   };
 
   // Calcular rachas consecutivas (orden cronológico real: fecha + hora de entrada)
