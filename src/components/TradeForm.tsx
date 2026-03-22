@@ -39,6 +39,8 @@ const formSchema = z.object({
   execution_timing: z.enum(["Antes de noticia", "Después de noticia"]).optional(),
   entry_model: z.enum(["M1", "M3", "Continuación"]).optional(),
   continuation_subtype: z.enum(["Bloque", "FVG"]).optional(),
+  fvg_count: z.enum(["1", "2", "3"]).optional(),
+  entry_subtype: z.enum(["Envolvente + Bloque", "Envolvente + FVG"]).optional(),
   result_dollars: z.string().optional(),
   image_link: z.string().url().optional().or(z.literal("")),
   risk_percentage: z.string().default("1"),
