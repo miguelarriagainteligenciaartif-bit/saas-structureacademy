@@ -161,6 +161,8 @@ export default function Index() {
     setFilterDateFrom(undefined);
     setFilterDateTo(undefined);
     setFilterModel("all");
+    setFilterTimeFrom("");
+    setFilterTimeTo("");
   };
 
   // Calcular rachas consecutivas (orden cronológico real: fecha + hora de entrada)
