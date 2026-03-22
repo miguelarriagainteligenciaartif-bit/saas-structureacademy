@@ -32,6 +32,9 @@ interface Trade {
   drawdown?: number | null;
   max_rr?: number | null;
   notes?: string | null;
+  continuation_subtype?: string | null;
+  fvg_count?: number | null;
+  entry_subtype?: string | null;
 }
 
 interface TradeDetailsDialogProps {
