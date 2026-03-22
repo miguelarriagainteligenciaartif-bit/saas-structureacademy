@@ -85,6 +85,63 @@ export function ModelComparisonTable({ trades }: ModelComparisonTableProps) {
         });
       });
     }
+
+    // Add subtypes for M1 and M3 (FVG count + entry subtype)
+    if (model === "M1" || model === "M3") {
+      // By FVG count
+      [1, 2, 3].forEach(count => {
+        const subTrades = modelTrades.filter(t => t.fvg_count === count);
+        if (subTrades.length > 0) {
+          const subWins = subTrades.filter(t => t.result_type === "TP").length;
+          const subLosses = subTrades.filter(t => t.result_type === "SL").length;
+          const subPnL = subTrades.reduce((sum, t) => sum + (t.result_dollars || 0), 0);
+          const subDecisive = subTrades.filter(t => t.result_type === "TP" || t.result_type === "SL");
+          const subWr = subDecisive.length > 0 ? subWins / subDecisive.length : 0;
+          const subAvgWin = subWins > 0 ? subTrades.filter(t => t.result_type === "TP").reduce((s, t) => s + (t.result_dollars || 0), 0) / subWins : 0;
+          const subAvgLoss = subLosses > 0 ? Math.abs(subTrades.filter(t => t.result_type === "SL").reduce((s, t) => s + (t.result_dollars || 0), 0) / subLosses) : 0;
+          const subEv = subDecisive.length > 0 ? (subWr * subAvgWin) - ((1 - subWr) * subAvgLoss) : 0;
+
+          modelStats.push({
+            model: `└ ${count} FVG${count > 1 ? "s" : ""}`,
+            subtype: `${count}FVG`,
+            totalTrades: subTrades.length,
+            wins: subWins,
+            losses: subLosses,
+            winRate: subTrades.length > 0 ? (subWins / subTrades.length) * 100 : 0,
+            totalPnL: subPnL,
+            expectedValue: subEv,
+            isSubrow: true,
+          });
+        }
+      });
+
+      // By entry subtype
+      ["Envolvente + Bloque", "Envolvente + FVG"].forEach(subtype => {
+        const subTrades = modelTrades.filter(t => t.entry_subtype === subtype);
+        if (subTrades.length > 0) {
+          const subWins = subTrades.filter(t => t.result_type === "TP").length;
+          const subLosses = subTrades.filter(t => t.result_type === "SL").length;
+          const subPnL = subTrades.reduce((sum, t) => sum + (t.result_dollars || 0), 0);
+          const subDecisive = subTrades.filter(t => t.result_type === "TP" || t.result_type === "SL");
+          const subWr = subDecisive.length > 0 ? subWins / subDecisive.length : 0;
+          const subAvgWin = subWins > 0 ? subTrades.filter(t => t.result_type === "TP").reduce((s, t) => s + (t.result_dollars || 0), 0) / subWins : 0;
+          const subAvgLoss = subLosses > 0 ? Math.abs(subTrades.filter(t => t.result_type === "SL").reduce((s, t) => s + (t.result_dollars || 0), 0) / subLosses) : 0;
+          const subEv = subDecisive.length > 0 ? (subWr * subAvgWin) - ((1 - subWr) * subAvgLoss) : 0;
+
+          modelStats.push({
+            model: `└ ${subtype.replace("Envolvente + ", "Env+")}`,
+            subtype,
+            totalTrades: subTrades.length,
+            wins: subWins,
+            losses: subLosses,
+            winRate: subTrades.length > 0 ? (subWins / subTrades.length) * 100 : 0,
+            totalPnL: subPnL,
+            expectedValue: subEv,
+            isSubrow: true,
+          });
+        }
+      });
+    }
   });
 
   const mainStats = modelStats.filter(s => !s.isSubrow);
