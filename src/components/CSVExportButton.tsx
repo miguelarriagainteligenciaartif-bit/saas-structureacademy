@@ -14,6 +14,9 @@ interface Trade {
   drawdown?: number | null;
   max_rr?: number | null;
   entry_model: string | null;
+  continuation_subtype?: string | null;
+  fvg_count?: number | null;
+  entry_subtype?: string | null;
   result_dollars: number | null;
   had_news: boolean;
   news_description: string | null;
@@ -81,6 +84,35 @@ export const CSVExportButton = ({ trades }: CSVExportButtonProps) => {
       const pnl = modelTrades.reduce((sum, t) => sum + (t.result_dollars || 0), 0);
       const wr = modelTrades.length > 0 ? (wins / modelTrades.length * 100) : 0;
       csvContent += `${model},${modelTrades.length},$${pnl.toFixed(2)},${wr.toFixed(1)}%\n`;
+
+      if (model === "M1" || model === "M3") {
+        [1, 2, 3].forEach(count => {
+          const sub = modelTrades.filter(t => t.fvg_count === count);
+          if (sub.length > 0) {
+            const sw = sub.filter(t => t.result_type === "TP").length;
+            const sp = sub.reduce((s, t) => s + (t.result_dollars || 0), 0);
+            csvContent += `  ${count} FVG${count > 1 ? "s" : ""},${sub.length},$${sp.toFixed(2)},${sub.length > 0 ? (sw / sub.length * 100).toFixed(1) : 0}%\n`;
+          }
+        });
+        ["Envolvente + Bloque", "Envolvente + FVG"].forEach(subtype => {
+          const sub = modelTrades.filter(t => t.entry_subtype === subtype);
+          if (sub.length > 0) {
+            const sw = sub.filter(t => t.result_type === "TP").length;
+            const sp = sub.reduce((s, t) => s + (t.result_dollars || 0), 0);
+            csvContent += `  ${subtype},${sub.length},$${sp.toFixed(2)},${sub.length > 0 ? (sw / sub.length * 100).toFixed(1) : 0}%\n`;
+          }
+        });
+      }
+      if (model === "Continuación") {
+        ["Bloque", "FVG"].forEach(subtype => {
+          const sub = modelTrades.filter(t => t.continuation_subtype === subtype);
+          if (sub.length > 0) {
+            const sw = sub.filter(t => t.result_type === "TP").length;
+            const sp = sub.reduce((s, t) => s + (t.result_dollars || 0), 0);
+            csvContent += `  ${subtype},${sub.length},$${sp.toFixed(2)},${sub.length > 0 ? (sw / sub.length * 100).toFixed(1) : 0}%\n`;
+          }
+        });
+      }
     });
     csvContent += "\n";
 
@@ -112,7 +144,7 @@ export const CSVExportButton = ({ trades }: CSVExportButtonProps) => {
 
     // Trade details
     csvContent += "=== DETALLE DE OPERACIONES ===\n";
-    csvContent += "Fecha,Día,Semana,Hora Entrada,Hora Salida,Tipo,Modelo,Resultado,P&L,Max RR,Drawdown,Noticias,Descripción Noticias,Hora Noticias,Timing Ejecución,Notas,No Trade Day\n";
+    csvContent += "Fecha,Día,Semana,Hora Entrada,Hora Salida,Tipo,Modelo,FVG Count,Subtipo Entrada,Subtipo Continuación,Resultado,P&L,Max RR,Drawdown,Noticias,Descripción Noticias,Hora Noticias,Timing Ejecución,Notas,No Trade Day\n";
 
     const sorted = [...trades].sort((a, b) => {
       const dateCompare = a.date.localeCompare(b.date);
@@ -138,6 +170,9 @@ export const CSVExportButton = ({ trades }: CSVExportButtonProps) => {
         trade.exit_time || "",
         trade.trade_type || "",
         trade.entry_model || "",
+        (trade as any).fvg_count ?? "",
+        (trade as any).entry_subtype || "",
+        (trade as any).continuation_subtype || "",
         trade.no_trade_day ? "No Trade Day" : (trade.result_type || ""),
         trade.no_trade_day ? "" : `$${(trade.result_dollars || 0).toFixed(2)}`,
         trade.max_rr !== null && trade.max_rr !== undefined ? trade.max_rr.toFixed(2) : "",

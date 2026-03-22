@@ -26,6 +26,8 @@ interface Trade {
   max_rr?: number | null;
   entry_model: string | null;
   continuation_subtype?: string | null;
+  fvg_count?: number | null;
+  entry_subtype?: string | null;
   result_dollars: number | null;
   had_news: boolean;
   news_description: string | null;
@@ -39,6 +41,12 @@ interface Trade {
 const formatModel = (trade: Trade) => {
   if (trade.entry_model === "Continuación" && trade.continuation_subtype) {
     return `Cont. ${trade.continuation_subtype}`;
+  }
+  if ((trade.entry_model === "M1" || trade.entry_model === "M3") && (trade.fvg_count || trade.entry_subtype)) {
+    let label = trade.entry_model;
+    if (trade.fvg_count) label += ` ${trade.fvg_count}FVG`;
+    if (trade.entry_subtype) label += ` ${trade.entry_subtype.replace("Envolvente + ", "")}`;
+    return label;
   }
   return trade.entry_model || "N/A";
 };
@@ -118,12 +126,22 @@ export const ReportGenerator = ({ trades }: ReportGeneratorProps) => {
 
       const comparisonRows = [
         buildModelRow("M1", actualTrades.filter(t => t.entry_model === "M1")),
+        buildModelRow("  - 1 FVG", actualTrades.filter(t => t.entry_model === "M1" && t.fvg_count === 1), true),
+        buildModelRow("  - 2 FVGs", actualTrades.filter(t => t.entry_model === "M1" && t.fvg_count === 2), true),
+        buildModelRow("  - 3 FVGs", actualTrades.filter(t => t.entry_model === "M1" && t.fvg_count === 3), true),
+        buildModelRow("  - Env+Bloque", actualTrades.filter(t => t.entry_model === "M1" && t.entry_subtype === "Envolvente + Bloque"), true),
+        buildModelRow("  - Env+FVG", actualTrades.filter(t => t.entry_model === "M1" && t.entry_subtype === "Envolvente + FVG"), true),
         buildModelRow("M3", actualTrades.filter(t => t.entry_model === "M3")),
+        buildModelRow("  - 1 FVG", actualTrades.filter(t => t.entry_model === "M3" && t.fvg_count === 1), true),
+        buildModelRow("  - 2 FVGs", actualTrades.filter(t => t.entry_model === "M3" && t.fvg_count === 2), true),
+        buildModelRow("  - 3 FVGs", actualTrades.filter(t => t.entry_model === "M3" && t.fvg_count === 3), true),
+        buildModelRow("  - Env+Bloque", actualTrades.filter(t => t.entry_model === "M3" && t.entry_subtype === "Envolvente + Bloque"), true),
+        buildModelRow("  - Env+FVG", actualTrades.filter(t => t.entry_model === "M3" && t.entry_subtype === "Envolvente + FVG"), true),
         buildModelRow("Continuación", actualTrades.filter(t => t.entry_model === "Continuación")),
         buildModelRow("  - Bloque", actualTrades.filter(t => t.entry_model === "Continuación" && t.continuation_subtype === "Bloque"), true),
         buildModelRow("  - FVG", actualTrades.filter(t => t.entry_model === "Continuación" && t.continuation_subtype === "FVG"), true),
         buildModelRow("Total", actualTrades),
-      ];
+      ].filter(r => r.trades > 0 || !r.isSubrow);
 
       const modelStats = comparisonRows.filter(r => !r.isSubrow && r.label !== "Total").map(r => ({
         model: r.label, trades: r.trades, pnl: r.pnl, winRate: r.winRate,
