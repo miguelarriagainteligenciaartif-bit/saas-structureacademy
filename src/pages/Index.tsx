@@ -153,6 +153,15 @@ export default function Index() {
     if (filterTimeTo && filtered.length > 0) {
       filtered = filtered.filter(t => t.entry_time && t.entry_time <= filterTimeTo);
     }
+    if (filterFvgCount !== "all") {
+      filtered = filtered.filter(t => t.fvg_count === parseInt(filterFvgCount));
+    }
+    if (filterEntrySubtype !== "all") {
+      filtered = filtered.filter(t => t.entry_subtype === filterEntrySubtype);
+    }
+    if (filterContinuationSubtype !== "all") {
+      filtered = filtered.filter(t => t.continuation_subtype === filterContinuationSubtype);
+    }
     return filtered;
   };
 
