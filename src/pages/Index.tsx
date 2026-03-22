@@ -66,6 +66,8 @@ export default function Index() {
   const [filterDateFrom, setFilterDateFrom] = useState<Date | undefined>();
   const [filterDateTo, setFilterDateTo] = useState<Date | undefined>();
   const [filterModel, setFilterModel] = useState<string>("all");
+  const [filterTimeFrom, setFilterTimeFrom] = useState<string>("");
+  const [filterTimeTo, setFilterTimeTo] = useState<string>("");
 
   useEffect(() => {
     checkUser();
@@ -140,6 +142,12 @@ export default function Index() {
     if (filterModel !== "all") {
       filtered = filtered.filter(t => t.entry_model === filterModel);
     }
+    if (filterTimeFrom && filtered.length > 0) {
+      filtered = filtered.filter(t => t.entry_time && t.entry_time >= filterTimeFrom);
+    }
+    if (filterTimeTo && filtered.length > 0) {
+      filtered = filtered.filter(t => t.entry_time && t.entry_time <= filterTimeTo);
+    }
     return filtered;
   };
 
@@ -153,6 +161,8 @@ export default function Index() {
     setFilterDateFrom(undefined);
     setFilterDateTo(undefined);
     setFilterModel("all");
+    setFilterTimeFrom("");
+    setFilterTimeTo("");
   };
 
   // Calcular rachas consecutivas (orden cronológico real: fecha + hora de entrada)
@@ -338,9 +348,13 @@ export default function Index() {
           dateFrom={filterDateFrom}
           dateTo={filterDateTo}
           selectedModel={filterModel}
+          timeFrom={filterTimeFrom}
+          timeTo={filterTimeTo}
           onDateFromChange={setFilterDateFrom}
           onDateToChange={setFilterDateTo}
           onModelChange={setFilterModel}
+          onTimeFromChange={setFilterTimeFrom}
+          onTimeToChange={setFilterTimeTo}
           onClearFilters={clearFilters}
         />
 
