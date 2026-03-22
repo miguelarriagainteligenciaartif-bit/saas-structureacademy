@@ -142,6 +142,12 @@ export default function Index() {
     if (filterModel !== "all") {
       filtered = filtered.filter(t => t.entry_model === filterModel);
     }
+    if (filterTimeFrom && filtered.length > 0) {
+      filtered = filtered.filter(t => t.entry_time && t.entry_time >= filterTimeFrom);
+    }
+    if (filterTimeTo && filtered.length > 0) {
+      filtered = filtered.filter(t => t.entry_time && t.entry_time <= filterTimeTo);
+    }
     return filtered;
   };
 
