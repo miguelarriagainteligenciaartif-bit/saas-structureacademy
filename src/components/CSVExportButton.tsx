@@ -84,6 +84,35 @@ export const CSVExportButton = ({ trades }: CSVExportButtonProps) => {
       const pnl = modelTrades.reduce((sum, t) => sum + (t.result_dollars || 0), 0);
       const wr = modelTrades.length > 0 ? (wins / modelTrades.length * 100) : 0;
       csvContent += `${model},${modelTrades.length},$${pnl.toFixed(2)},${wr.toFixed(1)}%\n`;
+
+      if (model === "M1" || model === "M3") {
+        [1, 2, 3].forEach(count => {
+          const sub = modelTrades.filter(t => t.fvg_count === count);
+          if (sub.length > 0) {
+            const sw = sub.filter(t => t.result_type === "TP").length;
+            const sp = sub.reduce((s, t) => s + (t.result_dollars || 0), 0);
+            csvContent += `  ${count} FVG${count > 1 ? "s" : ""},${sub.length},$${sp.toFixed(2)},${sub.length > 0 ? (sw / sub.length * 100).toFixed(1) : 0}%\n`;
+          }
+        });
+        ["Envolvente + Bloque", "Envolvente + FVG"].forEach(subtype => {
+          const sub = modelTrades.filter(t => t.entry_subtype === subtype);
+          if (sub.length > 0) {
+            const sw = sub.filter(t => t.result_type === "TP").length;
+            const sp = sub.reduce((s, t) => s + (t.result_dollars || 0), 0);
+            csvContent += `  ${subtype},${sub.length},$${sp.toFixed(2)},${sub.length > 0 ? (sw / sub.length * 100).toFixed(1) : 0}%\n`;
+          }
+        });
+      }
+      if (model === "Continuación") {
+        ["Bloque", "FVG"].forEach(subtype => {
+          const sub = modelTrades.filter(t => t.continuation_subtype === subtype);
+          if (sub.length > 0) {
+            const sw = sub.filter(t => t.result_type === "TP").length;
+            const sp = sub.reduce((s, t) => s + (t.result_dollars || 0), 0);
+            csvContent += `  ${subtype},${sub.length},$${sp.toFixed(2)},${sub.length > 0 ? (sw / sub.length * 100).toFixed(1) : 0}%\n`;
+          }
+        });
+      }
     });
     csvContent += "\n";
 
