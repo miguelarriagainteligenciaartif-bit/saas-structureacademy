@@ -51,6 +51,8 @@ const formSchema = z.object({
   execution_timing: z.enum(EXECUTION_TIMING_OPTIONS).optional(),
   entry_model: z.enum(ENTRY_MODEL_OPTIONS).optional(),
   continuation_subtype: z.enum(CONTINUATION_SUBTYPE_OPTIONS).optional(),
+  fvg_count: z.enum(["1", "2", "3"] as const).optional(),
+  entry_subtype: z.enum(["Envolvente + Bloque", "Envolvente + FVG"] as const).optional(),
   result_dollars: z.string().optional(),
   image_link: z.string().url().optional().or(z.literal("")),
   risk_percentage: z.string().default("1"),
@@ -151,6 +153,8 @@ export const EditTradeForm = ({ trade, onSuccess, isBacktest = false }: EditTrad
       day_of_week: DAY_OPTIONS.includes(trade.day_of_week) ? trade.day_of_week : undefined,
       notes: trade.notes || "",
       continuation_subtype: normalizedContinuationSubtype,
+      fvg_count: trade.fvg_count ? trade.fvg_count.toString() : undefined,
+      entry_subtype: trade.entry_subtype || undefined,
     },
   });
 
@@ -235,6 +239,9 @@ export const EditTradeForm = ({ trade, onSuccess, isBacktest = false }: EditTrad
       if (!isBacktest) {
         updateData.account_id = values.account_id || null;
         updateData.continuation_subtype = values.entry_model === "Continuación" ? (values.continuation_subtype || null) : null;
+        const isM1M3 = values.entry_model === "M1" || values.entry_model === "M3";
+        updateData.fvg_count = isM1M3 ? (values.fvg_count ? parseInt(values.fvg_count) : null) : null;
+        updateData.entry_subtype = isM1M3 ? (values.entry_subtype || null) : null;
       }
 
       const { error } = await supabase
@@ -534,6 +541,54 @@ export const EditTradeForm = ({ trade, onSuccess, isBacktest = false }: EditTrad
                 </FormItem>
               )}
             />
+          )}
+
+          {(form.watch("entry_model") === "M1" || form.watch("entry_model") === "M3") && !noTradeDay && !isBacktest && (
+            <>
+              <FormField
+                control={form.control}
+                name="fvg_count"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Cantidad de FVGs</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value || ""}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="¿Cuántos FVGs?" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="1">1 FVG</SelectItem>
+                        <SelectItem value="2">2 FVGs</SelectItem>
+                        <SelectItem value="3">3 FVGs</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="entry_subtype"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Tipo de Entrada</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value || ""}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecciona tipo" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="Envolvente + Bloque">Envolvente + Bloque</SelectItem>
+                        <SelectItem value="Envolvente + FVG">Envolvente + FVG</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </>
           )}
 
           <FormField
