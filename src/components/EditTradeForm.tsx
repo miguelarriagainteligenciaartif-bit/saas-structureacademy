@@ -239,6 +239,9 @@ export const EditTradeForm = ({ trade, onSuccess, isBacktest = false }: EditTrad
       if (!isBacktest) {
         updateData.account_id = values.account_id || null;
         updateData.continuation_subtype = values.entry_model === "Continuación" ? (values.continuation_subtype || null) : null;
+        const isM1M3 = values.entry_model === "M1" || values.entry_model === "M3";
+        updateData.fvg_count = isM1M3 ? (values.fvg_count ? parseInt(values.fvg_count) : null) : null;
+        updateData.entry_subtype = isM1M3 ? (values.entry_subtype || null) : null;
       }
 
       const { error } = await supabase
