@@ -344,10 +344,10 @@ export const OptimizationReportGenerator = ({
         "• Drawdown: porcentaje del recorrido hacia el SL que realiza el precio antes de ir al TP.",
         "• Supervivencia: TPs cuyo drawdown ≥ nivel analizado. Si mueves la entrada ahí, estos trades seguirían siendo TP.",
         "• Los SL se mantienen iguales en todos los escenarios. Solo disminuyen los TPs que no alcanzan el nivel.",
-        `• RR Nuevo = (RR Base + Nivel) / (1 - Nivel). Con RR base ${baseRR}: nivel 33% → RR ${((baseRR + 0.33) / 0.67).toFixed(2)}, nivel 50% → RR ${((baseRR + 0.50) / 0.50).toFixed(2)}.`,
-        "• Win Rate = TPs supervivientes / (TPs supervivientes + SLs totales).",
-        "• EV (Expected Value) = (WR × RR) − (1 − WR). Métrica por trade individual.",
-        "• Δ P&L (R) = P&L total optimizado − P&L total original. Métrica acumulada sobre todo el historial.",
+        `- RR Nuevo = (RR Base + Nivel) / (1 - Nivel). Con RR base ${baseRR}: nivel 33% -> RR ${((baseRR + 0.33) / 0.67).toFixed(2)}, nivel 50% -> RR ${((baseRR + 0.50) / 0.50).toFixed(2)}.`,
+        "- Win Rate = TPs supervivientes / (TPs supervivientes + SLs totales).",
+        "- EV (Expected Value) = (WR x RR) - (1 - WR). Metrica por trade individual.",
+        "- Dif P&L (R) = P&L total optimizado - P&L total original. Metrica acumulada sobre todo el historial.",
         "• La recomendación se basa en el Δ P&L total, no en el EV por trade, para reflejar el impacto real.",
       ];
 
