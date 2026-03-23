@@ -86,21 +86,21 @@ export const addBrandedHeader = async (
   doc.setTextColor(...brandColors.textLight);
   doc.setFontSize(18);
   doc.setFont("helvetica", "bold");
-  doc.text(title, pageWidth / 2, 38, { align: "center" });
+  doc.text(sanitizePdfText(title), pageWidth / 2, 38, { align: "center" });
   
   // Subtitle
   if (subtitle) {
     doc.setFontSize(9);
     doc.setTextColor(...brandColors.quantumBlue);
     doc.setFont("helvetica", "normal");
-    doc.text(subtitle, pageWidth / 2, 45, { align: "center" });
+    doc.text(sanitizePdfText(subtitle), pageWidth / 2, 45, { align: "center" });
   }
   
   // Period text
   if (periodText) {
     doc.setFontSize(8);
     doc.setTextColor(...brandColors.textMuted);
-    doc.text(periodText, pageWidth / 2, 52, { align: "center" });
+    doc.text(sanitizePdfText(periodText), pageWidth / 2, 52, { align: "center" });
   }
 };
 
