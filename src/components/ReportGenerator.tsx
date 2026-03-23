@@ -427,7 +427,7 @@ export const ReportGenerator = ({ trades }: ReportGeneratorProps) => {
 
       autoTable(doc, {
         startY: yPos,
-        head: [['Condición', 'Operaciones', 'P&L', 'Win Rate']],
+        head: [['Condicion', 'Operaciones', 'P&L', 'Win Rate']],
         body: [
           ['Con Noticias', tradesWithNews.length.toString(), `$${newsPnL.toFixed(2)}`, `${newsWinRate.toFixed(1)}%`],
           ['Sin Noticias', tradesWithoutNews.length.toString(), `$${noNewsPnL.toFixed(2)}`, `${noNewsWinRate.toFixed(1)}%`]
