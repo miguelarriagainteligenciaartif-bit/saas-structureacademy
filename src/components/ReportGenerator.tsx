@@ -378,7 +378,7 @@ export const ReportGenerator = ({ trades }: ReportGeneratorProps) => {
       yPos = (doc as any).lastAutoTable.finalY + 12;
 
       // Week Analysis Table
-      yPos = addSectionTitle(doc, "Análisis por Semana del Mes", yPos);
+      yPos = addSectionTitle(doc, "Analisis por Semana del Mes", yPos);
 
       autoTable(doc, {
         startY: yPos,
