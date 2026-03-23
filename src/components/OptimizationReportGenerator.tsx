@@ -276,7 +276,7 @@ export const OptimizationReportGenerator = ({
       // --- P&L Curve Data (new page) ---
       doc.addPage();
       let curveY = 20;
-      curveY = addSectionTitle(doc, "Evolución P&L Trade a Trade", curveY);
+      curveY = addSectionTitle(doc, "Evolucion P&L Trade a Trade", curveY);
       curveY += 2;
 
       doc.setFontSize(8);
