@@ -8,11 +8,16 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { TrendingUp, TrendingDown, Search, Target, ArrowDownRight, Info } from "lucide-react";
+import { TrendingUp, TrendingDown, Search, Target, ArrowDownRight, Info, CalendarIcon } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { OptimizationPnLChart } from "@/components/OptimizationPnLChart";
 import { OptimizationReportGenerator } from "@/components/OptimizationReportGenerator";
 import { RiskSplitOptimizer } from "@/components/RiskSplitOptimizer";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
+import { cn } from "@/lib/utils";
 
 interface DrawdownTrade {
   id: string;
@@ -40,15 +45,26 @@ const MODEL_FILTER_OPTIONS: { value: ModelFilter; label: string }[] = [
   { value: "Cont. FVG", label: "Continuación — FVG" },
 ];
 
-function applyAllFilters<T extends { entry_model?: string; continuation_subtype?: string | null; entry_time?: string | null; fvg_count?: number | null; entry_subtype?: string | null }>(
+function applyAllFilters<T extends { date?: string; entry_model?: string; continuation_subtype?: string | null; entry_time?: string | null; fvg_count?: number | null; entry_subtype?: string | null }>(
   trades: T[],
   model: ModelFilter,
   timeFrom: string,
   timeTo: string,
   fvgCount: string,
   entrySubtype: string,
+  dateFrom?: Date,
+  dateTo?: Date,
 ): T[] {
   let filtered = trades;
+  // Date filter
+  if (dateFrom) {
+    const fromStr = dateFrom.toISOString().split("T")[0];
+    filtered = filtered.filter(t => t.date && t.date >= fromStr);
+  }
+  if (dateTo) {
+    const toStr = dateTo.toISOString().split("T")[0];
+    filtered = filtered.filter(t => t.date && t.date <= toStr);
+  }
   // Model filter
   if (model === "M1") filtered = filtered.filter(t => t.entry_model === "M1");
   else if (model === "M3") filtered = filtered.filter(t => t.entry_model === "M3");
@@ -109,6 +125,8 @@ export default function Optimization() {
   const [filterTimeTo, setFilterTimeTo] = useState<string>("");
   const [filterFvgCount, setFilterFvgCount] = useState<string>("all");
   const [filterEntrySubtype, setFilterEntrySubtype] = useState<string>("all");
+  const [filterDateFrom, setFilterDateFrom] = useState<Date | undefined>();
+  const [filterDateTo, setFilterDateTo] = useState<Date | undefined>();
 
   // Auth
   useEffect(() => {
@@ -213,9 +231,9 @@ export default function Optimization() {
   }, [source, selectedStrategy]);
 
   // Filtered data by all filters
-  const filteredTrades = useMemo(() => applyAllFilters(trades, modelFilter, filterTimeFrom, filterTimeTo, filterFvgCount, filterEntrySubtype), [trades, modelFilter, filterTimeFrom, filterTimeTo, filterFvgCount, filterEntrySubtype]);
-  const filteredSLCount = useMemo(() => applyAllFilters(slTrades, modelFilter, filterTimeFrom, filterTimeTo, filterFvgCount, filterEntrySubtype).length, [slTrades, modelFilter, filterTimeFrom, filterTimeTo, filterFvgCount, filterEntrySubtype]);
-  const filteredAllTrades = useMemo(() => applyAllFilters(allDecisiveTrades, modelFilter, filterTimeFrom, filterTimeTo, filterFvgCount, filterEntrySubtype), [allDecisiveTrades, modelFilter, filterTimeFrom, filterTimeTo, filterFvgCount, filterEntrySubtype]);
+  const filteredTrades = useMemo(() => applyAllFilters(trades, modelFilter, filterTimeFrom, filterTimeTo, filterFvgCount, filterEntrySubtype, filterDateFrom, filterDateTo), [trades, modelFilter, filterTimeFrom, filterTimeTo, filterFvgCount, filterEntrySubtype, filterDateFrom, filterDateTo]);
+  const filteredSLCount = useMemo(() => applyAllFilters(slTrades, modelFilter, filterTimeFrom, filterTimeTo, filterFvgCount, filterEntrySubtype, filterDateFrom, filterDateTo).length, [slTrades, modelFilter, filterTimeFrom, filterTimeTo, filterFvgCount, filterEntrySubtype, filterDateFrom, filterDateTo]);
+  const filteredAllTrades = useMemo(() => applyAllFilters(allDecisiveTrades, modelFilter, filterTimeFrom, filterTimeTo, filterFvgCount, filterEntrySubtype, filterDateFrom, filterDateTo), [allDecisiveTrades, modelFilter, filterTimeFrom, filterTimeTo, filterFvgCount, filterEntrySubtype, filterDateFrom, filterDateTo]);
 
   // Analysis
   const analyzeLevel = (level: number): LevelAnalysis => {
@@ -306,9 +324,11 @@ export default function Optimization() {
           </div>
           {trades.length > 0 && (() => {
             const filterParts: string[] = [];
+            if (filterDateFrom) filterParts.push(`Desde ${format(filterDateFrom, "dd/MM/yyyy")}`);
+            if (filterDateTo) filterParts.push(`Hasta ${format(filterDateTo, "dd/MM/yyyy")}`);
             if (modelFilter !== "all") filterParts.push(MODEL_FILTER_OPTIONS.find(o => o.value === modelFilter)?.label || modelFilter);
-            if (filterTimeFrom) filterParts.push(`Desde ${filterTimeFrom}`);
-            if (filterTimeTo) filterParts.push(`Hasta ${filterTimeTo}`);
+            if (filterTimeFrom) filterParts.push(`Hora desde ${filterTimeFrom}`);
+            if (filterTimeTo) filterParts.push(`Hora hasta ${filterTimeTo}`);
             if (filterFvgCount !== "all") filterParts.push(`${filterFvgCount} FVG`);
             if (filterEntrySubtype !== "all") filterParts.push(filterEntrySubtype);
             const filterLabel = filterParts.length > 0 ? filterParts.join(" · ") : undefined;
@@ -388,10 +408,42 @@ export default function Optimization() {
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">Filtros de Análisis</CardTitle>
-              <CardDescription>Filtra por modelo, hora de entrada, FVG count y subtipo</CardDescription>
+              <CardDescription>Filtra por fecha, modelo, hora de entrada, FVG count y subtipo</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex flex-wrap gap-4">
+                {/* Date From */}
+                <div className="space-y-1">
+                  <label className="text-xs text-muted-foreground font-medium">Fecha Desde</label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" className={cn("w-[160px] justify-start text-left font-normal h-9", !filterDateFrom && "text-muted-foreground")}>
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {filterDateFrom ? format(filterDateFrom, "dd/MM/yyyy") : "Desde"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar mode="single" selected={filterDateFrom} onSelect={setFilterDateFrom} initialFocus className={cn("p-3 pointer-events-auto")} locale={es} />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+
+                {/* Date To */}
+                <div className="space-y-1">
+                  <label className="text-xs text-muted-foreground font-medium">Fecha Hasta</label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" className={cn("w-[160px] justify-start text-left font-normal h-9", !filterDateTo && "text-muted-foreground")}>
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {filterDateTo ? format(filterDateTo, "dd/MM/yyyy") : "Hasta"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar mode="single" selected={filterDateTo} onSelect={setFilterDateTo} initialFocus className={cn("p-3 pointer-events-auto")} locale={es} />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+
                 {/* Model */}
                 <div className="space-y-1">
                   <label className="text-xs text-muted-foreground font-medium">Modelo</label>
@@ -410,23 +462,13 @@ export default function Optimization() {
                 {/* Time From */}
                 <div className="space-y-1">
                   <label className="text-xs text-muted-foreground font-medium">Hora Desde</label>
-                  <Input
-                    type="time"
-                    value={filterTimeFrom}
-                    onChange={(e) => setFilterTimeFrom(e.target.value)}
-                    className="w-[140px] h-9"
-                  />
+                  <Input type="time" value={filterTimeFrom} onChange={(e) => setFilterTimeFrom(e.target.value)} className="w-[140px] h-9" />
                 </div>
 
                 {/* Time To */}
                 <div className="space-y-1">
                   <label className="text-xs text-muted-foreground font-medium">Hora Hasta</label>
-                  <Input
-                    type="time"
-                    value={filterTimeTo}
-                    onChange={(e) => setFilterTimeTo(e.target.value)}
-                    className="w-[140px] h-9"
-                  />
+                  <Input type="time" value={filterTimeTo} onChange={(e) => setFilterTimeTo(e.target.value)} className="w-[140px] h-9" />
                 </div>
 
                 {/* FVG Count */}
@@ -461,9 +503,11 @@ export default function Optimization() {
                 </div>
 
                 {/* Clear filters */}
-                {(modelFilter !== "all" || filterTimeFrom || filterTimeTo || filterFvgCount !== "all" || filterEntrySubtype !== "all") && (
+                {(filterDateFrom || filterDateTo || modelFilter !== "all" || filterTimeFrom || filterTimeTo || filterFvgCount !== "all" || filterEntrySubtype !== "all") && (
                   <div className="flex items-end">
                     <Button variant="ghost" size="sm" onClick={() => {
+                      setFilterDateFrom(undefined);
+                      setFilterDateTo(undefined);
                       setModelFilter("all");
                       setFilterTimeFrom("");
                       setFilterTimeTo("");
@@ -477,13 +521,15 @@ export default function Optimization() {
               </div>
 
               {/* Active filters summary */}
-              {(modelFilter !== "all" || filterTimeFrom || filterTimeTo || filterFvgCount !== "all" || filterEntrySubtype !== "all") && (
+              {(filterDateFrom || filterDateTo || modelFilter !== "all" || filterTimeFrom || filterTimeTo || filterFvgCount !== "all" || filterEntrySubtype !== "all") && (
                 <div className="flex flex-wrap gap-2 pt-1">
+                  {filterDateFrom && <Badge variant="secondary">Desde: {format(filterDateFrom, "dd/MM/yyyy")}</Badge>}
+                  {filterDateTo && <Badge variant="secondary">Hasta: {format(filterDateTo, "dd/MM/yyyy")}</Badge>}
                   {modelFilter !== "all" && (
                     <Badge variant="secondary">{MODEL_FILTER_OPTIONS.find(o => o.value === modelFilter)?.label}</Badge>
                   )}
-                  {filterTimeFrom && <Badge variant="secondary">Desde: {filterTimeFrom}</Badge>}
-                  {filterTimeTo && <Badge variant="secondary">Hasta: {filterTimeTo}</Badge>}
+                  {filterTimeFrom && <Badge variant="secondary">Hora desde: {filterTimeFrom}</Badge>}
+                  {filterTimeTo && <Badge variant="secondary">Hora hasta: {filterTimeTo}</Badge>}
                   {filterFvgCount !== "all" && <Badge variant="secondary">{filterFvgCount} FVG</Badge>}
                   {filterEntrySubtype !== "all" && <Badge variant="secondary">{filterEntrySubtype}</Badge>}
                 </div>
