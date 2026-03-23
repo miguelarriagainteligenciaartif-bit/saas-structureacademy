@@ -59,6 +59,8 @@ const formatModel = (trade: Trade) => {
 interface ReportGeneratorDialogProps {
   trades: Trade[];
   label?: string;
+  directGenerate?: boolean;
+  filterLabel?: string;
 }
 
 type PresetPeriod = "all" | "thisMonth" | "lastMonth" | "thisYear" | "custom";
