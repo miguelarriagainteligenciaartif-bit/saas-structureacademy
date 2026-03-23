@@ -260,7 +260,9 @@ export const ReportGeneratorDialog = ({ trades, label, directGenerate, filterLab
       
       // Period text
       let periodText = "";
-      if (preset === "all") {
+      if (filterLabel) {
+        periodText = `Filtros: ${filterLabel}`;
+      } else if (preset === "all") {
         periodText = "Período: Todos los datos";
       } else {
         const startFormatted = startDate ? format(parseISO(startDate), "d MMM yyyy", { locale: es }) : "";
