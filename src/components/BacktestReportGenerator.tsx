@@ -304,7 +304,7 @@ export const BacktestReportGenerator = ({ trades, strategy }: BacktestReportGene
       yPos = addSectionTitle(doc, "Detalle de Operaciones", yPos);
       autoTable(doc, {
         startY: yPos,
-        head: [['Fecha', 'Día', 'Hora', 'Tipo', 'Modelo', 'Resultado', 'P&L', 'RR Máx']],
+        head: [['Fecha', 'Dia', 'Hora', 'Tipo', 'Modelo', 'Resultado', 'P&L', 'RR Max']],
         body: sortedTrades.map(trade => [
           trade.date,
           trade.day_of_week || 'N/A',
