@@ -168,13 +168,17 @@ export const getBrandedTableStyles = () => ({
     lineColor: [200, 200, 200] as [number, number, number],
     lineWidth: 0.1,
   },
-  didParseCell: (data: any) => {
-    // Sanitize all cell text for jsPDF compatibility
-    if (typeof data.cell.raw === "string") {
-      data.cell.text = [sanitizePdfText(data.cell.raw)];
-    }
-  },
 });
+
+/**
+ * Sanitize table headers and body for jsPDF.
+ * Applies sanitizePdfText to all string values in arrays.
+ */
+export const sanitizeTableData = (data: string[][]): string[][] =>
+  data.map(row => row.map(cell => sanitizePdfText(cell)));
+
+export const sanitizeHead = (head: string[]): string[] =>
+  head.map(h => sanitizePdfText(h));
 
 // Section title styling
 export const addSectionTitle = (doc: jsPDF, title: string, yPos: number) => {
