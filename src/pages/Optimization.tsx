@@ -24,6 +24,9 @@ interface DrawdownTrade {
   entry_model: string;
   max_rr: number | null;
   continuation_subtype?: string | null;
+  entry_time?: string | null;
+  fvg_count?: number | null;
+  entry_subtype?: string | null;
 }
 
 type ModelFilter = "all" | "M1" | "M3" | "Continuación" | "Cont. Bloque" | "Cont. FVG";
@@ -37,14 +40,29 @@ const MODEL_FILTER_OPTIONS: { value: ModelFilter; label: string }[] = [
   { value: "Cont. FVG", label: "Continuación — FVG" },
 ];
 
-function filterTradesByModel<T extends { entry_model?: string; continuation_subtype?: string | null }>(trades: T[], model: ModelFilter): T[] {
-  if (model === "all") return trades;
-  if (model === "M1") return trades.filter(t => t.entry_model === "M1");
-  if (model === "M3") return trades.filter(t => t.entry_model === "M3");
-  if (model === "Continuación") return trades.filter(t => t.entry_model === "Continuación");
-  if (model === "Cont. Bloque") return trades.filter(t => t.entry_model === "Continuación" && t.continuation_subtype === "Bloque");
-  if (model === "Cont. FVG") return trades.filter(t => t.entry_model === "Continuación" && t.continuation_subtype === "FVG");
-  return trades;
+function applyAllFilters<T extends { entry_model?: string; continuation_subtype?: string | null; entry_time?: string | null; fvg_count?: number | null; entry_subtype?: string | null }>(
+  trades: T[],
+  model: ModelFilter,
+  timeFrom: string,
+  timeTo: string,
+  fvgCount: string,
+  entrySubtype: string,
+): T[] {
+  let filtered = trades;
+  // Model filter
+  if (model === "M1") filtered = filtered.filter(t => t.entry_model === "M1");
+  else if (model === "M3") filtered = filtered.filter(t => t.entry_model === "M3");
+  else if (model === "Continuación") filtered = filtered.filter(t => t.entry_model === "Continuación");
+  else if (model === "Cont. Bloque") filtered = filtered.filter(t => t.entry_model === "Continuación" && t.continuation_subtype === "Bloque");
+  else if (model === "Cont. FVG") filtered = filtered.filter(t => t.entry_model === "Continuación" && t.continuation_subtype === "FVG");
+  // Time filter
+  if (timeFrom) filtered = filtered.filter(t => t.entry_time && t.entry_time >= timeFrom);
+  if (timeTo) filtered = filtered.filter(t => t.entry_time && t.entry_time <= timeTo);
+  // FVG count filter
+  if (fvgCount !== "all") filtered = filtered.filter(t => t.fvg_count === parseInt(fvgCount));
+  // Entry subtype filter
+  if (entrySubtype !== "all") filtered = filtered.filter(t => t.entry_subtype === entrySubtype);
+  return filtered;
 }
 
 interface LevelAnalysis {
@@ -80,13 +98,17 @@ export default function Optimization() {
   const [strategies, setStrategies] = useState<{ id: string; name: string; risk_reward_ratio: string }[]>([]);
   const [selectedStrategy, setSelectedStrategy] = useState<string>("");
   const [trades, setTrades] = useState<DrawdownTrade[]>([]);
-  const [slTrades, setSlTrades] = useState<{ id: string; entry_model?: string; continuation_subtype?: string | null }[]>([]);
-  const [allDecisiveTrades, setAllDecisiveTrades] = useState<{ id: string; date: string; drawdown: number | null; result_type: string; entry_model?: string; continuation_subtype?: string | null }[]>([]);
+  const [slTrades, setSlTrades] = useState<{ id: string; entry_model?: string; continuation_subtype?: string | null; entry_time?: string | null; fvg_count?: number | null; entry_subtype?: string | null }[]>([]);
+  const [allDecisiveTrades, setAllDecisiveTrades] = useState<{ id: string; date: string; drawdown: number | null; result_type: string; entry_model?: string; continuation_subtype?: string | null; entry_time?: string | null; fvg_count?: number | null; entry_subtype?: string | null }[]>([]);
   const [modelFilter, setModelFilter] = useState<ModelFilter>("all");
   const [customLevel, setCustomLevel] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [expandedLevel, setExpandedLevel] = useState<number | null>(null);
   const [journalRR, setJournalRR] = useState<number>(2);
+  const [filterTimeFrom, setFilterTimeFrom] = useState<string>("");
+  const [filterTimeTo, setFilterTimeTo] = useState<string>("");
+  const [filterFvgCount, setFilterFvgCount] = useState<string>("all");
+  const [filterEntrySubtype, setFilterEntrySubtype] = useState<string>("all");
 
   // Auth
   useEffect(() => {
@@ -132,16 +154,16 @@ export default function Optimization() {
       if (source === "journal") {
         tpQuery = supabase
           .from("trades")
-          .select("id, date, drawdown, result_type, result_dollars, asset, entry_model, max_rr, continuation_subtype")
+          .select("id, date, drawdown, result_type, result_dollars, asset, entry_model, max_rr, continuation_subtype, entry_time, fvg_count, entry_subtype")
           .eq("result_type", "TP")
           .not("drawdown", "is", null);
         slQuery = supabase
           .from("trades")
-          .select("id, entry_model, continuation_subtype", { count: "exact" })
+          .select("id, entry_model, continuation_subtype, entry_time, fvg_count, entry_subtype", { count: "exact" })
           .eq("result_type", "SL");
         allQuery = supabase
           .from("trades")
-          .select("id, date, drawdown, result_type, entry_model, continuation_subtype")
+          .select("id, date, drawdown, result_type, entry_model, continuation_subtype, entry_time, fvg_count, entry_subtype")
           .in("result_type", ["TP", "SL"])
           .order("date", { ascending: true });
       } else {
@@ -190,10 +212,10 @@ export default function Optimization() {
     loadTrades();
   }, [source, selectedStrategy]);
 
-  // Filtered data by model
-  const filteredTrades = useMemo(() => filterTradesByModel(trades, modelFilter), [trades, modelFilter]);
-  const filteredSLCount = useMemo(() => filterTradesByModel(slTrades, modelFilter).length, [slTrades, modelFilter]);
-  const filteredAllTrades = useMemo(() => filterTradesByModel(allDecisiveTrades, modelFilter), [allDecisiveTrades, modelFilter]);
+  // Filtered data by all filters
+  const filteredTrades = useMemo(() => applyAllFilters(trades, modelFilter, filterTimeFrom, filterTimeTo, filterFvgCount, filterEntrySubtype), [trades, modelFilter, filterTimeFrom, filterTimeTo, filterFvgCount, filterEntrySubtype]);
+  const filteredSLCount = useMemo(() => applyAllFilters(slTrades, modelFilter, filterTimeFrom, filterTimeTo, filterFvgCount, filterEntrySubtype).length, [slTrades, modelFilter, filterTimeFrom, filterTimeTo, filterFvgCount, filterEntrySubtype]);
+  const filteredAllTrades = useMemo(() => applyAllFilters(allDecisiveTrades, modelFilter, filterTimeFrom, filterTimeTo, filterFvgCount, filterEntrySubtype), [allDecisiveTrades, modelFilter, filterTimeFrom, filterTimeTo, filterFvgCount, filterEntrySubtype]);
 
   // Analysis
   const analyzeLevel = (level: number): LevelAnalysis => {
@@ -282,17 +304,26 @@ export default function Optimization() {
               Analiza el drawdown de tus TPs para determinar si puedes acercar tu entrada al SL y aumentar tu RR.
             </p>
           </div>
-          {trades.length > 0 && (
-            <OptimizationReportGenerator
-              presetAnalysis={presetAnalysis}
-              bestLevel={bestLevel}
-              baseRR={baseRR}
-              source={source}
-              strategyName={strategies.find(s => s.id === selectedStrategy)?.name}
-              allTrades={filteredAllTrades}
-              modelFilter={modelFilter}
-            />
-          )}
+          {trades.length > 0 && (() => {
+            const filterParts: string[] = [];
+            if (modelFilter !== "all") filterParts.push(MODEL_FILTER_OPTIONS.find(o => o.value === modelFilter)?.label || modelFilter);
+            if (filterTimeFrom) filterParts.push(`Desde ${filterTimeFrom}`);
+            if (filterTimeTo) filterParts.push(`Hasta ${filterTimeTo}`);
+            if (filterFvgCount !== "all") filterParts.push(`${filterFvgCount} FVG`);
+            if (filterEntrySubtype !== "all") filterParts.push(filterEntrySubtype);
+            const filterLabel = filterParts.length > 0 ? filterParts.join(" · ") : undefined;
+            return (
+              <OptimizationReportGenerator
+                presetAnalysis={presetAnalysis}
+                bestLevel={bestLevel}
+                baseRR={baseRR}
+                source={source}
+                strategyName={strategies.find(s => s.id === selectedStrategy)?.name}
+                allTrades={filteredAllTrades}
+                modelFilter={filterLabel}
+              />
+            );
+          })()}
         </div>
 
         {/* Source Selector */}
@@ -352,28 +383,110 @@ export default function Optimization() {
           </CardContent>
         </Card>
 
-        {/* Model Filter */}
+        {/* Filters */}
         {trades.length > 0 && (
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Filtrar por Modelo de Entrada</CardTitle>
-              <CardDescription>Analiza la optimización solo para un modelo específico</CardDescription>
+              <CardTitle className="text-lg">Filtros de Análisis</CardTitle>
+              <CardDescription>Filtra por modelo, hora de entrada, FVG count y subtipo</CardDescription>
             </CardHeader>
-            <CardContent>
-              <Select value={modelFilter} onValueChange={(v) => setModelFilter(v as ModelFilter)}>
-                <SelectTrigger className="w-full sm:w-[260px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {MODEL_FILTER_OPTIONS.map(opt => (
-                    <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {modelFilter !== "all" && (
-                <p className="text-sm text-muted-foreground mt-2">
-                  Mostrando solo trades de <span className="font-semibold text-foreground">{MODEL_FILTER_OPTIONS.find(o => o.value === modelFilter)?.label}</span>
-                </p>
+            <CardContent className="space-y-4">
+              <div className="flex flex-wrap gap-4">
+                {/* Model */}
+                <div className="space-y-1">
+                  <label className="text-xs text-muted-foreground font-medium">Modelo</label>
+                  <Select value={modelFilter} onValueChange={(v) => setModelFilter(v as ModelFilter)}>
+                    <SelectTrigger className="w-[220px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {MODEL_FILTER_OPTIONS.map(opt => (
+                        <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Time From */}
+                <div className="space-y-1">
+                  <label className="text-xs text-muted-foreground font-medium">Hora Desde</label>
+                  <Input
+                    type="time"
+                    value={filterTimeFrom}
+                    onChange={(e) => setFilterTimeFrom(e.target.value)}
+                    className="w-[140px] h-9"
+                  />
+                </div>
+
+                {/* Time To */}
+                <div className="space-y-1">
+                  <label className="text-xs text-muted-foreground font-medium">Hora Hasta</label>
+                  <Input
+                    type="time"
+                    value={filterTimeTo}
+                    onChange={(e) => setFilterTimeTo(e.target.value)}
+                    className="w-[140px] h-9"
+                  />
+                </div>
+
+                {/* FVG Count */}
+                <div className="space-y-1">
+                  <label className="text-xs text-muted-foreground font-medium">FVG Count</label>
+                  <Select value={filterFvgCount} onValueChange={setFilterFvgCount}>
+                    <SelectTrigger className="w-[120px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos</SelectItem>
+                      <SelectItem value="1">1 FVG</SelectItem>
+                      <SelectItem value="2">2 FVG</SelectItem>
+                      <SelectItem value="3">3 FVG</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Entry Subtype */}
+                <div className="space-y-1">
+                  <label className="text-xs text-muted-foreground font-medium">Subtipo Entrada</label>
+                  <Select value={filterEntrySubtype} onValueChange={setFilterEntrySubtype}>
+                    <SelectTrigger className="w-[200px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos</SelectItem>
+                      <SelectItem value="Envolvente + Bloque">Envolvente + Bloque</SelectItem>
+                      <SelectItem value="Envolvente + FVG">Envolvente + FVG</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Clear filters */}
+                {(modelFilter !== "all" || filterTimeFrom || filterTimeTo || filterFvgCount !== "all" || filterEntrySubtype !== "all") && (
+                  <div className="flex items-end">
+                    <Button variant="ghost" size="sm" onClick={() => {
+                      setModelFilter("all");
+                      setFilterTimeFrom("");
+                      setFilterTimeTo("");
+                      setFilterFvgCount("all");
+                      setFilterEntrySubtype("all");
+                    }}>
+                      Limpiar filtros
+                    </Button>
+                  </div>
+                )}
+              </div>
+
+              {/* Active filters summary */}
+              {(modelFilter !== "all" || filterTimeFrom || filterTimeTo || filterFvgCount !== "all" || filterEntrySubtype !== "all") && (
+                <div className="flex flex-wrap gap-2 pt-1">
+                  {modelFilter !== "all" && (
+                    <Badge variant="secondary">{MODEL_FILTER_OPTIONS.find(o => o.value === modelFilter)?.label}</Badge>
+                  )}
+                  {filterTimeFrom && <Badge variant="secondary">Desde: {filterTimeFrom}</Badge>}
+                  {filterTimeTo && <Badge variant="secondary">Hasta: {filterTimeTo}</Badge>}
+                  {filterFvgCount !== "all" && <Badge variant="secondary">{filterFvgCount} FVG</Badge>}
+                  {filterEntrySubtype !== "all" && <Badge variant="secondary">{filterEntrySubtype}</Badge>}
+                </div>
               )}
             </CardContent>
           </Card>
