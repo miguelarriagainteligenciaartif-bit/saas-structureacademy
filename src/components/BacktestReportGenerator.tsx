@@ -118,7 +118,7 @@ export const BacktestReportGenerator = ({ trades, strategy }: BacktestReportGene
         : 0;
 
       // By model
-      const modelStats = ["M1", "M3", "Continuacion"].map(model => {
+      const modelStats = ["M1", "M3", "Continuación"].map(model => {
         const modelTrades = actualTrades.filter(t => t.entry_model === model);
         const wins = modelTrades.filter(t => t.result_type === "TP").length;
         const pnl = modelTrades.reduce((sum, t) => sum + Number(t.result_dollars), 0);
