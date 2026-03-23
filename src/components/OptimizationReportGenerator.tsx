@@ -335,7 +335,7 @@ export const OptimizationReportGenerator = ({
       // --- Methodology explanation (last page) ---
       doc.addPage();
       let methY = 20;
-      methY = addSectionTitle(doc, "Metodología", methY);
+      methY = addSectionTitle(doc, "Metodologia", methY);
       methY += 6;
 
       doc.setFontSize(8);

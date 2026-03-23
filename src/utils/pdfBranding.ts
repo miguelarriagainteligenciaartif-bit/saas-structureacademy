@@ -118,7 +118,7 @@ export const addBrandedFooter = (doc: jsPDF) => {
     
     doc.setTextColor(...brandColors.textMuted);
     doc.text(
-      "La señal en medio del ruido",
+      "La senal en medio del ruido",
       pageWidth - 14,
       pageHeight - 8,
       { align: "right" }
