@@ -403,7 +403,7 @@ export const ReportGenerator = ({ trades }: ReportGeneratorProps) => {
       yPos = 20;
 
       // Trade Type Analysis
-      yPos = addSectionTitle(doc, "Análisis por Tipo de Operación", yPos);
+      yPos = addSectionTitle(doc, "Analisis por Tipo de Operacion", yPos);
 
       autoTable(doc, {
         startY: yPos,
