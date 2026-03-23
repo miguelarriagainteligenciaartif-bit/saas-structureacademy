@@ -448,12 +448,12 @@ export const ReportGenerator = ({ trades }: ReportGeneratorProps) => {
 
       autoTable(doc, {
         startY: yPos,
-        head: [['Métrica', 'Valor']],
+        head: [['Metrica', 'Valor']],
         body: [
-          ['Total de Días Registrados', totalDays.toString()],
-          ['Días con Operación', actualTrades.length.toString()],
-          ['Días sin Entrada', noTradeDays.length.toString()],
-          ['Tasa de Ejecución', `${executionRate.toFixed(1)}%`]
+          ['Total de Dias Registrados', totalDays.toString()],
+          ['Dias con Operacion', actualTrades.length.toString()],
+          ['Dias sin Entrada', noTradeDays.length.toString()],
+          ['Tasa de Ejecucion', `${executionRate.toFixed(1)}%`]
         ],
         theme: 'striped',
         ...tableStyles,
