@@ -48,6 +48,7 @@ interface OptimizationReportProps {
   source: string;
   strategyName?: string;
   allTrades: AllTrade[];
+  modelFilter?: string;
 }
 
 export const OptimizationReportGenerator = ({
@@ -57,6 +58,7 @@ export const OptimizationReportGenerator = ({
   source,
   strategyName,
   allTrades,
+  modelFilter,
 }: OptimizationReportProps) => {
   const generateReport = async () => {
     if (presetAnalysis.length === 0) {
@@ -69,13 +71,14 @@ export const OptimizationReportGenerator = ({
       const pageWidth = doc.internal.pageSize.getWidth();
 
       const sourceName = source === "journal" ? "Journal (Trades Reales)" : `Backtesting: ${strategyName || "Estrategia"}`;
+      const modelLabel = modelFilter && modelFilter !== "all" ? ` · Modelo: ${modelFilter}` : "";
 
       // Branded Header
       await addBrandedHeader(
         doc,
         "OPTIMIZACIÓN DE ENTRADA",
         "Análisis de Punto de Entrada Óptimo",
-        `Fuente: ${sourceName} · RR Base: 1:${baseRR} · ${new Date().toLocaleDateString("es-ES")}`
+        `Fuente: ${sourceName}${modelLabel} · RR Base: 1:${baseRR} · ${new Date().toLocaleDateString("es-ES")}`
       );
 
       let y = 68;
