@@ -265,7 +265,7 @@ export const BacktestReportGenerator = ({ trades, strategy }: BacktestReportGene
       yPos = 20;
 
       // Trade type table
-      yPos = addSectionTitle(doc, "Análisis por Tipo de Operación", yPos);
+      yPos = addSectionTitle(doc, "Analisis por Tipo de Operacion", yPos);
       autoTable(doc, {
         startY: yPos,
         head: [['Tipo', 'Operaciones', 'Ganadas', 'Win Rate']],
