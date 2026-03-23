@@ -151,7 +151,7 @@ export const OptimizationReportGenerator = ({
       }
 
       // --- Analysis Table ---
-      y = addSectionTitle(doc, "Análisis por Nivel de Drawdown", y);
+      y = addSectionTitle(doc, "Analisis por Nivel de Drawdown", y);
       y += 4;
 
       const analysisBody = presetAnalysis.map((a) => [
