@@ -423,7 +423,7 @@ export const ReportGenerator = ({ trades }: ReportGeneratorProps) => {
       yPos = (doc as any).lastAutoTable.finalY + 12;
 
       // News Analysis
-      yPos = addSectionTitle(doc, "Análisis de Impacto de Noticias", yPos);
+      yPos = addSectionTitle(doc, "Analisis de Impacto de Noticias", yPos);
 
       autoTable(doc, {
         startY: yPos,
