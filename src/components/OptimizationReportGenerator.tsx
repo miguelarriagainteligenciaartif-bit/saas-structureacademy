@@ -348,7 +348,7 @@ export const OptimizationReportGenerator = ({
         "- Win Rate = TPs supervivientes / (TPs supervivientes + SLs totales).",
         "- EV (Expected Value) = (WR x RR) - (1 - WR). Metrica por trade individual.",
         "- Dif P&L (R) = P&L total optimizado - P&L total original. Metrica acumulada sobre todo el historial.",
-        "• La recomendación se basa en el Δ P&L total, no en el EV por trade, para reflejar el impacto real.",
+        "- La recomendacion se basa en el Dif P&L total, no en el EV por trade, para reflejar el impacto real.",
       ];
 
       methodology.forEach((line) => {
