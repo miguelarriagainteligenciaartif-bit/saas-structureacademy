@@ -54,7 +54,7 @@ export const addAIAnalysisSection = (
       doc.setFontSize(10);
       doc.setFont("helvetica", "bold");
       doc.setTextColor(...brandColors.quantumBlue);
-      doc.text(headerText, marginLeft, y);
+      doc.text(sanitizePdfText(headerText), marginLeft, y);
       y += 7;
       continue;
     }
