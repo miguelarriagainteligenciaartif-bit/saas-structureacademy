@@ -137,7 +137,7 @@ export const ReportGenerator = ({ trades }: ReportGeneratorProps) => {
         buildModelRow("  - 3 FVGs", actualTrades.filter(t => t.entry_model === "M3" && t.fvg_count === 3), true),
         buildModelRow("  - Env+Bloque", actualTrades.filter(t => t.entry_model === "M3" && t.entry_subtype === "Envolvente + Bloque"), true),
         buildModelRow("  - Env+FVG", actualTrades.filter(t => t.entry_model === "M3" && t.entry_subtype === "Envolvente + FVG"), true),
-        buildModelRow("Continuacion", actualTrades.filter(t => t.entry_model === "Continuación")),
+        buildModelRow("Continuación", actualTrades.filter(t => t.entry_model === "Continuación")),
         buildModelRow("  - Bloque", actualTrades.filter(t => t.entry_model === "Continuación" && t.continuation_subtype === "Bloque"), true),
         buildModelRow("  - FVG", actualTrades.filter(t => t.entry_model === "Continuación" && t.continuation_subtype === "FVG"), true),
         buildModelRow("Total", actualTrades),
