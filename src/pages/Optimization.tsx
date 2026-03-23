@@ -324,9 +324,11 @@ export default function Optimization() {
           </div>
           {trades.length > 0 && (() => {
             const filterParts: string[] = [];
+            if (filterDateFrom) filterParts.push(`Desde ${format(filterDateFrom, "dd/MM/yyyy")}`);
+            if (filterDateTo) filterParts.push(`Hasta ${format(filterDateTo, "dd/MM/yyyy")}`);
             if (modelFilter !== "all") filterParts.push(MODEL_FILTER_OPTIONS.find(o => o.value === modelFilter)?.label || modelFilter);
-            if (filterTimeFrom) filterParts.push(`Desde ${filterTimeFrom}`);
-            if (filterTimeTo) filterParts.push(`Hasta ${filterTimeTo}`);
+            if (filterTimeFrom) filterParts.push(`Hora desde ${filterTimeFrom}`);
+            if (filterTimeTo) filterParts.push(`Hora hasta ${filterTimeTo}`);
             if (filterFvgCount !== "all") filterParts.push(`${filterFvgCount} FVG`);
             if (filterEntrySubtype !== "all") filterParts.push(filterEntrySubtype);
             const filterLabel = filterParts.length > 0 ? filterParts.join(" · ") : undefined;
