@@ -45,15 +45,26 @@ const MODEL_FILTER_OPTIONS: { value: ModelFilter; label: string }[] = [
   { value: "Cont. FVG", label: "Continuación — FVG" },
 ];
 
-function applyAllFilters<T extends { entry_model?: string; continuation_subtype?: string | null; entry_time?: string | null; fvg_count?: number | null; entry_subtype?: string | null }>(
+function applyAllFilters<T extends { date?: string; entry_model?: string; continuation_subtype?: string | null; entry_time?: string | null; fvg_count?: number | null; entry_subtype?: string | null }>(
   trades: T[],
   model: ModelFilter,
   timeFrom: string,
   timeTo: string,
   fvgCount: string,
   entrySubtype: string,
+  dateFrom?: Date,
+  dateTo?: Date,
 ): T[] {
   let filtered = trades;
+  // Date filter
+  if (dateFrom) {
+    const fromStr = dateFrom.toISOString().split("T")[0];
+    filtered = filtered.filter(t => t.date && t.date >= fromStr);
+  }
+  if (dateTo) {
+    const toStr = dateTo.toISOString().split("T")[0];
+    filtered = filtered.filter(t => t.date && t.date <= toStr);
+  }
   // Model filter
   if (model === "M1") filtered = filtered.filter(t => t.entry_model === "M1");
   else if (model === "M3") filtered = filtered.filter(t => t.entry_model === "M3");
