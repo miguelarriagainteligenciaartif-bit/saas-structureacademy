@@ -230,7 +230,7 @@ export const BacktestReportGenerator = ({ trades, strategy }: BacktestReportGene
       autoTable(doc, {
         startY: yPos,
         head: [['Dia', 'Operaciones', 'P&L', 'Win Rate']],
-        body: dayStats.map(d => [d.day, d.trades.toString(), `$${d.pnl.toFixed(2)}`, `${d.winRate.toFixed(1)}%`]),
+        body: dayStats.map(d => [d.day, d.trades.toString(), `$${d.pnl.toFixed(2)}`, `${d.winRate.toFixed(1)}%`].map(sanitizePdfText)),
         theme: 'striped',
         ...tableStyles,
         columnStyles: { 2: { halign: 'right' }, 3: { halign: 'right' } },
