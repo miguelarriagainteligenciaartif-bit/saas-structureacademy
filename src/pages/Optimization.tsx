@@ -406,10 +406,42 @@ export default function Optimization() {
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">Filtros de Análisis</CardTitle>
-              <CardDescription>Filtra por modelo, hora de entrada, FVG count y subtipo</CardDescription>
+              <CardDescription>Filtra por fecha, modelo, hora de entrada, FVG count y subtipo</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex flex-wrap gap-4">
+                {/* Date From */}
+                <div className="space-y-1">
+                  <label className="text-xs text-muted-foreground font-medium">Fecha Desde</label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" className={cn("w-[160px] justify-start text-left font-normal h-9", !filterDateFrom && "text-muted-foreground")}>
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {filterDateFrom ? format(filterDateFrom, "dd/MM/yyyy") : "Desde"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar mode="single" selected={filterDateFrom} onSelect={setFilterDateFrom} initialFocus className={cn("p-3 pointer-events-auto")} locale={es} />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+
+                {/* Date To */}
+                <div className="space-y-1">
+                  <label className="text-xs text-muted-foreground font-medium">Fecha Hasta</label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" className={cn("w-[160px] justify-start text-left font-normal h-9", !filterDateTo && "text-muted-foreground")}>
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {filterDateTo ? format(filterDateTo, "dd/MM/yyyy") : "Hasta"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar mode="single" selected={filterDateTo} onSelect={setFilterDateTo} initialFocus className={cn("p-3 pointer-events-auto")} locale={es} />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+
                 {/* Model */}
                 <div className="space-y-1">
                   <label className="text-xs text-muted-foreground font-medium">Modelo</label>
@@ -428,23 +460,13 @@ export default function Optimization() {
                 {/* Time From */}
                 <div className="space-y-1">
                   <label className="text-xs text-muted-foreground font-medium">Hora Desde</label>
-                  <Input
-                    type="time"
-                    value={filterTimeFrom}
-                    onChange={(e) => setFilterTimeFrom(e.target.value)}
-                    className="w-[140px] h-9"
-                  />
+                  <Input type="time" value={filterTimeFrom} onChange={(e) => setFilterTimeFrom(e.target.value)} className="w-[140px] h-9" />
                 </div>
 
                 {/* Time To */}
                 <div className="space-y-1">
                   <label className="text-xs text-muted-foreground font-medium">Hora Hasta</label>
-                  <Input
-                    type="time"
-                    value={filterTimeTo}
-                    onChange={(e) => setFilterTimeTo(e.target.value)}
-                    className="w-[140px] h-9"
-                  />
+                  <Input type="time" value={filterTimeTo} onChange={(e) => setFilterTimeTo(e.target.value)} className="w-[140px] h-9" />
                 </div>
 
                 {/* FVG Count */}
@@ -479,9 +501,11 @@ export default function Optimization() {
                 </div>
 
                 {/* Clear filters */}
-                {(modelFilter !== "all" || filterTimeFrom || filterTimeTo || filterFvgCount !== "all" || filterEntrySubtype !== "all") && (
+                {(filterDateFrom || filterDateTo || modelFilter !== "all" || filterTimeFrom || filterTimeTo || filterFvgCount !== "all" || filterEntrySubtype !== "all") && (
                   <div className="flex items-end">
                     <Button variant="ghost" size="sm" onClick={() => {
+                      setFilterDateFrom(undefined);
+                      setFilterDateTo(undefined);
                       setModelFilter("all");
                       setFilterTimeFrom("");
                       setFilterTimeTo("");
@@ -495,13 +519,15 @@ export default function Optimization() {
               </div>
 
               {/* Active filters summary */}
-              {(modelFilter !== "all" || filterTimeFrom || filterTimeTo || filterFvgCount !== "all" || filterEntrySubtype !== "all") && (
+              {(filterDateFrom || filterDateTo || modelFilter !== "all" || filterTimeFrom || filterTimeTo || filterFvgCount !== "all" || filterEntrySubtype !== "all") && (
                 <div className="flex flex-wrap gap-2 pt-1">
+                  {filterDateFrom && <Badge variant="secondary">Desde: {format(filterDateFrom, "dd/MM/yyyy")}</Badge>}
+                  {filterDateTo && <Badge variant="secondary">Hasta: {format(filterDateTo, "dd/MM/yyyy")}</Badge>}
                   {modelFilter !== "all" && (
                     <Badge variant="secondary">{MODEL_FILTER_OPTIONS.find(o => o.value === modelFilter)?.label}</Badge>
                   )}
-                  {filterTimeFrom && <Badge variant="secondary">Desde: {filterTimeFrom}</Badge>}
-                  {filterTimeTo && <Badge variant="secondary">Hasta: {filterTimeTo}</Badge>}
+                  {filterTimeFrom && <Badge variant="secondary">Hora desde: {filterTimeFrom}</Badge>}
+                  {filterTimeTo && <Badge variant="secondary">Hora hasta: {filterTimeTo}</Badge>}
                   {filterFvgCount !== "all" && <Badge variant="secondary">{filterFvgCount} FVG</Badge>}
                   {filterEntrySubtype !== "all" && <Badge variant="secondary">{filterEntrySubtype}</Badge>}
                 </div>
