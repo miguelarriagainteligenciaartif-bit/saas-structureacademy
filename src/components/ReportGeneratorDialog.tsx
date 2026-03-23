@@ -700,6 +700,24 @@ export const ReportGeneratorDialog = ({ trades, label, directGenerate, filterLab
     }
   };
 
+  const handleDirectGenerate = async () => {
+    setGenerating(true);
+    try {
+      await generateReport();
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  if (directGenerate) {
+    return (
+      <Button variant="outline" className="gap-2" onClick={handleDirectGenerate} disabled={generating}>
+        <Download className="h-4 w-4" />
+        {generating ? "Generando..." : (label || "Descargar Informe PDF")}
+      </Button>
+    );
+  }
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
