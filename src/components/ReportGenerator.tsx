@@ -303,7 +303,7 @@ export const ReportGenerator = ({ trades }: ReportGeneratorProps) => {
       doc.roundedRect(startX + 3*(boxWidth + boxGap), yPos, boxWidth, boxHeight, 3, 3, 'F');
       doc.setFontSize(8);
       doc.setTextColor(...brandColors.textMuted);
-      doc.text("PROM. PÉRDIDA", startX + 3*(boxWidth + boxGap) + boxWidth/2, yPos + 8, { align: "center" });
+      doc.text("PROM. PERDIDA", startX + 3*(boxWidth + boxGap) + boxWidth/2, yPos + 8, { align: "center" });
       doc.setFontSize(14);
       doc.setFont("helvetica", "bold");
       doc.setTextColor(...brandColors.danger);
