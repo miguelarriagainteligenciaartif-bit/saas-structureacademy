@@ -146,7 +146,7 @@ export const OptimizationReportGenerator = ({
         doc.setTextColor(255, 255, 255);
         doc.setFontSize(9);
         doc.setFont("helvetica", "bold");
-        doc.text("✗ Ningún nivel mejora el P&L total. Mantener entrada actual.", 20, y + 9);
+        doc.text("[NO] Ningun nivel mejora el P&L total. Mantener entrada actual.", 20, y + 9);
         y += 22;
       }
 
