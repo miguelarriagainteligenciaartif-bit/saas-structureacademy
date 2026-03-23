@@ -481,7 +481,7 @@ export const ReportGenerator = ({ trades }: ReportGeneratorProps) => {
           formatModel(trade),
           trade.result_type || 'N/A',
           `$${(trade.result_dollars || 0).toFixed(2)}`
-        ]),
+        ].map(sanitizePdfText)),
         theme: 'striped',
         headStyles: { 
           fillColor: brandColors.quantumBlue,

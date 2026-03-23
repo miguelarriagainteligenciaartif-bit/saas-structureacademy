@@ -315,7 +315,7 @@ export const BacktestReportGenerator = ({ trades, strategy }: BacktestReportGene
           trade.result_type || 'N/A',
           `$${Number(trade.result_dollars).toFixed(2)}`,
           trade.max_rr !== null ? trade.max_rr.toFixed(2) : '-'
-        ]),
+        ].map(sanitizePdfText)),
         theme: 'striped',
         headStyles: {
           fillColor: brandColors.quantumBlue,
