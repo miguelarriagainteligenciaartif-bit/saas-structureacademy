@@ -206,7 +206,7 @@ export const BacktestReportGenerator = ({ trades, strategy }: BacktestReportGene
       drawBox(startX, yPos, "PROM. GANANCIA", `$${avgWin.toFixed(2)}`, brandColors.success);
       drawBox(startX + boxWidth + boxGap, yPos, "PROM. PERDIDA", `$${avgLoss.toFixed(2)}`, brandColors.danger);
       drawBox(startX + 2 * (boxWidth + boxGap), yPos, "BREAK EVEN", `${breakEvenTrades}`);
-      drawBox(startX + 3 * (boxWidth + boxGap), yPos, "RR MÁX PROM",
+      drawBox(startX + 3 * (boxWidth + boxGap), yPos, "RR MAX PROM",
         avgMaxRR > 0 ? avgMaxRR.toFixed(2) : "N/A");
 
       yPos += boxHeight + 15;
