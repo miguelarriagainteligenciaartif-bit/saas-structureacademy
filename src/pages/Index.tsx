@@ -357,6 +357,9 @@ export default function Index() {
         <div className="flex justify-end gap-2">
           <ExcelImporter onSuccess={loadTrades} />
           <CSVExportButton trades={allTrades} />
+          {hasActiveFilters && (
+            <ReportGeneratorDialog trades={filteredTradesForMetrics} label="Informe Filtrado" />
+          )}
           <ReportGeneratorDialog trades={allTrades} />
         </div>
 
