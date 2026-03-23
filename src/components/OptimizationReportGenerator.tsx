@@ -9,6 +9,7 @@ import {
   addBrandedFooter,
   getBrandedTableStyles,
   addSectionTitle,
+  sanitizePdfText,
 } from "@/utils/pdfBranding";
 import { fetchAIAnalysis, buildOptimizationDataSummary } from "@/utils/aiAnalysis";
 import { addAIAnalysisSection } from "@/utils/pdfAISection";
