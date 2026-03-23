@@ -355,7 +355,7 @@ export const ReportGenerator = ({ trades }: ReportGeneratorProps) => {
       yPos = (doc as any).lastAutoTable.finalY + 12;
 
       // Day Analysis Table
-      yPos = addSectionTitle(doc, "Análisis por Día de la Semana", yPos);
+      yPos = addSectionTitle(doc, "Analisis por Dia de la Semana", yPos);
 
       autoTable(doc, {
         startY: yPos,
