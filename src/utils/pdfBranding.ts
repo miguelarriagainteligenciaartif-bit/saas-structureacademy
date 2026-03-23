@@ -177,6 +177,6 @@ export const addSectionTitle = (doc: jsPDF, title: string, yPos: number) => {
   doc.setTextColor(30, 30, 30);
   doc.setFontSize(12);
   doc.setFont("helvetica", "bold");
-  doc.text(title, 20, yPos + 5);
+  doc.text(sanitizePdfText(title), 20, yPos + 5);
   return yPos + 12;
 };
