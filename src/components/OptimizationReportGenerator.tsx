@@ -76,8 +76,8 @@ export const OptimizationReportGenerator = ({
       // Branded Header
       await addBrandedHeader(
         doc,
-        "OPTIMIZACIÓN DE ENTRADA",
-        "Análisis de Punto de Entrada Óptimo",
+        "OPTIMIZACION DE ENTRADA",
+        "Analisis de Punto de Entrada Optimo",
         `Fuente: ${sourceName}${modelLabel} - RR Base: 1:${baseRR} - ${new Date().toLocaleDateString("es-ES")}`
       );
 
