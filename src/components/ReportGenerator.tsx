@@ -359,7 +359,7 @@ export const ReportGenerator = ({ trades }: ReportGeneratorProps) => {
 
       autoTable(doc, {
         startY: yPos,
-        head: [['Día', 'Operaciones', 'P&L', 'Win Rate']],
+        head: [['Dia', 'Operaciones', 'P&L', 'Win Rate']],
         body: dayStats.map(d => [
           d.day,
           d.trades.toString(),
