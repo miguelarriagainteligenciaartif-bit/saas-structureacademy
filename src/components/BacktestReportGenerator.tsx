@@ -9,6 +9,7 @@ import {
   addBrandedFooter,
   getBrandedTableStyles,
   addSectionTitle,
+  sanitizePdfText,
 } from "@/utils/pdfBranding";
 import { fetchAIAnalysis, buildBacktestDataSummary } from "@/utils/aiAnalysis";
 import { addAIAnalysisSection } from "@/utils/pdfAISection";
@@ -151,7 +152,7 @@ export const BacktestReportGenerator = ({ trades, strategy }: BacktestReportGene
         doc,
         "INFORME DE BACKTESTING",
         `Estrategia: ${strategy.name}`,
-        `R:R ${strategy.risk_reward_ratio} · Generado: ${new Date().toLocaleDateString('es-ES', {
+        `R:R ${strategy.risk_reward_ratio} - Generado: ${new Date().toLocaleDateString('es-ES', {
           year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
         })}`
       );
@@ -204,19 +205,19 @@ export const BacktestReportGenerator = ({ trades, strategy }: BacktestReportGene
 
       // Row 3
       drawBox(startX, yPos, "PROM. GANANCIA", `$${avgWin.toFixed(2)}`, brandColors.success);
-      drawBox(startX + boxWidth + boxGap, yPos, "PROM. PÉRDIDA", `$${avgLoss.toFixed(2)}`, brandColors.danger);
+      drawBox(startX + boxWidth + boxGap, yPos, "PROM. PERDIDA", `$${avgLoss.toFixed(2)}`, brandColors.danger);
       drawBox(startX + 2 * (boxWidth + boxGap), yPos, "BREAK EVEN", `${breakEvenTrades}`);
-      drawBox(startX + 3 * (boxWidth + boxGap), yPos, "RR MÁX PROM",
+      drawBox(startX + 3 * (boxWidth + boxGap), yPos, "RR MAX PROM",
         avgMaxRR > 0 ? avgMaxRR.toFixed(2) : "N/A");
 
       yPos += boxHeight + 15;
 
       // Model table
-      yPos = addSectionTitle(doc, "Análisis por Modelo de Entrada", yPos);
+      yPos = addSectionTitle(doc, "Analisis por Modelo de Entrada", yPos);
       autoTable(doc, {
         startY: yPos,
         head: [['Modelo', 'Operaciones', 'P&L', 'Win Rate']],
-        body: modelStats.map(m => [m.model, m.trades.toString(), `$${m.pnl.toFixed(2)}`, `${m.winRate.toFixed(1)}%`]),
+        body: modelStats.map(m => [m.model, m.trades.toString(), `$${m.pnl.toFixed(2)}`, `${m.winRate.toFixed(1)}%`].map(sanitizePdfText)),
         theme: 'striped',
         ...tableStyles,
         columnStyles: { 2: { halign: 'right' }, 3: { halign: 'right' } },
@@ -225,11 +226,11 @@ export const BacktestReportGenerator = ({ trades, strategy }: BacktestReportGene
       yPos = (doc as any).lastAutoTable.finalY + 12;
 
       // Day table
-      yPos = addSectionTitle(doc, "Análisis por Día de la Semana", yPos);
+      yPos = addSectionTitle(doc, "Analisis por Dia de la Semana", yPos);
       autoTable(doc, {
         startY: yPos,
-        head: [['Día', 'Operaciones', 'P&L', 'Win Rate']],
-        body: dayStats.map(d => [d.day, d.trades.toString(), `$${d.pnl.toFixed(2)}`, `${d.winRate.toFixed(1)}%`]),
+        head: [['Dia', 'Operaciones', 'P&L', 'Win Rate']],
+        body: dayStats.map(d => [d.day, d.trades.toString(), `$${d.pnl.toFixed(2)}`, `${d.winRate.toFixed(1)}%`].map(sanitizePdfText)),
         theme: 'striped',
         ...tableStyles,
         columnStyles: { 2: { halign: 'right' }, 3: { halign: 'right' } },
@@ -247,7 +248,7 @@ export const BacktestReportGenerator = ({ trades, strategy }: BacktestReportGene
       }).filter(w => w.trades > 0);
 
       if (weekStats.length > 0) {
-        yPos = addSectionTitle(doc, "Análisis por Semana del Mes", yPos);
+        yPos = addSectionTitle(doc, "Analisis por Semana del Mes", yPos);
         autoTable(doc, {
           startY: yPos,
           head: [['Semana', 'Operaciones', 'P&L', 'Win Rate']],
@@ -265,7 +266,7 @@ export const BacktestReportGenerator = ({ trades, strategy }: BacktestReportGene
       yPos = 20;
 
       // Trade type table
-      yPos = addSectionTitle(doc, "Análisis por Tipo de Operación", yPos);
+      yPos = addSectionTitle(doc, "Analisis por Tipo de Operacion", yPos);
       autoTable(doc, {
         startY: yPos,
         head: [['Tipo', 'Operaciones', 'Ganadas', 'Win Rate']],
@@ -281,17 +282,17 @@ export const BacktestReportGenerator = ({ trades, strategy }: BacktestReportGene
       yPos = (doc as any).lastAutoTable.finalY + 12;
 
       // Execution stats
-      yPos = addSectionTitle(doc, "Estadísticas de Ejecución", yPos);
+      yPos = addSectionTitle(doc, "Estadisticas de Ejecucion", yPos);
       autoTable(doc, {
         startY: yPos,
-        head: [['Métrica', 'Valor']],
+        head: [['Metrica', 'Valor']],
         body: [
-          ['Total de Días Registrados', totalDays.toString()],
-          ['Días con Operación', totalTrades.toString()],
-          ['Días sin Entrada', noTradeDays.toString()],
-          ['Tasa de Ejecución', `${(totalDays > 0 ? (totalTrades / totalDays * 100) : 0).toFixed(1)}%`],
-          ['Ops con RR Máximo', tradesWithMaxRR.length.toString()],
-          ['RR Máximo Promedio', avgMaxRR > 0 ? avgMaxRR.toFixed(2) : 'N/A'],
+          ['Total de Dias Registrados', totalDays.toString()],
+          ['Dias con Operacion', totalTrades.toString()],
+          ['Dias sin Entrada', noTradeDays.toString()],
+          ['Tasa de Ejecucion', `${(totalDays > 0 ? (totalTrades / totalDays * 100) : 0).toFixed(1)}%`],
+          ['Ops con RR Maximo', tradesWithMaxRR.length.toString()],
+          ['RR Maximo Promedio', avgMaxRR > 0 ? avgMaxRR.toFixed(2) : 'N/A'],
         ],
         theme: 'striped',
         ...tableStyles,
@@ -304,7 +305,7 @@ export const BacktestReportGenerator = ({ trades, strategy }: BacktestReportGene
       yPos = addSectionTitle(doc, "Detalle de Operaciones", yPos);
       autoTable(doc, {
         startY: yPos,
-        head: [['Fecha', 'Día', 'Hora', 'Tipo', 'Modelo', 'Resultado', 'P&L', 'RR Máx']],
+        head: [['Fecha', 'Dia', 'Hora', 'Tipo', 'Modelo', 'Resultado', 'P&L', 'RR Max']],
         body: sortedTrades.map(trade => [
           trade.date,
           trade.day_of_week || 'N/A',
@@ -314,7 +315,7 @@ export const BacktestReportGenerator = ({ trades, strategy }: BacktestReportGene
           trade.result_type || 'N/A',
           `$${Number(trade.result_dollars).toFixed(2)}`,
           trade.max_rr !== null ? trade.max_rr.toFixed(2) : '-'
-        ]),
+        ].map(sanitizePdfText)),
         theme: 'striped',
         headStyles: {
           fillColor: brandColors.quantumBlue,

@@ -1,6 +1,28 @@
 import jsPDF from "jspdf";
 import quantumLogo from "@/assets/quantum-logo.png";
 
+/**
+ * Sanitize text for jsPDF rendering.
+ * jsPDF default fonts (Helvetica) don't support Unicode accents or special chars.
+ * This strips accents and replaces special symbols with ASCII equivalents.
+ */
+export const sanitizePdfText = (text: string): string => {
+  return text
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/→/g, "->")
+    .replace(/←/g, "<-")
+    .replace(/✓/g, "[SI]")
+    .replace(/✗/g, "[NO]")
+    .replace(/Δ/g, "Dif")
+    .replace(/·/g, "-")
+    .replace(/×/g, "x")
+    .replace(/−/g, "-")
+    .replace(/≥/g, ">=")
+    .replace(/≤/g, "<=")
+    .replace(/•/g, "-");
+};
+
 // Quantum Era Brand Colors
 export const brandColors = {
   quantumBlue: [30, 144, 255] as [number, number, number], // #1E90FF
@@ -64,21 +86,21 @@ export const addBrandedHeader = async (
   doc.setTextColor(...brandColors.textLight);
   doc.setFontSize(18);
   doc.setFont("helvetica", "bold");
-  doc.text(title, pageWidth / 2, 38, { align: "center" });
+  doc.text(sanitizePdfText(title), pageWidth / 2, 38, { align: "center" });
   
   // Subtitle
   if (subtitle) {
     doc.setFontSize(9);
     doc.setTextColor(...brandColors.quantumBlue);
     doc.setFont("helvetica", "normal");
-    doc.text(subtitle, pageWidth / 2, 45, { align: "center" });
+    doc.text(sanitizePdfText(subtitle), pageWidth / 2, 45, { align: "center" });
   }
   
   // Period text
   if (periodText) {
     doc.setFontSize(8);
     doc.setTextColor(...brandColors.textMuted);
-    doc.text(periodText, pageWidth / 2, 52, { align: "center" });
+    doc.text(sanitizePdfText(periodText), pageWidth / 2, 52, { align: "center" });
   }
 };
 
@@ -103,7 +125,7 @@ export const addBrandedFooter = (doc: jsPDF) => {
     doc.setFontSize(8);
     doc.setTextColor(...brandColors.textMuted);
     doc.text(
-      `Página ${i} de ${pageCount}`,
+      `Pagina ${i} de ${pageCount}`,
       14,
       pageHeight - 8
     );
@@ -118,7 +140,7 @@ export const addBrandedFooter = (doc: jsPDF) => {
     
     doc.setTextColor(...brandColors.textMuted);
     doc.text(
-      "La señal en medio del ruido",
+      "La senal en medio del ruido",
       pageWidth - 14,
       pageHeight - 8,
       { align: "right" }
@@ -148,6 +170,16 @@ export const getBrandedTableStyles = () => ({
   },
 });
 
+/**
+ * Sanitize table headers and body for jsPDF.
+ * Applies sanitizePdfText to all string values in arrays.
+ */
+export const sanitizeTableData = (data: string[][]): string[][] =>
+  data.map(row => row.map(cell => sanitizePdfText(cell)));
+
+export const sanitizeHead = (head: string[]): string[] =>
+  head.map(h => sanitizePdfText(h));
+
 // Section title styling
 export const addSectionTitle = (doc: jsPDF, title: string, yPos: number) => {
   doc.setFillColor(...brandColors.quantumBlue);
@@ -155,6 +187,6 @@ export const addSectionTitle = (doc: jsPDF, title: string, yPos: number) => {
   doc.setTextColor(30, 30, 30);
   doc.setFontSize(12);
   doc.setFont("helvetica", "bold");
-  doc.text(title, 20, yPos + 5);
+  doc.text(sanitizePdfText(title), 20, yPos + 5);
   return yPos + 12;
 };

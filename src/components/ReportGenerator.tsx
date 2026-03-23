@@ -9,6 +9,7 @@ import {
   addBrandedFooter,
   getBrandedTableStyles,
   addSectionTitle,
+  sanitizePdfText,
 } from "@/utils/pdfBranding";
 import { fetchAIAnalysis, buildJournalDataSummary } from "@/utils/aiAnalysis";
 import { addAIAnalysisSection } from "@/utils/pdfAISection";
@@ -303,7 +304,7 @@ export const ReportGenerator = ({ trades }: ReportGeneratorProps) => {
       doc.roundedRect(startX + 3*(boxWidth + boxGap), yPos, boxWidth, boxHeight, 3, 3, 'F');
       doc.setFontSize(8);
       doc.setTextColor(...brandColors.textMuted);
-      doc.text("PROM. PÉRDIDA", startX + 3*(boxWidth + boxGap) + boxWidth/2, yPos + 8, { align: "center" });
+      doc.text("PROM. PERDIDA", startX + 3*(boxWidth + boxGap) + boxWidth/2, yPos + 8, { align: "center" });
       doc.setFontSize(14);
       doc.setFont("helvetica", "bold");
       doc.setTextColor(...brandColors.danger);
@@ -322,10 +323,10 @@ export const ReportGenerator = ({ trades }: ReportGeneratorProps) => {
           r.trades.toString(),
           r.wins.toString(),
           r.losses.toString(),
-          r.trades > 0 ? `${r.winRate.toFixed(1)}%` : '—',
-          r.trades > 0 ? `$${r.pnl.toFixed(2)}` : '—',
-          r.trades > 0 ? `$${r.ev.toFixed(2)}` : '—',
-        ]),
+          r.trades > 0 ? `${r.winRate.toFixed(1)}%` : '--',
+          r.trades > 0 ? `$${r.pnl.toFixed(2)}` : '--',
+          r.trades > 0 ? `$${r.ev.toFixed(2)}` : '--',
+        ].map(sanitizePdfText)),
         theme: 'striped',
         ...tableStyles,
         columnStyles: {
@@ -355,17 +356,17 @@ export const ReportGenerator = ({ trades }: ReportGeneratorProps) => {
       yPos = (doc as any).lastAutoTable.finalY + 12;
 
       // Day Analysis Table
-      yPos = addSectionTitle(doc, "Análisis por Día de la Semana", yPos);
+      yPos = addSectionTitle(doc, "Analisis por Dia de la Semana", yPos);
 
       autoTable(doc, {
         startY: yPos,
-        head: [['Día', 'Operaciones', 'P&L', 'Win Rate']],
+        head: [['Dia', 'Operaciones', 'P&L', 'Win Rate']],
         body: dayStats.map(d => [
           d.day,
           d.trades.toString(),
           `$${d.pnl.toFixed(2)}`,
           `${d.winRate.toFixed(1)}%`
-        ]),
+        ].map(sanitizePdfText)),
         theme: 'striped',
         ...tableStyles,
         columnStyles: {
@@ -378,7 +379,7 @@ export const ReportGenerator = ({ trades }: ReportGeneratorProps) => {
       yPos = (doc as any).lastAutoTable.finalY + 12;
 
       // Week Analysis Table
-      yPos = addSectionTitle(doc, "Análisis por Semana del Mes", yPos);
+      yPos = addSectionTitle(doc, "Analisis por Semana del Mes", yPos);
 
       autoTable(doc, {
         startY: yPos,
@@ -403,7 +404,7 @@ export const ReportGenerator = ({ trades }: ReportGeneratorProps) => {
       yPos = 20;
 
       // Trade Type Analysis
-      yPos = addSectionTitle(doc, "Análisis por Tipo de Operación", yPos);
+      yPos = addSectionTitle(doc, "Analisis por Tipo de Operacion", yPos);
 
       autoTable(doc, {
         startY: yPos,
@@ -423,11 +424,11 @@ export const ReportGenerator = ({ trades }: ReportGeneratorProps) => {
       yPos = (doc as any).lastAutoTable.finalY + 12;
 
       // News Analysis
-      yPos = addSectionTitle(doc, "Análisis de Impacto de Noticias", yPos);
+      yPos = addSectionTitle(doc, "Analisis de Impacto de Noticias", yPos);
 
       autoTable(doc, {
         startY: yPos,
-        head: [['Condición', 'Operaciones', 'P&L', 'Win Rate']],
+        head: [['Condicion', 'Operaciones', 'P&L', 'Win Rate']],
         body: [
           ['Con Noticias', tradesWithNews.length.toString(), `$${newsPnL.toFixed(2)}`, `${newsWinRate.toFixed(1)}%`],
           ['Sin Noticias', tradesWithoutNews.length.toString(), `$${noNewsPnL.toFixed(2)}`, `${noNewsWinRate.toFixed(1)}%`]
@@ -444,16 +445,16 @@ export const ReportGenerator = ({ trades }: ReportGeneratorProps) => {
       yPos = (doc as any).lastAutoTable.finalY + 12;
 
       // Execution Statistics
-      yPos = addSectionTitle(doc, "Estadísticas de Ejecución", yPos);
+      yPos = addSectionTitle(doc, "Estadisticas de Ejecucion", yPos);
 
       autoTable(doc, {
         startY: yPos,
-        head: [['Métrica', 'Valor']],
+        head: [['Metrica', 'Valor']],
         body: [
-          ['Total de Días Registrados', totalDays.toString()],
-          ['Días con Operación', actualTrades.length.toString()],
-          ['Días sin Entrada', noTradeDays.length.toString()],
-          ['Tasa de Ejecución', `${executionRate.toFixed(1)}%`]
+          ['Total de Dias Registrados', totalDays.toString()],
+          ['Dias con Operacion', actualTrades.length.toString()],
+          ['Dias sin Entrada', noTradeDays.length.toString()],
+          ['Tasa de Ejecucion', `${executionRate.toFixed(1)}%`]
         ],
         theme: 'striped',
         ...tableStyles,
@@ -471,7 +472,7 @@ export const ReportGenerator = ({ trades }: ReportGeneratorProps) => {
       // Trade Details Table
       autoTable(doc, {
         startY: yPos,
-        head: [['Fecha', 'Día', 'Hora', 'Tipo', 'Modelo', 'Resultado', 'P&L']],
+        head: [['Fecha', 'Dia', 'Hora', 'Tipo', 'Modelo', 'Resultado', 'P&L']],
         body: sortedActualTrades.map(trade => [
           trade.date,
           trade.day_of_week || 'N/A',
@@ -480,7 +481,7 @@ export const ReportGenerator = ({ trades }: ReportGeneratorProps) => {
           formatModel(trade),
           trade.result_type || 'N/A',
           `$${(trade.result_dollars || 0).toFixed(2)}`
-        ]),
+        ].map(sanitizePdfText)),
         theme: 'striped',
         headStyles: { 
           fillColor: brandColors.quantumBlue,

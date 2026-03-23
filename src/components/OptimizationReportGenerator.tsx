@@ -9,6 +9,7 @@ import {
   addBrandedFooter,
   getBrandedTableStyles,
   addSectionTitle,
+  sanitizePdfText,
 } from "@/utils/pdfBranding";
 import { fetchAIAnalysis, buildOptimizationDataSummary } from "@/utils/aiAnalysis";
 import { addAIAnalysisSection } from "@/utils/pdfAISection";
@@ -71,14 +72,14 @@ export const OptimizationReportGenerator = ({
       const pageWidth = doc.internal.pageSize.getWidth();
 
       const sourceName = source === "journal" ? "Journal (Trades Reales)" : `Backtesting: ${strategyName || "Estrategia"}`;
-      const modelLabel = modelFilter && modelFilter !== "all" ? ` · Modelo: ${modelFilter}` : "";
+      const modelLabel = modelFilter && modelFilter !== "all" ? ` - Modelo: ${modelFilter}` : "";
 
       // Branded Header
       await addBrandedHeader(
         doc,
-        "OPTIMIZACIÓN DE ENTRADA",
-        "Análisis de Punto de Entrada Óptimo",
-        `Fuente: ${sourceName}${modelLabel} · RR Base: 1:${baseRR} · ${new Date().toLocaleDateString("es-ES")}`
+        "OPTIMIZACION DE ENTRADA",
+        "Analisis de Punto de Entrada Optimo",
+        `Fuente: ${sourceName}${modelLabel} - RR Base: 1:${baseRR} - ${new Date().toLocaleDateString("es-ES")}`
       );
 
       let y = 68;
@@ -102,7 +103,7 @@ export const OptimizationReportGenerator = ({
 
       autoTable(doc, {
         startY: y,
-        head: [["Métrica", "Valor"]],
+        head: [["Metrica", "Valor"]],
         body: statsData,
         ...getBrandedTableStyles(),
         columnStyles: {
@@ -116,7 +117,7 @@ export const OptimizationReportGenerator = ({
 
       // --- Recommendation ---
       if (bestLevel) {
-        y = addSectionTitle(doc, "Recomendación", y);
+        y = addSectionTitle(doc, "Recomendacion", y);
         y += 4;
 
         doc.setFillColor(34, 197, 94);
@@ -124,40 +125,40 @@ export const OptimizationReportGenerator = ({
         doc.setTextColor(255, 255, 255);
         doc.setFontSize(10);
         doc.setFont("helvetica", "bold");
-        doc.text(`✓ Nivel Óptimo: ${bestLevel.label}`, 20, y + 8);
+        doc.text(`[SI] Nivel Optimo: ${bestLevel.label}`, 20, y + 8);
         doc.setFont("helvetica", "normal");
         doc.setFontSize(8);
         doc.text(
-          `Mover la entrada al ${bestLevel.label} genera +${bestLevel.totalRDelta.toFixed(2)}R más en total.`,
+          `Mover la entrada al ${bestLevel.label} genera +${bestLevel.totalRDelta.toFixed(2)}R mas en total.`,
           20,
           y + 15
         );
         doc.text(
-          `RR: ${bestLevel.avgOriginalRR.toFixed(2)}R → ${bestLevel.avgNewRR.toFixed(2)}R | WR: ${bestLevel.originalWinRate.toFixed(1)}% → ${bestLevel.newWinRate.toFixed(1)}% | P&L: ${bestLevel.originalTotalR.toFixed(2)}R → ${bestLevel.newTotalR.toFixed(2)}R`,
+          `RR: ${bestLevel.avgOriginalRR.toFixed(2)}R -> ${bestLevel.avgNewRR.toFixed(2)}R | WR: ${bestLevel.originalWinRate.toFixed(1)}% -> ${bestLevel.newWinRate.toFixed(1)}% | P&L: ${bestLevel.originalTotalR.toFixed(2)}R -> ${bestLevel.newTotalR.toFixed(2)}R`,
           20,
           y + 22
         );
         y += 36;
       } else {
-        y = addSectionTitle(doc, "Recomendación", y);
+        y = addSectionTitle(doc, "Recomendacion", y);
         y += 4;
         doc.setFillColor(239, 68, 68);
         doc.roundedRect(14, y, pageWidth - 28, 14, 2, 2, "F");
         doc.setTextColor(255, 255, 255);
         doc.setFontSize(9);
         doc.setFont("helvetica", "bold");
-        doc.text("✗ Ningún nivel mejora el P&L total. Mantener entrada actual.", 20, y + 9);
+        doc.text("[NO] Ningun nivel mejora el P&L total. Mantener entrada actual.", 20, y + 9);
         y += 22;
       }
 
       // --- Analysis Table ---
-      y = addSectionTitle(doc, "Análisis por Nivel de Drawdown", y);
+      y = addSectionTitle(doc, "Analisis por Nivel de Drawdown", y);
       y += 4;
 
       const analysisBody = presetAnalysis.map((a) => [
         a.label,
         `${a.tpsReach}/${a.totalTPs} (${a.reachPercent.toFixed(1)}%)`,
-        `${a.originalWinRate.toFixed(1)}% → ${a.newWinRate.toFixed(1)}%`,
+        `${a.originalWinRate.toFixed(1)}% -> ${a.newWinRate.toFixed(1)}%`,
         `${a.avgNewRR.toFixed(2)}R`,
         a.originalEV.toFixed(3),
         a.newEV.toFixed(3),
@@ -166,7 +167,7 @@ export const OptimizationReportGenerator = ({
 
       autoTable(doc, {
         startY: y,
-        head: [["Nivel DD", "Supervivencia", "Win Rate", "RR Nuevo", "EV Orig.", "EV Nuevo", "Δ P&L (R)"]],
+        head: [["Nivel DD", "Supervivencia", "Win Rate", "RR Nuevo", "EV Orig.", "EV Nuevo", "Dif P&L (R)"]],
         body: analysisBody,
         ...getBrandedTableStyles(),
         columnStyles: {
@@ -200,7 +201,7 @@ export const OptimizationReportGenerator = ({
         `${a.originalTotalR.toFixed(2)}R`,
         `${a.newTotalR.toFixed(2)}R`,
         `${a.totalRDelta > 0 ? "+" : ""}${a.totalRDelta.toFixed(2)}R`,
-        a.totalRDelta > 0 ? "✓ SÍ" : "✗ NO",
+        a.totalRDelta > 0 ? "SI" : "NO",
       ]);
 
       autoTable(doc, {
@@ -241,7 +242,7 @@ export const OptimizationReportGenerator = ({
         doc.setFontSize(8);
         doc.setTextColor(...brandColors.textMuted);
         doc.text(
-          `${a.tpsReach} de ${a.totalTPs} TPs alcanzan el nivel ${a.label} | RR: ${a.avgOriginalRR.toFixed(2)} → ${a.avgNewRR.toFixed(2)} | Δ P&L: ${a.totalRDelta > 0 ? "+" : ""}${a.totalRDelta.toFixed(2)}R`,
+          `${a.tpsReach} de ${a.totalTPs} TPs alcanzan el nivel ${a.label} | RR: ${a.avgOriginalRR.toFixed(2)} -> ${a.avgNewRR.toFixed(2)} | Dif P&L: ${a.totalRDelta > 0 ? "+" : ""}${a.totalRDelta.toFixed(2)}R`,
           20,
           detailY + 4
         );
@@ -259,7 +260,7 @@ export const OptimizationReportGenerator = ({
 
         autoTable(doc, {
           startY: detailY,
-          head: [["Fecha", "Activo", "Modelo", "DD", "RR Original", "RR Nuevo", "Δ RR"]],
+          head: [["Fecha", "Activo", "Modelo", "DD", "RR Original", "RR Nuevo", "Dif RR"]],
           body: tradeRows,
           ...getBrandedTableStyles(),
           columnStyles: {
@@ -276,7 +277,7 @@ export const OptimizationReportGenerator = ({
       // --- P&L Curve Data (new page) ---
       doc.addPage();
       let curveY = 20;
-      curveY = addSectionTitle(doc, "Evolución P&L Trade a Trade", curveY);
+      curveY = addSectionTitle(doc, "Evolucion P&L Trade a Trade", curveY);
       curveY += 2;
 
       doc.setFontSize(8);
@@ -335,20 +336,20 @@ export const OptimizationReportGenerator = ({
       // --- Methodology explanation (last page) ---
       doc.addPage();
       let methY = 20;
-      methY = addSectionTitle(doc, "Metodología", methY);
+      methY = addSectionTitle(doc, "Metodologia", methY);
       methY += 6;
 
       doc.setFontSize(8);
       doc.setTextColor(60, 60, 60);
       const methodology = [
-        "• Drawdown: porcentaje del recorrido hacia el SL que realiza el precio antes de ir al TP.",
-        "• Supervivencia: TPs cuyo drawdown ≥ nivel analizado. Si mueves la entrada ahí, estos trades seguirían siendo TP.",
-        "• Los SL se mantienen iguales en todos los escenarios. Solo disminuyen los TPs que no alcanzan el nivel.",
-        `• RR Nuevo = (RR Base + Nivel) / (1 - Nivel). Con RR base ${baseRR}: nivel 33% → RR ${((baseRR + 0.33) / 0.67).toFixed(2)}, nivel 50% → RR ${((baseRR + 0.50) / 0.50).toFixed(2)}.`,
-        "• Win Rate = TPs supervivientes / (TPs supervivientes + SLs totales).",
-        "• EV (Expected Value) = (WR × RR) − (1 − WR). Métrica por trade individual.",
-        "• Δ P&L (R) = P&L total optimizado − P&L total original. Métrica acumulada sobre todo el historial.",
-        "• La recomendación se basa en el Δ P&L total, no en el EV por trade, para reflejar el impacto real.",
+        "- Drawdown: porcentaje del recorrido hacia el SL que realiza el precio antes de ir al TP.",
+        "- Supervivencia: TPs cuyo drawdown >= nivel analizado. Si mueves la entrada ahi, estos trades seguirian siendo TP.",
+        "- Los SL se mantienen iguales en todos los escenarios. Solo disminuyen los TPs que no alcanzan el nivel.",
+        `- RR Nuevo = (RR Base + Nivel) / (1 - Nivel). Con RR base ${baseRR}: nivel 33% -> RR ${((baseRR + 0.33) / 0.67).toFixed(2)}, nivel 50% -> RR ${((baseRR + 0.50) / 0.50).toFixed(2)}.`,
+        "- Win Rate = TPs supervivientes / (TPs supervivientes + SLs totales).",
+        "- EV (Expected Value) = (WR x RR) - (1 - WR). Metrica por trade individual.",
+        "- Dif P&L (R) = P&L total optimizado - P&L total original. Metrica acumulada sobre todo el historial.",
+        "- La recomendacion se basa en el Dif P&L total, no en el EV por trade, para reflejar el impacto real.",
       ];
 
       methodology.forEach((line) => {

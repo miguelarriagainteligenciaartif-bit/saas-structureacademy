@@ -1,5 +1,5 @@
 import jsPDF from "jspdf";
-import { brandColors, addSectionTitle } from "@/utils/pdfBranding";
+import { brandColors, addSectionTitle, sanitizePdfText } from "@/utils/pdfBranding";
 
 /**
  * Renders AI analysis text into the PDF with proper formatting.
@@ -21,7 +21,7 @@ export const addAIAnalysisSection = (
   let y = startY;
 
   // Main section header
-  y = addSectionTitle(doc, "Análisis con Inteligencia Artificial", y);
+  y = addSectionTitle(doc, "Analisis con Inteligencia Artificial", y);
   y += 2;
 
   // AI badge
@@ -54,7 +54,7 @@ export const addAIAnalysisSection = (
       doc.setFontSize(10);
       doc.setFont("helvetica", "bold");
       doc.setTextColor(...brandColors.quantumBlue);
-      doc.text(headerText, marginLeft, y);
+      doc.text(sanitizePdfText(headerText), marginLeft, y);
       y += 7;
       continue;
     }
@@ -73,7 +73,7 @@ export const addAIAnalysisSection = (
       ? trimmed
       : trimmed;
 
-    const splitLines = doc.splitTextToSize(textToRender, maxWidth);
+    const splitLines = doc.splitTextToSize(sanitizePdfText(textToRender), maxWidth);
 
     for (const splitLine of splitLines) {
       if (y + lineHeight > pageHeight - footerHeight) {
