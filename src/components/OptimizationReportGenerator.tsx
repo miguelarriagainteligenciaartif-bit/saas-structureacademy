@@ -116,7 +116,7 @@ export const OptimizationReportGenerator = ({
 
       // --- Recommendation ---
       if (bestLevel) {
-        y = addSectionTitle(doc, "Recomendación", y);
+        y = addSectionTitle(doc, "Recomendacion", y);
         y += 4;
 
         doc.setFillColor(34, 197, 94);
