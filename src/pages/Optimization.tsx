@@ -8,11 +8,16 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { TrendingUp, TrendingDown, Search, Target, ArrowDownRight, Info } from "lucide-react";
+import { TrendingUp, TrendingDown, Search, Target, ArrowDownRight, Info, CalendarIcon } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { OptimizationPnLChart } from "@/components/OptimizationPnLChart";
 import { OptimizationReportGenerator } from "@/components/OptimizationReportGenerator";
 import { RiskSplitOptimizer } from "@/components/RiskSplitOptimizer";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
+import { cn } from "@/lib/utils";
 
 interface DrawdownTrade {
   id: string;
