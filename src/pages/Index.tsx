@@ -377,7 +377,7 @@ export default function Index() {
           <ExcelImporter onSuccess={loadTrades} />
           <CSVExportButton trades={allTrades} />
           {hasActiveFilters && (
-            <ReportGeneratorDialog trades={filteredTradesForMetrics} label="Informe Filtrado" />
+            <ReportGeneratorDialog trades={filteredTradesForMetrics} label="Informe Filtrado" directGenerate filterLabel={activeFilterLabel} />
           )}
           <ReportGeneratorDialog trades={allTrades} />
         </div>
