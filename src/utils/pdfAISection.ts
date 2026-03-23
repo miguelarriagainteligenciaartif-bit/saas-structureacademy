@@ -21,7 +21,7 @@ export const addAIAnalysisSection = (
   let y = startY;
 
   // Main section header
-  y = addSectionTitle(doc, "Análisis con Inteligencia Artificial", y);
+  y = addSectionTitle(doc, "Analisis con Inteligencia Artificial", y);
   y += 2;
 
   // AI badge
