@@ -105,6 +105,10 @@ export default function Optimization() {
   const [loading, setLoading] = useState(false);
   const [expandedLevel, setExpandedLevel] = useState<number | null>(null);
   const [journalRR, setJournalRR] = useState<number>(2);
+  const [filterTimeFrom, setFilterTimeFrom] = useState<string>("");
+  const [filterTimeTo, setFilterTimeTo] = useState<string>("");
+  const [filterFvgCount, setFilterFvgCount] = useState<string>("all");
+  const [filterEntrySubtype, setFilterEntrySubtype] = useState<string>("all");
 
   // Auth
   useEffect(() => {
