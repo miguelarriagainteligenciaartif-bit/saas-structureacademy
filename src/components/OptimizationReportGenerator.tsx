@@ -102,7 +102,7 @@ export const OptimizationReportGenerator = ({
 
       autoTable(doc, {
         startY: y,
-        head: [["Métrica", "Valor"]],
+        head: [["Metrica", "Valor"]],
         body: statsData,
         ...getBrandedTableStyles(),
         columnStyles: {
