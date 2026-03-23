@@ -241,7 +241,7 @@ export const OptimizationReportGenerator = ({
         doc.setFontSize(8);
         doc.setTextColor(...brandColors.textMuted);
         doc.text(
-          `${a.tpsReach} de ${a.totalTPs} TPs alcanzan el nivel ${a.label} | RR: ${a.avgOriginalRR.toFixed(2)} → ${a.avgNewRR.toFixed(2)} | Δ P&L: ${a.totalRDelta > 0 ? "+" : ""}${a.totalRDelta.toFixed(2)}R`,
+          `${a.tpsReach} de ${a.totalTPs} TPs alcanzan el nivel ${a.label} | RR: ${a.avgOriginalRR.toFixed(2)} -> ${a.avgNewRR.toFixed(2)} | Dif P&L: ${a.totalRDelta > 0 ? "+" : ""}${a.totalRDelta.toFixed(2)}R`,
           20,
           detailY + 4
         );
