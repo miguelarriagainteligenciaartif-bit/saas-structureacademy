@@ -125,6 +125,8 @@ export default function Optimization() {
   const [filterTimeTo, setFilterTimeTo] = useState<string>("");
   const [filterFvgCount, setFilterFvgCount] = useState<string>("all");
   const [filterEntrySubtype, setFilterEntrySubtype] = useState<string>("all");
+  const [filterDateFrom, setFilterDateFrom] = useState<Date | undefined>();
+  const [filterDateTo, setFilterDateTo] = useState<Date | undefined>();
 
   // Auth
   useEffect(() => {
