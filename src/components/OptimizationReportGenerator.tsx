@@ -139,7 +139,7 @@ export const OptimizationReportGenerator = ({
         );
         y += 36;
       } else {
-        y = addSectionTitle(doc, "Recomendación", y);
+        y = addSectionTitle(doc, "Recomendacion", y);
         y += 4;
         doc.setFillColor(239, 68, 68);
         doc.roundedRect(14, y, pageWidth - 28, 14, 2, 2, "F");
