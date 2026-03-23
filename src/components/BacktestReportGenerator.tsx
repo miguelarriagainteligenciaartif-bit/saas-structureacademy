@@ -225,7 +225,7 @@ export const BacktestReportGenerator = ({ trades, strategy }: BacktestReportGene
       yPos = (doc as any).lastAutoTable.finalY + 12;
 
       // Day table
-      yPos = addSectionTitle(doc, "Análisis por Día de la Semana", yPos);
+      yPos = addSectionTitle(doc, "Analisis por Dia de la Semana", yPos);
       autoTable(doc, {
         startY: yPos,
         head: [['Día', 'Operaciones', 'P&L', 'Win Rate']],
