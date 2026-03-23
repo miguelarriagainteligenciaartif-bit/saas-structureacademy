@@ -259,7 +259,7 @@ export const OptimizationReportGenerator = ({
 
         autoTable(doc, {
           startY: detailY,
-          head: [["Fecha", "Activo", "Modelo", "DD", "RR Original", "RR Nuevo", "Δ RR"]],
+          head: [["Fecha", "Activo", "Modelo", "DD", "RR Original", "RR Nuevo", "Dif RR"]],
           body: tradeRows,
           ...getBrandedTableStyles(),
           columnStyles: {
