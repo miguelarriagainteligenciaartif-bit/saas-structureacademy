@@ -289,7 +289,8 @@ export default function Optimization() {
               baseRR={baseRR}
               source={source}
               strategyName={strategies.find(s => s.id === selectedStrategy)?.name}
-              allTrades={allDecisiveTrades}
+              allTrades={filteredAllTrades}
+              modelFilter={modelFilter}
             />
           )}
         </div>
