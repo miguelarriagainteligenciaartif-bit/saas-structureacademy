@@ -133,7 +133,7 @@ export const OptimizationReportGenerator = ({
           y + 15
         );
         doc.text(
-          `RR: ${bestLevel.avgOriginalRR.toFixed(2)}R → ${bestLevel.avgNewRR.toFixed(2)}R | WR: ${bestLevel.originalWinRate.toFixed(1)}% → ${bestLevel.newWinRate.toFixed(1)}% | P&L: ${bestLevel.originalTotalR.toFixed(2)}R → ${bestLevel.newTotalR.toFixed(2)}R`,
+          `RR: ${bestLevel.avgOriginalRR.toFixed(2)}R -> ${bestLevel.avgNewRR.toFixed(2)}R | WR: ${bestLevel.originalWinRate.toFixed(1)}% -> ${bestLevel.newWinRate.toFixed(1)}% | P&L: ${bestLevel.originalTotalR.toFixed(2)}R -> ${bestLevel.newTotalR.toFixed(2)}R`,
           20,
           y + 22
         );
