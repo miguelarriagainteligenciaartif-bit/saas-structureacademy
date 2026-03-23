@@ -200,7 +200,7 @@ export const OptimizationReportGenerator = ({
         `${a.originalTotalR.toFixed(2)}R`,
         `${a.newTotalR.toFixed(2)}R`,
         `${a.totalRDelta > 0 ? "+" : ""}${a.totalRDelta.toFixed(2)}R`,
-        a.totalRDelta > 0 ? "✓ SÍ" : "✗ NO",
+        a.totalRDelta > 0 ? "SI" : "NO",
       ]);
 
       autoTable(doc, {
