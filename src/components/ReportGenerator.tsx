@@ -471,7 +471,7 @@ export const ReportGenerator = ({ trades }: ReportGeneratorProps) => {
       // Trade Details Table
       autoTable(doc, {
         startY: yPos,
-        head: [['Fecha', 'Día', 'Hora', 'Tipo', 'Modelo', 'Resultado', 'P&L']],
+        head: [['Fecha', 'Dia', 'Hora', 'Tipo', 'Modelo', 'Resultado', 'P&L']],
         body: sortedActualTrades.map(trade => [
           trade.date,
           trade.day_of_week || 'N/A',
