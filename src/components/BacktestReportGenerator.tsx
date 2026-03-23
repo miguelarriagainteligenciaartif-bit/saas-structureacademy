@@ -247,7 +247,7 @@ export const BacktestReportGenerator = ({ trades, strategy }: BacktestReportGene
       }).filter(w => w.trades > 0);
 
       if (weekStats.length > 0) {
-        yPos = addSectionTitle(doc, "Análisis por Semana del Mes", yPos);
+        yPos = addSectionTitle(doc, "Analisis por Semana del Mes", yPos);
         autoTable(doc, {
           startY: yPos,
           head: [['Semana', 'Operaciones', 'P&L', 'Win Rate']],
