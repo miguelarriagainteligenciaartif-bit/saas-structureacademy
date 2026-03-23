@@ -24,6 +24,9 @@ interface DrawdownTrade {
   entry_model: string;
   max_rr: number | null;
   continuation_subtype?: string | null;
+  entry_time?: string | null;
+  fvg_count?: number | null;
+  entry_subtype?: string | null;
 }
 
 type ModelFilter = "all" | "M1" | "M3" | "Continuación" | "Cont. Bloque" | "Cont. FVG";
@@ -37,14 +40,29 @@ const MODEL_FILTER_OPTIONS: { value: ModelFilter; label: string }[] = [
   { value: "Cont. FVG", label: "Continuación — FVG" },
 ];
 
-function filterTradesByModel<T extends { entry_model?: string; continuation_subtype?: string | null }>(trades: T[], model: ModelFilter): T[] {
-  if (model === "all") return trades;
-  if (model === "M1") return trades.filter(t => t.entry_model === "M1");
-  if (model === "M3") return trades.filter(t => t.entry_model === "M3");
-  if (model === "Continuación") return trades.filter(t => t.entry_model === "Continuación");
-  if (model === "Cont. Bloque") return trades.filter(t => t.entry_model === "Continuación" && t.continuation_subtype === "Bloque");
-  if (model === "Cont. FVG") return trades.filter(t => t.entry_model === "Continuación" && t.continuation_subtype === "FVG");
-  return trades;
+function applyAllFilters<T extends { entry_model?: string; continuation_subtype?: string | null; entry_time?: string | null; fvg_count?: number | null; entry_subtype?: string | null }>(
+  trades: T[],
+  model: ModelFilter,
+  timeFrom: string,
+  timeTo: string,
+  fvgCount: string,
+  entrySubtype: string,
+): T[] {
+  let filtered = trades;
+  // Model filter
+  if (model === "M1") filtered = filtered.filter(t => t.entry_model === "M1");
+  else if (model === "M3") filtered = filtered.filter(t => t.entry_model === "M3");
+  else if (model === "Continuación") filtered = filtered.filter(t => t.entry_model === "Continuación");
+  else if (model === "Cont. Bloque") filtered = filtered.filter(t => t.entry_model === "Continuación" && t.continuation_subtype === "Bloque");
+  else if (model === "Cont. FVG") filtered = filtered.filter(t => t.entry_model === "Continuación" && t.continuation_subtype === "FVG");
+  // Time filter
+  if (timeFrom) filtered = filtered.filter(t => t.entry_time && t.entry_time >= timeFrom);
+  if (timeTo) filtered = filtered.filter(t => t.entry_time && t.entry_time <= timeTo);
+  // FVG count filter
+  if (fvgCount !== "all") filtered = filtered.filter(t => t.fvg_count === parseInt(fvgCount));
+  // Entry subtype filter
+  if (entrySubtype !== "all") filtered = filtered.filter(t => t.entry_subtype === entrySubtype);
+  return filtered;
 }
 
 interface LevelAnalysis {
