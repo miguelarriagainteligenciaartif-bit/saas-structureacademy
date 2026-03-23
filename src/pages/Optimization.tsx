@@ -212,10 +212,10 @@ export default function Optimization() {
     loadTrades();
   }, [source, selectedStrategy]);
 
-  // Filtered data by model
-  const filteredTrades = useMemo(() => filterTradesByModel(trades, modelFilter), [trades, modelFilter]);
-  const filteredSLCount = useMemo(() => filterTradesByModel(slTrades, modelFilter).length, [slTrades, modelFilter]);
-  const filteredAllTrades = useMemo(() => filterTradesByModel(allDecisiveTrades, modelFilter), [allDecisiveTrades, modelFilter]);
+  // Filtered data by all filters
+  const filteredTrades = useMemo(() => applyAllFilters(trades, modelFilter, filterTimeFrom, filterTimeTo, filterFvgCount, filterEntrySubtype), [trades, modelFilter, filterTimeFrom, filterTimeTo, filterFvgCount, filterEntrySubtype]);
+  const filteredSLCount = useMemo(() => applyAllFilters(slTrades, modelFilter, filterTimeFrom, filterTimeTo, filterFvgCount, filterEntrySubtype).length, [slTrades, modelFilter, filterTimeFrom, filterTimeTo, filterFvgCount, filterEntrySubtype]);
+  const filteredAllTrades = useMemo(() => applyAllFilters(allDecisiveTrades, modelFilter, filterTimeFrom, filterTimeTo, filterFvgCount, filterEntrySubtype), [allDecisiveTrades, modelFilter, filterTimeFrom, filterTimeTo, filterFvgCount, filterEntrySubtype]);
 
   // Analysis
   const analyzeLevel = (level: number): LevelAnalysis => {
