@@ -168,6 +168,12 @@ export const getBrandedTableStyles = () => ({
     lineColor: [200, 200, 200] as [number, number, number],
     lineWidth: 0.1,
   },
+  didParseCell: (data: any) => {
+    // Sanitize all cell text for jsPDF compatibility
+    if (typeof data.cell.raw === "string") {
+      data.cell.text = [sanitizePdfText(data.cell.raw)];
+    }
+  },
 });
 
 // Section title styling
