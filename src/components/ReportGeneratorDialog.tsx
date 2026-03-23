@@ -59,12 +59,15 @@ const formatModel = (trade: Trade) => {
 interface ReportGeneratorDialogProps {
   trades: Trade[];
   label?: string;
+  directGenerate?: boolean;
+  filterLabel?: string;
 }
 
 type PresetPeriod = "all" | "thisMonth" | "lastMonth" | "thisYear" | "custom";
 
-export const ReportGeneratorDialog = ({ trades, label }: ReportGeneratorDialogProps) => {
+export const ReportGeneratorDialog = ({ trades, label, directGenerate, filterLabel }: ReportGeneratorDialogProps) => {
   const [open, setOpen] = useState(false);
+  const [generating, setGenerating] = useState(false);
   const [preset, setPreset] = useState<PresetPeriod>("all");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
@@ -257,7 +260,9 @@ export const ReportGeneratorDialog = ({ trades, label }: ReportGeneratorDialogPr
       
       // Period text
       let periodText = "";
-      if (preset === "all") {
+      if (filterLabel) {
+        periodText = `Filtros: ${filterLabel}`;
+      } else if (preset === "all") {
         periodText = "Período: Todos los datos";
       } else {
         const startFormatted = startDate ? format(parseISO(startDate), "d MMM yyyy", { locale: es }) : "";
@@ -694,6 +699,24 @@ export const ReportGeneratorDialog = ({ trades, label }: ReportGeneratorDialogPr
       toast.error("Error al generar el informe PDF");
     }
   };
+
+  const handleDirectGenerate = async () => {
+    setGenerating(true);
+    try {
+      await generateReport();
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  if (directGenerate) {
+    return (
+      <Button variant="outline" className="gap-2" onClick={handleDirectGenerate} disabled={generating}>
+        <Download className="h-4 w-4" />
+        {generating ? "Generando..." : (label || "Descargar Informe PDF")}
+      </Button>
+    );
+  }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

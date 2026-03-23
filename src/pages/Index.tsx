@@ -166,6 +166,24 @@ export default function Index() {
   };
 
   const hasActiveFilters = selectedAccount !== "all" || filterDateFrom || filterDateTo || filterModel !== "all" || filterTimeFrom || filterTimeTo || filterFvgCount !== "all" || filterEntrySubtype !== "all" || filterContinuationSubtype !== "all";
+
+  const activeFilterLabel = (() => {
+    const parts: string[] = [];
+    if (filterDateFrom) parts.push(`Desde: ${filterDateFrom.toLocaleDateString("es-ES")}`);
+    if (filterDateTo) parts.push(`Hasta: ${filterDateTo.toLocaleDateString("es-ES")}`);
+    if (filterTimeFrom) parts.push(`Hora desde: ${filterTimeFrom}`);
+    if (filterTimeTo) parts.push(`Hora hasta: ${filterTimeTo}`);
+    if (filterModel !== "all") parts.push(`Modelo: ${filterModel}`);
+    if (filterFvgCount !== "all") parts.push(`FVGs: ${filterFvgCount}`);
+    if (filterEntrySubtype !== "all") parts.push(filterEntrySubtype);
+    if (filterContinuationSubtype !== "all") parts.push(`Cont: ${filterContinuationSubtype}`);
+    if (selectedAccount !== "all") {
+      const acc = accounts.find(a => a.id === selectedAccount);
+      if (acc) parts.push(`Cuenta: ${acc.name}`);
+    }
+    return parts.join(" · ");
+  })();
+
   const filteredTradesForMetrics = applyFilters(allTrades);
   const actualTrades = filteredTradesForMetrics.filter(t => !t.no_trade_day);
 
@@ -359,7 +377,7 @@ export default function Index() {
           <ExcelImporter onSuccess={loadTrades} />
           <CSVExportButton trades={allTrades} />
           {hasActiveFilters && (
-            <ReportGeneratorDialog trades={filteredTradesForMetrics} label="Informe Filtrado" />
+            <ReportGeneratorDialog trades={filteredTradesForMetrics} label="Informe Filtrado" directGenerate filterLabel={activeFilterLabel} />
           )}
           <ReportGeneratorDialog trades={allTrades} />
         </div>
