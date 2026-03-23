@@ -165,6 +165,7 @@ export default function Index() {
     return filtered;
   };
 
+  const hasActiveFilters = selectedAccount !== "all" || filterDateFrom || filterDateTo || filterModel !== "all" || filterTimeFrom || filterTimeTo || filterFvgCount !== "all" || filterEntrySubtype !== "all" || filterContinuationSubtype !== "all";
   const filteredTradesForMetrics = applyFilters(allTrades);
   const actualTrades = filteredTradesForMetrics.filter(t => !t.no_trade_day);
 
@@ -357,6 +358,9 @@ export default function Index() {
         <div className="flex justify-end gap-2">
           <ExcelImporter onSuccess={loadTrades} />
           <CSVExportButton trades={allTrades} />
+          {hasActiveFilters && (
+            <ReportGeneratorDialog trades={filteredTradesForMetrics} label="Informe Filtrado" />
+          )}
           <ReportGeneratorDialog trades={allTrades} />
         </div>
 

@@ -58,11 +58,12 @@ const formatModel = (trade: Trade) => {
 
 interface ReportGeneratorDialogProps {
   trades: Trade[];
+  label?: string;
 }
 
 type PresetPeriod = "all" | "thisMonth" | "lastMonth" | "thisYear" | "custom";
 
-export const ReportGeneratorDialog = ({ trades }: ReportGeneratorDialogProps) => {
+export const ReportGeneratorDialog = ({ trades, label }: ReportGeneratorDialogProps) => {
   const [open, setOpen] = useState(false);
   const [preset, setPreset] = useState<PresetPeriod>("all");
   const [startDate, setStartDate] = useState("");
@@ -699,7 +700,7 @@ export const ReportGeneratorDialog = ({ trades }: ReportGeneratorDialogProps) =>
       <DialogTrigger asChild>
         <Button variant="outline" className="gap-2">
           <Download className="h-4 w-4" />
-          Descargar Informe PDF
+          {label || "Descargar Informe PDF"}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
