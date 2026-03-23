@@ -366,7 +366,7 @@ export const ReportGenerator = ({ trades }: ReportGeneratorProps) => {
           d.trades.toString(),
           `$${d.pnl.toFixed(2)}`,
           `${d.winRate.toFixed(1)}%`
-        ]),
+        ].map(sanitizePdfText)),
         theme: 'striped',
         ...tableStyles,
         columnStyles: {
