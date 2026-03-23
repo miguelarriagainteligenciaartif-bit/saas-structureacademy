@@ -1,5 +1,5 @@
 import jsPDF from "jspdf";
-import { brandColors, addSectionTitle } from "@/utils/pdfBranding";
+import { brandColors, addSectionTitle, sanitizePdfText } from "@/utils/pdfBranding";
 
 /**
  * Renders AI analysis text into the PDF with proper formatting.
