@@ -228,7 +228,7 @@ export const BacktestReportGenerator = ({ trades, strategy }: BacktestReportGene
       yPos = addSectionTitle(doc, "Analisis por Dia de la Semana", yPos);
       autoTable(doc, {
         startY: yPos,
-        head: [['Día', 'Operaciones', 'P&L', 'Win Rate']],
+        head: [['Dia', 'Operaciones', 'P&L', 'Win Rate']],
         body: dayStats.map(d => [d.day, d.trades.toString(), `$${d.pnl.toFixed(2)}`, `${d.winRate.toFixed(1)}%`]),
         theme: 'striped',
         ...tableStyles,
