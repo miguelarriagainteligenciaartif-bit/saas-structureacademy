@@ -58,11 +58,12 @@ const formatModel = (trade: Trade) => {
 
 interface ReportGeneratorDialogProps {
   trades: Trade[];
+  label?: string;
 }
 
 type PresetPeriod = "all" | "thisMonth" | "lastMonth" | "thisYear" | "custom";
 
-export const ReportGeneratorDialog = ({ trades }: ReportGeneratorDialogProps) => {
+export const ReportGeneratorDialog = ({ trades, label }: ReportGeneratorDialogProps) => {
   const [open, setOpen] = useState(false);
   const [preset, setPreset] = useState<PresetPeriod>("all");
   const [startDate, setStartDate] = useState("");

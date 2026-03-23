@@ -165,6 +165,7 @@ export default function Index() {
     return filtered;
   };
 
+  const hasActiveFilters = selectedAccount !== "all" || filterDateFrom || filterDateTo || filterModel !== "all" || filterTimeFrom || filterTimeTo || filterFvgCount !== "all" || filterEntrySubtype !== "all" || filterContinuationSubtype !== "all";
   const filteredTradesForMetrics = applyFilters(allTrades);
   const actualTrades = filteredTradesForMetrics.filter(t => !t.no_trade_day);
 
