@@ -166,7 +166,7 @@ export const OptimizationReportGenerator = ({
 
       autoTable(doc, {
         startY: y,
-        head: [["Nivel DD", "Supervivencia", "Win Rate", "RR Nuevo", "EV Orig.", "EV Nuevo", "Δ P&L (R)"]],
+        head: [["Nivel DD", "Supervivencia", "Win Rate", "RR Nuevo", "EV Orig.", "EV Nuevo", "Dif P&L (R)"]],
         body: analysisBody,
         ...getBrandedTableStyles(),
         columnStyles: {
