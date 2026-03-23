@@ -284,14 +284,14 @@ export const BacktestReportGenerator = ({ trades, strategy }: BacktestReportGene
       yPos = addSectionTitle(doc, "Estadisticas de Ejecucion", yPos);
       autoTable(doc, {
         startY: yPos,
-        head: [['Métrica', 'Valor']],
+        head: [['Metrica', 'Valor']],
         body: [
-          ['Total de Días Registrados', totalDays.toString()],
-          ['Días con Operación', totalTrades.toString()],
-          ['Días sin Entrada', noTradeDays.toString()],
-          ['Tasa de Ejecución', `${(totalDays > 0 ? (totalTrades / totalDays * 100) : 0).toFixed(1)}%`],
-          ['Ops con RR Máximo', tradesWithMaxRR.length.toString()],
-          ['RR Máximo Promedio', avgMaxRR > 0 ? avgMaxRR.toFixed(2) : 'N/A'],
+          ['Total de Dias Registrados', totalDays.toString()],
+          ['Dias con Operacion', totalTrades.toString()],
+          ['Dias sin Entrada', noTradeDays.toString()],
+          ['Tasa de Ejecucion', `${(totalDays > 0 ? (totalTrades / totalDays * 100) : 0).toFixed(1)}%`],
+          ['Ops con RR Maximo', tradesWithMaxRR.length.toString()],
+          ['RR Maximo Promedio', avgMaxRR > 0 ? avgMaxRR.toFixed(2) : 'N/A'],
         ],
         theme: 'striped',
         ...tableStyles,
