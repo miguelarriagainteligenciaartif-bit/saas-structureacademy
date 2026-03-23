@@ -128,7 +128,7 @@ export const OptimizationReportGenerator = ({
         doc.setFont("helvetica", "normal");
         doc.setFontSize(8);
         doc.text(
-          `Mover la entrada al ${bestLevel.label} genera +${bestLevel.totalRDelta.toFixed(2)}R más en total.`,
+          `Mover la entrada al ${bestLevel.label} genera +${bestLevel.totalRDelta.toFixed(2)}R mas en total.`,
           20,
           y + 15
         );
