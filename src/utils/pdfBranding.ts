@@ -103,7 +103,7 @@ export const addBrandedFooter = (doc: jsPDF) => {
     doc.setFontSize(8);
     doc.setTextColor(...brandColors.textMuted);
     doc.text(
-      `Página ${i} de ${pageCount}`,
+      `Pagina ${i} de ${pageCount}`,
       14,
       pageHeight - 8
     );
