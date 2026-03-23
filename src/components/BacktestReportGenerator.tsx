@@ -212,7 +212,7 @@ export const BacktestReportGenerator = ({ trades, strategy }: BacktestReportGene
       yPos += boxHeight + 15;
 
       // Model table
-      yPos = addSectionTitle(doc, "Análisis por Modelo de Entrada", yPos);
+      yPos = addSectionTitle(doc, "Analisis por Modelo de Entrada", yPos);
       autoTable(doc, {
         startY: yPos,
         head: [['Modelo', 'Operaciones', 'P&L', 'Win Rate']],
