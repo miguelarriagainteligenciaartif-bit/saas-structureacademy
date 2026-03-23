@@ -1,6 +1,28 @@
 import jsPDF from "jspdf";
 import quantumLogo from "@/assets/quantum-logo.png";
 
+/**
+ * Sanitize text for jsPDF rendering.
+ * jsPDF default fonts (Helvetica) don't support Unicode accents or special chars.
+ * This strips accents and replaces special symbols with ASCII equivalents.
+ */
+export const sanitizePdfText = (text: string): string => {
+  return text
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/→/g, "->")
+    .replace(/←/g, "<-")
+    .replace(/✓/g, "[SI]")
+    .replace(/✗/g, "[NO]")
+    .replace(/Δ/g, "Dif")
+    .replace(/·/g, "-")
+    .replace(/×/g, "x")
+    .replace(/−/g, "-")
+    .replace(/≥/g, ">=")
+    .replace(/≤/g, "<=")
+    .replace(/•/g, "-");
+};
+
 // Quantum Era Brand Colors
 export const brandColors = {
   quantumBlue: [30, 144, 255] as [number, number, number], // #1E90FF
