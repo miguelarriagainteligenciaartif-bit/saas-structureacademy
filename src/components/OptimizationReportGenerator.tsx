@@ -157,7 +157,7 @@ export const OptimizationReportGenerator = ({
       const analysisBody = presetAnalysis.map((a) => [
         a.label,
         `${a.tpsReach}/${a.totalTPs} (${a.reachPercent.toFixed(1)}%)`,
-        `${a.originalWinRate.toFixed(1)}% → ${a.newWinRate.toFixed(1)}%`,
+        `${a.originalWinRate.toFixed(1)}% -> ${a.newWinRate.toFixed(1)}%`,
         `${a.avgNewRR.toFixed(2)}R`,
         a.originalEV.toFixed(3),
         a.newEV.toFixed(3),
