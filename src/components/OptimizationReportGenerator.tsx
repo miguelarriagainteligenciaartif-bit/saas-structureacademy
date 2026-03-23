@@ -48,6 +48,7 @@ interface OptimizationReportProps {
   source: string;
   strategyName?: string;
   allTrades: AllTrade[];
+  modelFilter?: string;
 }
 
 export const OptimizationReportGenerator = ({
@@ -57,6 +58,7 @@ export const OptimizationReportGenerator = ({
   source,
   strategyName,
   allTrades,
+  modelFilter,
 }: OptimizationReportProps) => {
   const generateReport = async () => {
     if (presetAnalysis.length === 0) {
