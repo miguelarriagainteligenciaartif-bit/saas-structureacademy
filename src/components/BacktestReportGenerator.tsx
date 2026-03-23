@@ -151,7 +151,7 @@ export const BacktestReportGenerator = ({ trades, strategy }: BacktestReportGene
         doc,
         "INFORME DE BACKTESTING",
         `Estrategia: ${strategy.name}`,
-        `R:R ${strategy.risk_reward_ratio} · Generado: ${new Date().toLocaleDateString('es-ES', {
+        `R:R ${strategy.risk_reward_ratio} - Generado: ${new Date().toLocaleDateString('es-ES', {
           year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
         })}`
       );
