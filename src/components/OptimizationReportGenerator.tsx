@@ -124,7 +124,7 @@ export const OptimizationReportGenerator = ({
         doc.setTextColor(255, 255, 255);
         doc.setFontSize(10);
         doc.setFont("helvetica", "bold");
-        doc.text(`✓ Nivel Óptimo: ${bestLevel.label}`, 20, y + 8);
+        doc.text(`[SI] Nivel Optimo: ${bestLevel.label}`, 20, y + 8);
         doc.setFont("helvetica", "normal");
         doc.setFontSize(8);
         doc.text(
