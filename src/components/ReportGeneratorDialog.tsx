@@ -65,8 +65,9 @@ interface ReportGeneratorDialogProps {
 
 type PresetPeriod = "all" | "thisMonth" | "lastMonth" | "thisYear" | "custom";
 
-export const ReportGeneratorDialog = ({ trades, label }: ReportGeneratorDialogProps) => {
+export const ReportGeneratorDialog = ({ trades, label, directGenerate, filterLabel }: ReportGeneratorDialogProps) => {
   const [open, setOpen] = useState(false);
+  const [generating, setGenerating] = useState(false);
   const [preset, setPreset] = useState<PresetPeriod>("all");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
