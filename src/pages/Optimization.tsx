@@ -304,17 +304,26 @@ export default function Optimization() {
               Analiza el drawdown de tus TPs para determinar si puedes acercar tu entrada al SL y aumentar tu RR.
             </p>
           </div>
-          {trades.length > 0 && (
-            <OptimizationReportGenerator
-              presetAnalysis={presetAnalysis}
-              bestLevel={bestLevel}
-              baseRR={baseRR}
-              source={source}
-              strategyName={strategies.find(s => s.id === selectedStrategy)?.name}
-              allTrades={filteredAllTrades}
-              modelFilter={modelFilter}
-            />
-          )}
+          {trades.length > 0 && (() => {
+            const filterParts: string[] = [];
+            if (modelFilter !== "all") filterParts.push(MODEL_FILTER_OPTIONS.find(o => o.value === modelFilter)?.label || modelFilter);
+            if (filterTimeFrom) filterParts.push(`Desde ${filterTimeFrom}`);
+            if (filterTimeTo) filterParts.push(`Hasta ${filterTimeTo}`);
+            if (filterFvgCount !== "all") filterParts.push(`${filterFvgCount} FVG`);
+            if (filterEntrySubtype !== "all") filterParts.push(filterEntrySubtype);
+            const filterLabel = filterParts.length > 0 ? filterParts.join(" · ") : undefined;
+            return (
+              <OptimizationReportGenerator
+                presetAnalysis={presetAnalysis}
+                bestLevel={bestLevel}
+                baseRR={baseRR}
+                source={source}
+                strategyName={strategies.find(s => s.id === selectedStrategy)?.name}
+                allTrades={filteredAllTrades}
+                modelFilter={filterLabel}
+              />
+            );
+          })()}
         </div>
 
         {/* Source Selector */}
