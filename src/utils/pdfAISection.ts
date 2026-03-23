@@ -73,7 +73,7 @@ export const addAIAnalysisSection = (
       ? trimmed
       : trimmed;
 
-    const splitLines = doc.splitTextToSize(textToRender, maxWidth);
+    const splitLines = doc.splitTextToSize(sanitizePdfText(textToRender), maxWidth);
 
     for (const splitLine of splitLines) {
       if (y + lineHeight > pageHeight - footerHeight) {
