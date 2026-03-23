@@ -78,7 +78,7 @@ export const OptimizationReportGenerator = ({
         doc,
         "OPTIMIZACIÓN DE ENTRADA",
         "Análisis de Punto de Entrada Óptimo",
-        `Fuente: ${sourceName}${modelLabel} · RR Base: 1:${baseRR} · ${new Date().toLocaleDateString("es-ES")}`
+        `Fuente: ${sourceName}${modelLabel} - RR Base: 1:${baseRR} - ${new Date().toLocaleDateString("es-ES")}`
       );
 
       let y = 68;
