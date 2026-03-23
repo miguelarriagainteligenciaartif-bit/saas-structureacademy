@@ -154,16 +154,16 @@ export default function Optimization() {
       if (source === "journal") {
         tpQuery = supabase
           .from("trades")
-          .select("id, date, drawdown, result_type, result_dollars, asset, entry_model, max_rr, continuation_subtype")
+          .select("id, date, drawdown, result_type, result_dollars, asset, entry_model, max_rr, continuation_subtype, entry_time, fvg_count, entry_subtype")
           .eq("result_type", "TP")
           .not("drawdown", "is", null);
         slQuery = supabase
           .from("trades")
-          .select("id, entry_model, continuation_subtype", { count: "exact" })
+          .select("id, entry_model, continuation_subtype, entry_time, fvg_count, entry_subtype", { count: "exact" })
           .eq("result_type", "SL");
         allQuery = supabase
           .from("trades")
-          .select("id, date, drawdown, result_type, entry_model, continuation_subtype")
+          .select("id, date, drawdown, result_type, entry_model, continuation_subtype, entry_time, fvg_count, entry_subtype")
           .in("result_type", ["TP", "SL"])
           .order("date", { ascending: true });
       } else {
