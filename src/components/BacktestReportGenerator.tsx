@@ -281,7 +281,7 @@ export const BacktestReportGenerator = ({ trades, strategy }: BacktestReportGene
       yPos = (doc as any).lastAutoTable.finalY + 12;
 
       // Execution stats
-      yPos = addSectionTitle(doc, "Estadísticas de Ejecución", yPos);
+      yPos = addSectionTitle(doc, "Estadisticas de Ejecucion", yPos);
       autoTable(doc, {
         startY: yPos,
         head: [['Métrica', 'Valor']],
