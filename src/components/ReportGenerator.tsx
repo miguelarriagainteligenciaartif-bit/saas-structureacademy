@@ -148,7 +148,7 @@ export const ReportGenerator = ({ trades }: ReportGeneratorProps) => {
       }));
 
       // By day of week
-      const dayStats = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"].map(day => {
+      const dayStats = ["Lunes", "Martes", "Miercoles", "Jueves", "Viernes"].map(day => {
         const dayTrades = actualTrades.filter(t => t.day_of_week?.toLowerCase() === day.toLowerCase());
         const dayWins = dayTrades.filter(t => t.result_type === "TP");
         const dayPnL = dayTrades.reduce((sum, t) => sum + (t.result_dollars || 0), 0);
