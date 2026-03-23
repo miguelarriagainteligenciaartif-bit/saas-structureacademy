@@ -127,7 +127,7 @@ export const BacktestReportGenerator = ({ trades, strategy }: BacktestReportGene
       });
 
       // By day
-      const dayStats = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"].map(day => {
+      const dayStats = ["Lunes", "Martes", "Miercoles", "Jueves", "Viernes"].map(day => {
         const dayTrades = actualTrades.filter(t => t.day_of_week === day);
         const wins = dayTrades.filter(t => t.result_type === "TP").length;
         const pnl = dayTrades.reduce((sum, t) => sum + Number(t.result_dollars), 0);
