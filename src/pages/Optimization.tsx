@@ -374,28 +374,110 @@ export default function Optimization() {
           </CardContent>
         </Card>
 
-        {/* Model Filter */}
+        {/* Filters */}
         {trades.length > 0 && (
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Filtrar por Modelo de Entrada</CardTitle>
-              <CardDescription>Analiza la optimización solo para un modelo específico</CardDescription>
+              <CardTitle className="text-lg">Filtros de Análisis</CardTitle>
+              <CardDescription>Filtra por modelo, hora de entrada, FVG count y subtipo</CardDescription>
             </CardHeader>
-            <CardContent>
-              <Select value={modelFilter} onValueChange={(v) => setModelFilter(v as ModelFilter)}>
-                <SelectTrigger className="w-full sm:w-[260px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {MODEL_FILTER_OPTIONS.map(opt => (
-                    <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {modelFilter !== "all" && (
-                <p className="text-sm text-muted-foreground mt-2">
-                  Mostrando solo trades de <span className="font-semibold text-foreground">{MODEL_FILTER_OPTIONS.find(o => o.value === modelFilter)?.label}</span>
-                </p>
+            <CardContent className="space-y-4">
+              <div className="flex flex-wrap gap-4">
+                {/* Model */}
+                <div className="space-y-1">
+                  <label className="text-xs text-muted-foreground font-medium">Modelo</label>
+                  <Select value={modelFilter} onValueChange={(v) => setModelFilter(v as ModelFilter)}>
+                    <SelectTrigger className="w-[220px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {MODEL_FILTER_OPTIONS.map(opt => (
+                        <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Time From */}
+                <div className="space-y-1">
+                  <label className="text-xs text-muted-foreground font-medium">Hora Desde</label>
+                  <Input
+                    type="time"
+                    value={filterTimeFrom}
+                    onChange={(e) => setFilterTimeFrom(e.target.value)}
+                    className="w-[140px] h-9"
+                  />
+                </div>
+
+                {/* Time To */}
+                <div className="space-y-1">
+                  <label className="text-xs text-muted-foreground font-medium">Hora Hasta</label>
+                  <Input
+                    type="time"
+                    value={filterTimeTo}
+                    onChange={(e) => setFilterTimeTo(e.target.value)}
+                    className="w-[140px] h-9"
+                  />
+                </div>
+
+                {/* FVG Count */}
+                <div className="space-y-1">
+                  <label className="text-xs text-muted-foreground font-medium">FVG Count</label>
+                  <Select value={filterFvgCount} onValueChange={setFilterFvgCount}>
+                    <SelectTrigger className="w-[120px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos</SelectItem>
+                      <SelectItem value="1">1 FVG</SelectItem>
+                      <SelectItem value="2">2 FVG</SelectItem>
+                      <SelectItem value="3">3 FVG</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Entry Subtype */}
+                <div className="space-y-1">
+                  <label className="text-xs text-muted-foreground font-medium">Subtipo Entrada</label>
+                  <Select value={filterEntrySubtype} onValueChange={setFilterEntrySubtype}>
+                    <SelectTrigger className="w-[200px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos</SelectItem>
+                      <SelectItem value="Envolvente + Bloque">Envolvente + Bloque</SelectItem>
+                      <SelectItem value="Envolvente + FVG">Envolvente + FVG</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Clear filters */}
+                {(modelFilter !== "all" || filterTimeFrom || filterTimeTo || filterFvgCount !== "all" || filterEntrySubtype !== "all") && (
+                  <div className="flex items-end">
+                    <Button variant="ghost" size="sm" onClick={() => {
+                      setModelFilter("all");
+                      setFilterTimeFrom("");
+                      setFilterTimeTo("");
+                      setFilterFvgCount("all");
+                      setFilterEntrySubtype("all");
+                    }}>
+                      Limpiar filtros
+                    </Button>
+                  </div>
+                )}
+              </div>
+
+              {/* Active filters summary */}
+              {(modelFilter !== "all" || filterTimeFrom || filterTimeTo || filterFvgCount !== "all" || filterEntrySubtype !== "all") && (
+                <div className="flex flex-wrap gap-2 pt-1">
+                  {modelFilter !== "all" && (
+                    <Badge variant="secondary">{MODEL_FILTER_OPTIONS.find(o => o.value === modelFilter)?.label}</Badge>
+                  )}
+                  {filterTimeFrom && <Badge variant="secondary">Desde: {filterTimeFrom}</Badge>}
+                  {filterTimeTo && <Badge variant="secondary">Hasta: {filterTimeTo}</Badge>}
+                  {filterFvgCount !== "all" && <Badge variant="secondary">{filterFvgCount} FVG</Badge>}
+                  {filterEntrySubtype !== "all" && <Badge variant="secondary">{filterEntrySubtype}</Badge>}
+                </div>
               )}
             </CardContent>
           </Card>
