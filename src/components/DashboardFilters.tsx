@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 interface DashboardFiltersProps {
   dateFrom: Date | undefined;
   dateTo: Date | undefined;
-  selectedModel: string;
+  selectedModels: string[];
   timeFrom: string;
   timeTo: string;
   fvgCount: string;

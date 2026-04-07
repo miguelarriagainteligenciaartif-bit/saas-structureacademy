@@ -67,7 +67,7 @@ export default function Index() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [filterDateFrom, setFilterDateFrom] = useState<Date | undefined>();
   const [filterDateTo, setFilterDateTo] = useState<Date | undefined>();
-  const [filterModel, setFilterModel] = useState<string>("all");
+  const [filterModels, setFilterModels] = useState<string[]>(["M1", "M3", "Continuación"]);
   const [filterTimeFrom, setFilterTimeFrom] = useState<string>("");
   const [filterTimeTo, setFilterTimeTo] = useState<string>("");
   const [filterFvgCount, setFilterFvgCount] = useState<string>("all");
