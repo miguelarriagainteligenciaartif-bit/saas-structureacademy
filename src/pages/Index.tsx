@@ -154,14 +154,24 @@ export default function Index() {
     if (filterTimeTo && filtered.length > 0) {
       filtered = filtered.filter(t => t.entry_time && t.entry_time <= filterTimeTo);
     }
-    if (filterFvgCount !== "all") {
-      filtered = filtered.filter(t => t.fvg_count === parseInt(filterFvgCount));
-    }
-    if (filterEntrySubtype !== "all") {
-      filtered = filtered.filter(t => t.entry_subtype === filterEntrySubtype);
-    }
-    if (filterContinuationSubtype !== "all") {
-      filtered = filtered.filter(t => t.continuation_subtype === filterContinuationSubtype);
+    // Sub-filters apply only to their respective models, other models pass through
+    const hasM1M3SubFilter = filterFvgCount !== "all" || filterEntrySubtype !== "all";
+    const hasContinuationSubFilter = filterContinuationSubtype !== "all";
+    
+    if (hasM1M3SubFilter || hasContinuationSubFilter) {
+      filtered = filtered.filter(t => {
+        const isM1M3 = t.entry_model === "M1" || t.entry_model === "M3";
+        const isCont = t.entry_model === "Continuación";
+        
+        if (isM1M3 && hasM1M3SubFilter) {
+          if (filterFvgCount !== "all" && t.fvg_count !== parseInt(filterFvgCount)) return false;
+          if (filterEntrySubtype !== "all" && t.entry_subtype !== filterEntrySubtype) return false;
+        }
+        if (isCont && hasContinuationSubFilter) {
+          if (filterContinuationSubtype !== "all" && t.continuation_subtype !== filterContinuationSubtype) return false;
+        }
+        return true;
+      });
     }
     return filtered;
   };
