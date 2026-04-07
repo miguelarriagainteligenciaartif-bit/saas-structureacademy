@@ -144,8 +144,9 @@ export default function Index() {
       const toStr = filterDateTo.toISOString().split("T")[0];
       filtered = filtered.filter(t => t.date <= toStr);
     }
-    if (filterModel !== "all") {
-      filtered = filtered.filter(t => t.entry_model === filterModel);
+    const allModels = ["M1", "M3", "Continuación"];
+    if (filterModels.length < allModels.length) {
+      filtered = filtered.filter(t => t.entry_model && filterModels.includes(t.entry_model));
     }
     if (filterTimeFrom && filtered.length > 0) {
       filtered = filtered.filter(t => t.entry_time && t.entry_time >= filterTimeFrom);
@@ -165,7 +166,9 @@ export default function Index() {
     return filtered;
   };
 
-  const hasActiveFilters = selectedAccount !== "all" || filterDateFrom || filterDateTo || filterModel !== "all" || filterTimeFrom || filterTimeTo || filterFvgCount !== "all" || filterEntrySubtype !== "all" || filterContinuationSubtype !== "all";
+  const allModels = ["M1", "M3", "Continuación"];
+  const isModelFiltered = filterModels.length < allModels.length;
+  const hasActiveFilters = selectedAccount !== "all" || filterDateFrom || filterDateTo || isModelFiltered || filterTimeFrom || filterTimeTo || filterFvgCount !== "all" || filterEntrySubtype !== "all" || filterContinuationSubtype !== "all";
 
   const activeFilterLabel = (() => {
     const parts: string[] = [];
@@ -173,7 +176,7 @@ export default function Index() {
     if (filterDateTo) parts.push(`Hasta: ${filterDateTo.toLocaleDateString("es-ES")}`);
     if (filterTimeFrom) parts.push(`Hora desde: ${filterTimeFrom}`);
     if (filterTimeTo) parts.push(`Hora hasta: ${filterTimeTo}`);
-    if (filterModel !== "all") parts.push(`Modelo: ${filterModel}`);
+    if (isModelFiltered) parts.push(`Modelos: ${filterModels.join(", ")}`);
     if (filterFvgCount !== "all") parts.push(`FVGs: ${filterFvgCount}`);
     if (filterEntrySubtype !== "all") parts.push(filterEntrySubtype);
     if (filterContinuationSubtype !== "all") parts.push(`Cont: ${filterContinuationSubtype}`);
@@ -193,7 +196,7 @@ export default function Index() {
   const clearFilters = () => {
     setFilterDateFrom(undefined);
     setFilterDateTo(undefined);
-    setFilterModel("all");
+    setFilterModels(["M1", "M3", "Continuación"]);
     setFilterTimeFrom("");
     setFilterTimeTo("");
     setFilterFvgCount("all");
@@ -386,7 +389,7 @@ export default function Index() {
         <DashboardFilters
           dateFrom={filterDateFrom}
           dateTo={filterDateTo}
-          selectedModel={filterModel}
+          selectedModels={filterModels}
           timeFrom={filterTimeFrom}
           timeTo={filterTimeTo}
           fvgCount={filterFvgCount}
@@ -394,7 +397,7 @@ export default function Index() {
           continuationSubtype={filterContinuationSubtype}
           onDateFromChange={setFilterDateFrom}
           onDateToChange={setFilterDateTo}
-          onModelChange={setFilterModel}
+          onModelsChange={setFilterModels}
           onTimeFromChange={setFilterTimeFrom}
           onTimeToChange={setFilterTimeTo}
           onFvgCountChange={setFilterFvgCount}
