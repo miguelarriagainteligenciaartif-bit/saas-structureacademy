@@ -8,6 +8,9 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+
+const ALL_MODELS = ["M1", "M3", "Continuación"];
 
 interface DashboardFiltersProps {
   dateFrom: Date | undefined;
@@ -20,7 +23,7 @@ interface DashboardFiltersProps {
   continuationSubtype: string;
   onDateFromChange: (date: Date | undefined) => void;
   onDateToChange: (date: Date | undefined) => void;
-  onModelChange: (model: string) => void;
+  onModelsChange: (models: string[]) => void;
   onTimeFromChange: (time: string) => void;
   onTimeToChange: (time: string) => void;
   onFvgCountChange: (value: string) => void;
@@ -32,7 +35,7 @@ interface DashboardFiltersProps {
 export function DashboardFilters({
   dateFrom,
   dateTo,
-  selectedModel,
+  selectedModels,
   timeFrom,
   timeTo,
   fvgCount,
@@ -40,7 +43,7 @@ export function DashboardFilters({
   continuationSubtype,
   onDateFromChange,
   onDateToChange,
-  onModelChange,
+  onModelsChange,
   onTimeFromChange,
   onTimeToChange,
   onFvgCountChange,
@@ -48,10 +51,25 @@ export function DashboardFilters({
   onContinuationSubtypeChange,
   onClearFilters,
 }: DashboardFiltersProps) {
-  const hasActiveFilters = dateFrom || dateTo || selectedModel !== "all" || timeFrom || timeTo || fvgCount !== "all" || entrySubtype !== "all" || continuationSubtype !== "all";
+  const isAllSelected = selectedModels.length === ALL_MODELS.length;
+  const hasActiveFilters = dateFrom || dateTo || !isAllSelected || timeFrom || timeTo || fvgCount !== "all" || entrySubtype !== "all" || continuationSubtype !== "all";
 
-  const showM1M3Filters = selectedModel === "all" || selectedModel === "M1" || selectedModel === "M3";
-  const showContinuationFilter = selectedModel === "all" || selectedModel === "Continuación";
+  const showM1M3Filters = selectedModels.includes("M1") || selectedModels.includes("M3");
+  const showContinuationFilter = selectedModels.includes("Continuación");
+
+  const toggleModel = (model: string) => {
+    if (selectedModels.includes(model)) {
+      // Don't allow deselecting all
+      if (selectedModels.length <= 1) return;
+      onModelsChange(selectedModels.filter(m => m !== model));
+    } else {
+      onModelsChange([...selectedModels, model]);
+    }
+  };
+
+  const modelsLabel = isAllSelected
+    ? "Todos los modelos"
+    : selectedModels.join(" + ");
 
   return (
     <div className="flex flex-wrap items-center gap-3">
@@ -135,18 +153,39 @@ export function DashboardFilters({
         />
       </div>
 
-      {/* Model Filter */}
-      <Select value={selectedModel} onValueChange={onModelChange}>
-        <SelectTrigger className="w-[160px] h-9">
-          <SelectValue placeholder="Modelo" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">Todos los modelos</SelectItem>
-          <SelectItem value="M1">M1</SelectItem>
-          <SelectItem value="M3">M3</SelectItem>
-          <SelectItem value="Continuación">Continuación</SelectItem>
-        </SelectContent>
-      </Select>
+      {/* Model Multi-Select */}
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            size="sm"
+            className={cn(
+              "justify-start text-left font-normal min-w-[180px]",
+              !isAllSelected && "border-primary text-primary"
+            )}
+          >
+            <Layers className="mr-2 h-4 w-4" />
+            {modelsLabel}
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-[200px] p-3" align="start">
+          <div className="space-y-3">
+            <p className="text-sm font-medium text-muted-foreground">Modelos</p>
+            {ALL_MODELS.map((model) => (
+              <label
+                key={model}
+                className="flex items-center gap-2 cursor-pointer"
+              >
+                <Checkbox
+                  checked={selectedModels.includes(model)}
+                  onCheckedChange={() => toggleModel(model)}
+                />
+                <span className="text-sm">{model}</span>
+              </label>
+            ))}
+          </div>
+        </PopoverContent>
+      </Popover>
 
       {/* FVG Count Filter (M1/M3) */}
       {showM1M3Filters && (
@@ -222,9 +261,9 @@ export function DashboardFilters({
               Hora hasta: {timeTo}
             </Badge>
           )}
-          {selectedModel !== "all" && (
+          {!isAllSelected && (
             <Badge variant="secondary" className="text-xs">
-              Modelo: {selectedModel}
+              Modelos: {selectedModels.join(" + ")}
             </Badge>
           )}
           {fvgCount !== "all" && (
