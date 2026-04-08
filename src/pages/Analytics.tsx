@@ -694,7 +694,7 @@ export default function Analytics() {
         </Card>
 
         {/* Continuation Subtype Analysis */}
-        <ContinuationSubtypeAnalysis trades={trades} />
+        <ContinuationSubtypeAnalysis trades={filteredTrades} />
 
         {/* News Analysis */}
         <Card>
@@ -745,7 +745,7 @@ export default function Analytics() {
           </CardContent>
         </Card>
         {/* Drawdown by Model */}
-        <DrawdownByModel trades={trades} />
+        <DrawdownByModel trades={filteredTrades} />
       </main>
     </div>
   );
