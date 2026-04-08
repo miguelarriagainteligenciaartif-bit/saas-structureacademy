@@ -273,7 +273,7 @@ export const ReportGeneratorDialog = ({ trades, label, directGenerate, filterLab
       // Add branded header with logo
       await addBrandedHeader(
         doc,
-        "INFORME DE TRADING",
+        filterLabel ? "INFORME DE TRADING (FILTRADO)" : "INFORME DE TRADING",
         "Quantum Trading Tracker",
         periodText
       );
