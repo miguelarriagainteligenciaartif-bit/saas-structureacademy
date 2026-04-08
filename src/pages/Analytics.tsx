@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Header } from "@/components/Header";
 import { StatsCard } from "@/components/StatsCard";
 import { ReportGenerator } from "@/components/ReportGenerator";
+import { DashboardFilters } from "@/components/DashboardFilters";
 import { DollarSign, TrendingUp, TrendingDown, Target, Calendar, BarChart3, Clock, Flame, Award } from "lucide-react";
 import { ContinuationSubtypeAnalysis } from "@/components/ContinuationSubtypeAnalysis";
 import { DrawdownByModel } from "@/components/DrawdownByModel";
@@ -42,6 +43,16 @@ export default function Analytics() {
   const [trades, setTrades] = useState<Trade[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Filter states
+  const [filterDateFrom, setFilterDateFrom] = useState<Date | undefined>();
+  const [filterDateTo, setFilterDateTo] = useState<Date | undefined>();
+  const [filterModels, setFilterModels] = useState<string[]>(["M1", "M3", "Continuación"]);
+  const [filterTimeFrom, setFilterTimeFrom] = useState<string>("");
+  const [filterTimeTo, setFilterTimeTo] = useState<string>("");
+  const [filterFvgCount, setFilterFvgCount] = useState<string>("all");
+  const [filterEntrySubtype, setFilterEntrySubtype] = useState<string>("all");
+  const [filterContinuationSubtype, setFilterContinuationSubtype] = useState<string>("all");
+
   useEffect(() => {
     checkUser();
   }, []);
@@ -70,7 +81,76 @@ export default function Analytics() {
     setLoading(false);
   };
 
-  const actualTrades = trades.filter(t => !t.no_trade_day);
+  // Apply filters (same logic as Index.tsx)
+  const applyFilters = (tradeList: Trade[]) => {
+    let filtered = tradeList;
+    if (filterDateFrom) {
+      const fromStr = filterDateFrom.toISOString().split("T")[0];
+      filtered = filtered.filter(t => t.date >= fromStr);
+    }
+    if (filterDateTo) {
+      const toStr = filterDateTo.toISOString().split("T")[0];
+      filtered = filtered.filter(t => t.date <= toStr);
+    }
+    const allModels = ["M1", "M3", "Continuación"];
+    if (filterModels.length < allModels.length) {
+      filtered = filtered.filter(t => t.entry_model && filterModels.includes(t.entry_model));
+    }
+    if (filterTimeFrom) {
+      filtered = filtered.filter(t => t.entry_time && t.entry_time >= filterTimeFrom);
+    }
+    if (filterTimeTo) {
+      filtered = filtered.filter(t => t.entry_time && t.entry_time <= filterTimeTo);
+    }
+    const hasM1M3SubFilter = filterFvgCount !== "all" || filterEntrySubtype !== "all";
+    const hasContinuationSubFilter = filterContinuationSubtype !== "all";
+    if (hasM1M3SubFilter || hasContinuationSubFilter) {
+      filtered = filtered.filter(t => {
+        const isM1M3 = t.entry_model === "M1" || t.entry_model === "M3";
+        const isCont = t.entry_model === "Continuación";
+        if (isM1M3 && hasM1M3SubFilter) {
+          if (filterFvgCount !== "all" && t.fvg_count !== parseInt(filterFvgCount)) return false;
+          if (filterEntrySubtype !== "all" && t.entry_subtype !== filterEntrySubtype) return false;
+        }
+        if (isCont && hasContinuationSubFilter) {
+          if (filterContinuationSubtype !== "all" && t.continuation_subtype !== filterContinuationSubtype) return false;
+        }
+        return true;
+      });
+    }
+    return filtered;
+  };
+
+  const clearFilters = () => {
+    setFilterDateFrom(undefined);
+    setFilterDateTo(undefined);
+    setFilterModels(["M1", "M3", "Continuación"]);
+    setFilterTimeFrom("");
+    setFilterTimeTo("");
+    setFilterFvgCount("all");
+    setFilterEntrySubtype("all");
+    setFilterContinuationSubtype("all");
+  };
+
+  const allModels = ["M1", "M3", "Continuación"];
+  const isModelFiltered = filterModels.length < allModels.length;
+  const hasActiveFilters = filterDateFrom || filterDateTo || isModelFiltered || filterTimeFrom || filterTimeTo || filterFvgCount !== "all" || filterEntrySubtype !== "all" || filterContinuationSubtype !== "all";
+
+  const activeFilterLabel = (() => {
+    const parts: string[] = [];
+    if (filterDateFrom) parts.push(`Desde: ${filterDateFrom.toLocaleDateString("es-ES")}`);
+    if (filterDateTo) parts.push(`Hasta: ${filterDateTo.toLocaleDateString("es-ES")}`);
+    if (filterTimeFrom) parts.push(`Hora desde: ${filterTimeFrom}`);
+    if (filterTimeTo) parts.push(`Hora hasta: ${filterTimeTo}`);
+    if (isModelFiltered) parts.push(`Modelos: ${filterModels.join(", ")}`);
+    if (filterFvgCount !== "all") parts.push(`FVGs: ${filterFvgCount}`);
+    if (filterEntrySubtype !== "all") parts.push(filterEntrySubtype);
+    if (filterContinuationSubtype !== "all") parts.push(`Cont: ${filterContinuationSubtype}`);
+    return parts.join(" · ");
+  })();
+
+  const filteredTrades = applyFilters(trades);
+  const actualTrades = filteredTrades.filter(t => !t.no_trade_day);
   const winningTrades = actualTrades.filter(t => t.result_type === "TP");
   const losingTrades = actualTrades.filter(t => t.result_type === "SL");
 
