@@ -349,8 +349,29 @@ export default function Analytics() {
               Métricas detalladas de tu rendimiento en trading
             </p>
           </div>
-          <ReportGenerator trades={trades} />
+          <ReportGenerator trades={filteredTrades} filterLabel={hasActiveFilters ? activeFilterLabel : undefined} />
         </div>
+
+        {/* Filters */}
+        <DashboardFilters
+          dateFrom={filterDateFrom}
+          dateTo={filterDateTo}
+          selectedModels={filterModels}
+          timeFrom={filterTimeFrom}
+          timeTo={filterTimeTo}
+          fvgCount={filterFvgCount}
+          entrySubtype={filterEntrySubtype}
+          continuationSubtype={filterContinuationSubtype}
+          onDateFromChange={setFilterDateFrom}
+          onDateToChange={setFilterDateTo}
+          onModelsChange={setFilterModels}
+          onTimeFromChange={setFilterTimeFrom}
+          onTimeToChange={setFilterTimeTo}
+          onFvgCountChange={setFilterFvgCount}
+          onEntrySubtypeChange={setFilterEntrySubtype}
+          onContinuationSubtypeChange={setFilterContinuationSubtype}
+          onClearFilters={clearFilters}
+        />
 
         {/* Main Metrics Row 1 */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
