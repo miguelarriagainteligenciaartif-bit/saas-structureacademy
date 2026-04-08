@@ -54,9 +54,10 @@ const formatModel = (trade: Trade) => {
 
 interface ReportGeneratorProps {
   trades: Trade[];
+  filterLabel?: string;
 }
 
-export const ReportGenerator = ({ trades }: ReportGeneratorProps) => {
+export const ReportGenerator = ({ trades, filterLabel }: ReportGeneratorProps) => {
   const generateReport = async () => {
     if (trades.length === 0) {
       toast.error("No hay datos para generar el informe");
@@ -194,9 +195,12 @@ export const ReportGenerator = ({ trades }: ReportGeneratorProps) => {
       const tableStyles = getBrandedTableStyles();
       
       // Add branded header with logo
+      const subtitle = filterLabel 
+        ? `Filtros: ${filterLabel}`
+        : undefined;
       await addBrandedHeader(
         doc,
-        "INFORME DE TRADING",
+        filterLabel ? "INFORME DE TRADING (FILTRADO)" : "INFORME DE TRADING",
         "Quantum Trading Tracker",
         `Generado: ${new Date().toLocaleDateString('es-ES', { 
           year: 'numeric', 
@@ -204,10 +208,10 @@ export const ReportGenerator = ({ trades }: ReportGeneratorProps) => {
           day: 'numeric',
           hour: '2-digit',
           minute: '2-digit'
-        })}`
+        })}${subtitle ? `\n${subtitle}` : ''}`
       );
 
-      let yPos = 70;
+      let yPos = filterLabel ? 78 : 70;
 
       // Summary Section
       yPos = addSectionTitle(doc, "Resumen General", yPos);
