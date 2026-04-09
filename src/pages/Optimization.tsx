@@ -232,8 +232,9 @@ export default function Optimization() {
 
   // Filtered data by all filters
   const filteredTrades = useMemo(() => applyAllFilters(trades, modelFilter, filterTimeFrom, filterTimeTo, filterFvgCount, filterEntrySubtype, filterDateFrom, filterDateTo), [trades, modelFilter, filterTimeFrom, filterTimeTo, filterFvgCount, filterEntrySubtype, filterDateFrom, filterDateTo]);
-  const filteredSLCount = useMemo(() => applyAllFilters(slTrades, modelFilter, filterTimeFrom, filterTimeTo, filterFvgCount, filterEntrySubtype, filterDateFrom, filterDateTo).length, [slTrades, modelFilter, filterTimeFrom, filterTimeTo, filterFvgCount, filterEntrySubtype, filterDateFrom, filterDateTo]);
   const filteredAllTrades = useMemo(() => applyAllFilters(allDecisiveTrades, modelFilter, filterTimeFrom, filterTimeTo, filterFvgCount, filterEntrySubtype, filterDateFrom, filterDateTo), [allDecisiveTrades, modelFilter, filterTimeFrom, filterTimeTo, filterFvgCount, filterEntrySubtype, filterDateFrom, filterDateTo]);
+  // Derive SL count from the unified allTrades source to avoid mismatches
+  const filteredSLCount = useMemo(() => filteredAllTrades.filter(t => t.result_type === "SL").length, [filteredAllTrades]);
 
   // Analysis
   const analyzeLevel = (level: number): LevelAnalysis => {
