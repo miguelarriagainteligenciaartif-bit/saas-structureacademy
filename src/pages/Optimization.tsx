@@ -114,7 +114,7 @@ export default function Optimization() {
   const [strategies, setStrategies] = useState<{ id: string; name: string; risk_reward_ratio: string }[]>([]);
   const [selectedStrategy, setSelectedStrategy] = useState<string>("");
   const [trades, setTrades] = useState<DrawdownTrade[]>([]);
-  const [slTrades, setSlTrades] = useState<{ id: string; entry_model?: string; continuation_subtype?: string | null; entry_time?: string | null; fvg_count?: number | null; entry_subtype?: string | null }[]>([]);
+  
   const [allDecisiveTrades, setAllDecisiveTrades] = useState<{ id: string; date: string; drawdown: number | null; result_type: string; entry_model?: string; continuation_subtype?: string | null; entry_time?: string | null; fvg_count?: number | null; entry_subtype?: string | null }[]>([]);
   const [modelFilter, setModelFilter] = useState<ModelFilter>("all");
   const [customLevel, setCustomLevel] = useState<string>("");
@@ -166,7 +166,6 @@ export default function Optimization() {
       setLoading(true);
 
       let tpQuery;
-      let slQuery;
       let allQuery;
 
       if (source === "journal") {
@@ -175,10 +174,6 @@ export default function Optimization() {
           .select("id, date, drawdown, result_type, result_dollars, asset, entry_model, max_rr, continuation_subtype, entry_time, fvg_count, entry_subtype")
           .eq("result_type", "TP")
           .not("drawdown", "is", null);
-        slQuery = supabase
-          .from("trades")
-          .select("id, entry_model, continuation_subtype, entry_time, fvg_count, entry_subtype", { count: "exact" })
-          .eq("result_type", "SL");
         allQuery = supabase
           .from("trades")
           .select("id, date, drawdown, result_type, entry_model, continuation_subtype, entry_time, fvg_count, entry_subtype")
@@ -187,7 +182,6 @@ export default function Optimization() {
       } else {
         if (!selectedStrategy) {
           setTrades([]);
-          setSlTrades([]);
           setAllDecisiveTrades([]);
           setLoading(false);
           return;
@@ -198,11 +192,6 @@ export default function Optimization() {
           .eq("result_type", "TP")
           .eq("strategy_id", selectedStrategy)
           .not("drawdown", "is", null);
-        slQuery = supabase
-          .from("backtest_trades")
-          .select("id, entry_model")
-          .eq("result_type", "SL")
-          .eq("strategy_id", selectedStrategy);
         allQuery = supabase
           .from("backtest_trades")
           .select("id, date, drawdown, result_type, entry_model")
@@ -211,16 +200,14 @@ export default function Optimization() {
           .order("date", { ascending: true });
       }
 
-      const [tpResult, slResult, allResult] = await Promise.all([
+      const [tpResult, allResult] = await Promise.all([
         tpQuery.order("date", { ascending: true }),
-        slQuery,
         allQuery,
       ]);
 
       if (!tpResult.error && tpResult.data) {
         setTrades(tpResult.data as DrawdownTrade[]);
       }
-      setSlTrades(slResult.data ?? []);
       if (!allResult.error && allResult.data) {
         setAllDecisiveTrades(allResult.data);
       }
@@ -232,8 +219,9 @@ export default function Optimization() {
 
   // Filtered data by all filters
   const filteredTrades = useMemo(() => applyAllFilters(trades, modelFilter, filterTimeFrom, filterTimeTo, filterFvgCount, filterEntrySubtype, filterDateFrom, filterDateTo), [trades, modelFilter, filterTimeFrom, filterTimeTo, filterFvgCount, filterEntrySubtype, filterDateFrom, filterDateTo]);
-  const filteredSLCount = useMemo(() => applyAllFilters(slTrades, modelFilter, filterTimeFrom, filterTimeTo, filterFvgCount, filterEntrySubtype, filterDateFrom, filterDateTo).length, [slTrades, modelFilter, filterTimeFrom, filterTimeTo, filterFvgCount, filterEntrySubtype, filterDateFrom, filterDateTo]);
   const filteredAllTrades = useMemo(() => applyAllFilters(allDecisiveTrades, modelFilter, filterTimeFrom, filterTimeTo, filterFvgCount, filterEntrySubtype, filterDateFrom, filterDateTo), [allDecisiveTrades, modelFilter, filterTimeFrom, filterTimeTo, filterFvgCount, filterEntrySubtype, filterDateFrom, filterDateTo]);
+  // Derive SL count from the unified allTrades source to avoid mismatches
+  const filteredSLCount = useMemo(() => filteredAllTrades.filter(t => t.result_type === "SL").length, [filteredAllTrades]);
 
   // Analysis
   const analyzeLevel = (level: number): LevelAnalysis => {
