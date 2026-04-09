@@ -114,7 +114,7 @@ export default function Optimization() {
   const [strategies, setStrategies] = useState<{ id: string; name: string; risk_reward_ratio: string }[]>([]);
   const [selectedStrategy, setSelectedStrategy] = useState<string>("");
   const [trades, setTrades] = useState<DrawdownTrade[]>([]);
-  const [slTrades, setSlTrades] = useState<{ id: string; entry_model?: string; continuation_subtype?: string | null; entry_time?: string | null; fvg_count?: number | null; entry_subtype?: string | null }[]>([]);
+  const [_slTrades, _setSlTrades] = useState<{ id: string; entry_model?: string; continuation_subtype?: string | null; entry_time?: string | null; fvg_count?: number | null; entry_subtype?: string | null }[]>([]);
   const [allDecisiveTrades, setAllDecisiveTrades] = useState<{ id: string; date: string; drawdown: number | null; result_type: string; entry_model?: string; continuation_subtype?: string | null; entry_time?: string | null; fvg_count?: number | null; entry_subtype?: string | null }[]>([]);
   const [modelFilter, setModelFilter] = useState<ModelFilter>("all");
   const [customLevel, setCustomLevel] = useState<string>("");
