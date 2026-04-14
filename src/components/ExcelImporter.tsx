@@ -88,7 +88,7 @@ const parseWeekOfMonth = (semana: string | undefined): number => {
 };
 
 const parseTime = (timeValue: any): string => {
-  if (!timeValue) return "09:30:00";
+  if (!timeValue || (typeof timeValue === "string" && timeValue.trim() === "")) return "09:30:00";
 
   if (typeof timeValue === "string") {
     const match = timeValue.match(/(\d{1,2}):(\d{2})(?::(\d{2}))?/);
@@ -96,18 +96,18 @@ const parseTime = (timeValue: any): string => {
       let hours = parseInt(match[1], 10);
       const minutes = match[2];
       const seconds = match[3] || "00";
-
       const lower = timeValue.toLowerCase();
-      const isPM = lower.includes("pm") || lower.includes("p.m");
-      const isAM = lower.includes("am") || lower.includes("a.m");
-      if (isPM && hours < 12) hours += 12;
-      if (isAM && hours === 12) hours = 0;
-
+      if (lower.includes("pm") || lower.includes("p.m")) { if (hours < 12) hours += 12; }
+      if (lower.includes("am") || lower.includes("a.m")) { if (hours === 12) hours = 0; }
       return `${String(hours).padStart(2, "0")}:${minutes}:${seconds}`;
     }
   }
-
   return "09:30:00";
+};
+
+const parseTimeNullable = (timeValue: any): string | null => {
+  if (!timeValue || (typeof timeValue === "string" && timeValue.trim() === "")) return null;
+  return parseTime(timeValue);
 };
 
 const parsePnL = (value: any): number => {
@@ -353,29 +353,29 @@ export function ExcelImporter({ onSuccess, accountId }: ExcelImporterProps) {
           day_of_week: mapDayOfWeek(getValue(r, "DÍA") ?? getValue(r, "DIA")),
           week_of_month: parseWeekOfMonth(getValue(r, "SEMANA")),
           entry_time: parseTime(getValue(r, "HORA ENTRADA")),
-          exit_time: getValue(r, "HORA SALIDA EN 1:2") || getValue(r, "HORA SALIDA") ? parseTime(getValue(r, "HORA SALIDA EN 1:2") || getValue(r, "HORA SALIDA")) : null,
+          exit_time: parseTimeNullable(getValue(r, "HORA SALIDA EN 1:2") || getValue(r, "HORA SALIDA")),
           trade_type: mapTradeType(getValue(r, "TIPO")),
           entry_model: mapEntryModel(getValue(r, "MODELO")),
-          entry_subtype: getValue(r, "ENTRY_SUBTYPE") ?? getValue(r, "SUBTIPO ENTRADA") ?? null,
-          continuation_subtype: getValue(r, "CONTINUATION_SUBTYPE") ?? getValue(r, "SUBTIPO CONTINUACION") ?? null,
+          entry_subtype: getValue(r, "ENTRY_SUBTYPE")?.trim() || getValue(r, "SUBTIPO ENTRADA")?.trim() || null,
+          continuation_subtype: getValue(r, "CONTINUATION_SUBTYPE")?.trim() || getValue(r, "SUBTIPO CONTINUACION")?.trim() || null,
           result_type: mapResultType(getValue(r, "RESULTADO"), pnl),
           result_dollars: pnl,
           had_news: hadNews || hadNewsUpper === "T" || hadNewsUpper === "TRUE",
           news_description:
             hadNewsRaw && !hadNewsUpper.includes("NO NEWS") && hadNewsUpper !== "F" && hadNewsUpper !== "FALSE" && hadNewsUpper !== "T" && hadNewsUpper !== "TRUE"
               ? String(hadNewsRaw)
-              : (getValue(r, "NEWS_DESCRIPTION") ?? null),
-          custom_news_description: getValue(r, "CUSTOM_NEWS_DESCRIPTION") ?? null,
+              : (getValue(r, "NEWS_DESCRIPTION")?.trim() || null),
+          custom_news_description: getValue(r, "CUSTOM_NEWS_DESCRIPTION")?.trim() || null,
           max_rr: parseNumber(getValue(r, "RR MÁXIMO")),
           drawdown: parseNumber(getValue(r, "DRAWDOWN")),
-          image_link: (getValue(r, "LINK m1 (EJECUCIÓN)") || getValue(r, "LINK")) ?? null,
+          image_link: getValue(r, "LINK m1 (EJECUCIÓN)")?.trim() || getValue(r, "LINK")?.trim() || null,
           no_trade_day: noTradeDayRaw === "T" || noTradeDayRaw === "TRUE",
           risk_percentage: riskRaw ?? 1,
-          asset: getValue(r, "ASSET") ?? getValue(r, "ACTIVO") ?? "Nasdaq 100",
+          asset: getValue(r, "ASSET")?.trim() || getValue(r, "ACTIVO")?.trim() || "Nasdaq 100",
           fvg_count: parseNumber(getValue(r, "FVG_COUNT") ?? getValue(r, "FVG") ?? ""),
-          execution_timing: getValue(r, "EXECUTION_TIMING") ?? null,
-          news_time: getValue(r, "NEWS_TIME") ?? null,
-          notes: getValue(r, "NOTES") ?? getValue(r, "NOTAS") ?? null,
+          execution_timing: getValue(r, "EXECUTION_TIMING")?.trim() || null,
+          news_time: parseTimeNullable(getValue(r, "NEWS_TIME")),
+          notes: getValue(r, "NOTES")?.trim() || getValue(r, "NOTAS")?.trim() || null,
         };
 
         valid++;
@@ -507,29 +507,29 @@ export function ExcelImporter({ onSuccess, accountId }: ExcelImporterProps) {
           day_of_week: mapDayOfWeek(getValue(r, "DÍA") ?? getValue(r, "DIA")),
           week_of_month: parseWeekOfMonth(getValue(r, "SEMANA")),
           entry_time: parseTime(getValue(r, "HORA ENTRADA")),
-          exit_time: getValue(r, "HORA SALIDA EN 1:2") || getValue(r, "HORA SALIDA") ? parseTime(getValue(r, "HORA SALIDA EN 1:2") || getValue(r, "HORA SALIDA")) : null,
+          exit_time: parseTimeNullable(getValue(r, "HORA SALIDA EN 1:2") || getValue(r, "HORA SALIDA")),
           trade_type: mapTradeType(getValue(r, "TIPO")),
           entry_model: mapEntryModel(getValue(r, "MODELO")),
-          entry_subtype: getValue(r, "ENTRY_SUBTYPE") ?? getValue(r, "SUBTIPO ENTRADA") ?? null,
-          continuation_subtype: getValue(r, "CONTINUATION_SUBTYPE") ?? getValue(r, "SUBTIPO CONTINUACION") ?? null,
+          entry_subtype: getValue(r, "ENTRY_SUBTYPE")?.trim() || getValue(r, "SUBTIPO ENTRADA")?.trim() || null,
+          continuation_subtype: getValue(r, "CONTINUATION_SUBTYPE")?.trim() || getValue(r, "SUBTIPO CONTINUACION")?.trim() || null,
           result_type: mapResultType(getValue(r, "RESULTADO"), pnl),
           result_dollars: pnl,
           had_news: hadNewsUpper === "T" || hadNewsUpper === "TRUE" || (!!hadNewsRaw && !hadNewsUpper.includes("NO NEWS") && hadNewsUpper !== "F" && hadNewsUpper !== "FALSE"),
           news_description:
             hadNewsRaw && !hadNewsUpper.includes("NO NEWS") && hadNewsUpper !== "F" && hadNewsUpper !== "FALSE" && hadNewsUpper !== "T" && hadNewsUpper !== "TRUE"
               ? String(hadNewsRaw)
-              : (getValue(r, "NEWS_DESCRIPTION") ?? null),
-          custom_news_description: getValue(r, "CUSTOM_NEWS_DESCRIPTION") ?? null,
+              : (getValue(r, "NEWS_DESCRIPTION")?.trim() || null),
+          custom_news_description: getValue(r, "CUSTOM_NEWS_DESCRIPTION")?.trim() || null,
           max_rr: parseNumber(getValue(r, "RR MÁXIMO")),
           drawdown: parseNumber(getValue(r, "DRAWDOWN")),
-          image_link: (getValue(r, "LINK m1 (EJECUCIÓN)") || getValue(r, "LINK")) ?? null,
+          image_link: getValue(r, "LINK m1 (EJECUCIÓN)")?.trim() || getValue(r, "LINK")?.trim() || null,
           no_trade_day: noTradeDayRaw === "T" || noTradeDayRaw === "TRUE",
           risk_percentage: riskRaw ?? 1,
-          asset: getValue(r, "ASSET") ?? getValue(r, "ACTIVO") ?? "Nasdaq 100",
+          asset: getValue(r, "ASSET")?.trim() || getValue(r, "ACTIVO")?.trim() || "Nasdaq 100",
           fvg_count: parseNumber(getValue(r, "FVG_COUNT") ?? getValue(r, "FVG") ?? ""),
-          execution_timing: getValue(r, "EXECUTION_TIMING") ?? null,
-          news_time: getValue(r, "NEWS_TIME") ?? null,
-          notes: getValue(r, "NOTES") ?? getValue(r, "NOTAS") ?? null,
+          execution_timing: getValue(r, "EXECUTION_TIMING")?.trim() || null,
+          news_time: parseTimeNullable(getValue(r, "NEWS_TIME")),
+          notes: getValue(r, "NOTES")?.trim() || getValue(r, "NOTAS")?.trim() || null,
         });
       }
 
