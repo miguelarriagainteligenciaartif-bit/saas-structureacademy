@@ -25,15 +25,23 @@ interface ParsedTrade {
   exit_time: string | null;
   trade_type: string;
   entry_model: string;
+  entry_subtype: string | null;
+  continuation_subtype: string | null;
   result_type: string;
   result_dollars: number;
   had_news: boolean;
   news_description: string | null;
+  custom_news_description: string | null;
   max_rr: number | null;
   drawdown: number | null;
   image_link: string | null;
   no_trade_day: boolean;
   risk_percentage: number;
+  asset: string;
+  fvg_count: number | null;
+  execution_timing: string | null;
+  news_time: string | null;
+  notes: string | null;
 }
 
 interface PreviewRow {
@@ -217,11 +225,37 @@ export function ExcelImporter({ onSuccess, accountId }: ExcelImporterProps) {
     return mdyVotes > dmyVotes ? "mdy" : "dmy";
   }, [dateFormat, rawRows]);
 
+  // Alias map: normalized desired header → array of alternative normalized names
+  const headerAliases: Record<string, string[]> = {
+    "FECHA": ["DATE"],
+    "DIA": ["DAY_OF_WEEK"],
+    "HORA ENTRADA": ["ENTRY_TIME"],
+    "HORA SALIDA EN 1:2": ["EXIT_TIME"],
+    "HORA SALIDA": ["EXIT_TIME"],
+    "TIPO": ["TRADE_TYPE"],
+    "MODELO": ["ENTRY_MODEL"],
+    "RESULTADO": ["RESULT_TYPE"],
+    "P&L": ["RESULT_DOLLARS"],
+    "NOTICIA": ["NEWS_DESCRIPTION", "HAD_NEWS"],
+    "RR MAXIMO": ["MAX_RR"],
+    "DRAWDOWN": ["DRAWDOWN"],
+    "SEMANA": ["WEEK_OF_MONTH"],
+    "LINK M1 (EJECUCION)": ["IMAGE_LINK"],
+    "LINK": ["IMAGE_LINK"],
+    "MES": [],
+  };
+
   function getValue(row: CsvRow, header: string) {
-    // Build normalized key map on the fly (small row count, fine).
     const desired = normalizeHeader(header);
     for (const [k, v] of Object.entries(row)) {
       if (normalizeHeader(k) === desired) return v;
+    }
+    // Try aliases
+    const aliases = headerAliases[desired] ?? [];
+    for (const alias of aliases) {
+      for (const [k, v] of Object.entries(row)) {
+        if (normalizeHeader(k) === alias) return v;
+      }
     }
     return undefined;
   }
@@ -274,7 +308,14 @@ export function ExcelImporter({ onSuccess, accountId }: ExcelImporterProps) {
         const fmt = dateFormat === "auto" ? detectedAuto : dateFormat;
 
         let dateStr: string | null = null;
-        if (rawMes) {
+
+        // Handle ISO format YYYY-MM-DD (from our own CSV export)
+        const isoMatch = rawFecha.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+        if (isoMatch) {
+          dateStr = rawFecha;
+        }
+
+        if (!dateStr && rawMes) {
           dateStr = parseFechaWithMesGuarantee(rawFecha, rawMes, fmt);
         }
 
@@ -305,6 +346,11 @@ export function ExcelImporter({ onSuccess, accountId }: ExcelImporterProps) {
         }
 
         const pnl = parsePnL(getValue(r, "P&L"));
+        const hadNewsRaw = getValue(r, "NOTICIA");
+        const hadNewsUpper = String(hadNewsRaw ?? "").toUpperCase().trim();
+        const hadNews = hadNewsUpper === "T" || hadNewsUpper === "TRUE" || (!!hadNewsRaw && !hadNewsUpper.includes("NO NEWS") && hadNewsUpper !== "F" && hadNewsUpper !== "FALSE" && hadNewsUpper !== "");
+        const noTradeDayRaw = String(getValue(r, "NO_TRADE_DAY") ?? getValue(r, "NO TRADE DAY") ?? "").toUpperCase().trim();
+        const riskRaw = parseNumber(getValue(r, "RIESGO") ?? getValue(r, "RISK_PERCENTAGE") ?? "");
         const trade: ParsedTrade = {
           date: dateStr,
           day_of_week: mapDayOfWeek(getValue(r, "DÍA") ?? getValue(r, "DIA")),
@@ -313,18 +359,26 @@ export function ExcelImporter({ onSuccess, accountId }: ExcelImporterProps) {
           exit_time: getValue(r, "HORA SALIDA EN 1:2") || getValue(r, "HORA SALIDA") ? parseTime(getValue(r, "HORA SALIDA EN 1:2") || getValue(r, "HORA SALIDA")) : null,
           trade_type: mapTradeType(getValue(r, "TIPO")),
           entry_model: mapEntryModel(getValue(r, "MODELO")),
+          entry_subtype: getValue(r, "ENTRY_SUBTYPE") ?? getValue(r, "SUBTIPO ENTRADA") ?? null,
+          continuation_subtype: getValue(r, "CONTINUATION_SUBTYPE") ?? getValue(r, "SUBTIPO CONTINUACION") ?? null,
           result_type: mapResultType(getValue(r, "RESULTADO"), pnl),
           result_dollars: pnl,
-          had_news: (getValue(r, "NOTICIA") ? !String(getValue(r, "NOTICIA")).toUpperCase().includes("NO NEWS") : false) as boolean,
+          had_news: hadNews || hadNewsUpper === "T" || hadNewsUpper === "TRUE",
           news_description:
-            getValue(r, "NOTICIA") && !String(getValue(r, "NOTICIA")).toUpperCase().includes("NO NEWS")
-              ? String(getValue(r, "NOTICIA"))
-              : null,
+            hadNewsRaw && !hadNewsUpper.includes("NO NEWS") && hadNewsUpper !== "F" && hadNewsUpper !== "FALSE" && hadNewsUpper !== "T" && hadNewsUpper !== "TRUE"
+              ? String(hadNewsRaw)
+              : (getValue(r, "NEWS_DESCRIPTION") ?? null),
+          custom_news_description: getValue(r, "CUSTOM_NEWS_DESCRIPTION") ?? null,
           max_rr: parseNumber(getValue(r, "RR MÁXIMO")),
           drawdown: parseNumber(getValue(r, "DRAWDOWN")),
           image_link: (getValue(r, "LINK m1 (EJECUCIÓN)") || getValue(r, "LINK")) ?? null,
-          no_trade_day: false,
-          risk_percentage: 1,
+          no_trade_day: noTradeDayRaw === "T" || noTradeDayRaw === "TRUE",
+          risk_percentage: riskRaw ?? 1,
+          asset: getValue(r, "ASSET") ?? getValue(r, "ACTIVO") ?? "Nasdaq 100",
+          fvg_count: parseNumber(getValue(r, "FVG_COUNT") ?? getValue(r, "FVG") ?? ""),
+          execution_timing: getValue(r, "EXECUTION_TIMING") ?? null,
+          news_time: getValue(r, "NEWS_TIME") ?? null,
+          notes: getValue(r, "NOTES") ?? getValue(r, "NOTAS") ?? null,
         };
 
         valid++;
@@ -423,7 +477,11 @@ export function ExcelImporter({ onSuccess, accountId }: ExcelImporterProps) {
         const rawMes = String(getValue(r, "MES") ?? "").trim();
 
         let dateStr: string | null = null;
-        if (rawMes) dateStr = parseFechaWithMesGuarantee(rawFecha, rawMes, fmt);
+        const isoMatch = rawFecha.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+        if (isoMatch) {
+          dateStr = rawFecha;
+        }
+        if (!dateStr && rawMes) dateStr = parseFechaWithMesGuarantee(rawFecha, rawMes, fmt);
         if (!dateStr) {
           const parts = rawFecha.split("/");
           if (parts.length !== 3) continue;
@@ -442,6 +500,10 @@ export function ExcelImporter({ onSuccess, accountId }: ExcelImporterProps) {
         if (year < 2020) continue;
 
         const pnl = parsePnL(getValue(r, "P&L"));
+        const hadNewsRaw = getValue(r, "NOTICIA");
+        const hadNewsUpper = String(hadNewsRaw ?? "").toUpperCase().trim();
+        const noTradeDayRaw = String(getValue(r, "NO_TRADE_DAY") ?? getValue(r, "NO TRADE DAY") ?? "").toUpperCase().trim();
+        const riskRaw = parseNumber(getValue(r, "RIESGO") ?? getValue(r, "RISK_PERCENTAGE") ?? "");
 
         parsedTrades.push({
           date: dateStr,
@@ -451,18 +513,26 @@ export function ExcelImporter({ onSuccess, accountId }: ExcelImporterProps) {
           exit_time: getValue(r, "HORA SALIDA EN 1:2") || getValue(r, "HORA SALIDA") ? parseTime(getValue(r, "HORA SALIDA EN 1:2") || getValue(r, "HORA SALIDA")) : null,
           trade_type: mapTradeType(getValue(r, "TIPO")),
           entry_model: mapEntryModel(getValue(r, "MODELO")),
+          entry_subtype: getValue(r, "ENTRY_SUBTYPE") ?? getValue(r, "SUBTIPO ENTRADA") ?? null,
+          continuation_subtype: getValue(r, "CONTINUATION_SUBTYPE") ?? getValue(r, "SUBTIPO CONTINUACION") ?? null,
           result_type: mapResultType(getValue(r, "RESULTADO"), pnl),
           result_dollars: pnl,
-          had_news: (getValue(r, "NOTICIA") ? !String(getValue(r, "NOTICIA")).toUpperCase().includes("NO NEWS") : false) as boolean,
+          had_news: hadNewsUpper === "T" || hadNewsUpper === "TRUE" || (!!hadNewsRaw && !hadNewsUpper.includes("NO NEWS") && hadNewsUpper !== "F" && hadNewsUpper !== "FALSE"),
           news_description:
-            getValue(r, "NOTICIA") && !String(getValue(r, "NOTICIA")).toUpperCase().includes("NO NEWS")
-              ? String(getValue(r, "NOTICIA"))
-              : null,
+            hadNewsRaw && !hadNewsUpper.includes("NO NEWS") && hadNewsUpper !== "F" && hadNewsUpper !== "FALSE" && hadNewsUpper !== "T" && hadNewsUpper !== "TRUE"
+              ? String(hadNewsRaw)
+              : (getValue(r, "NEWS_DESCRIPTION") ?? null),
+          custom_news_description: getValue(r, "CUSTOM_NEWS_DESCRIPTION") ?? null,
           max_rr: parseNumber(getValue(r, "RR MÁXIMO")),
           drawdown: parseNumber(getValue(r, "DRAWDOWN")),
           image_link: (getValue(r, "LINK m1 (EJECUCIÓN)") || getValue(r, "LINK")) ?? null,
-          no_trade_day: false,
-          risk_percentage: 1,
+          no_trade_day: noTradeDayRaw === "T" || noTradeDayRaw === "TRUE",
+          risk_percentage: riskRaw ?? 1,
+          asset: getValue(r, "ASSET") ?? getValue(r, "ACTIVO") ?? "Nasdaq 100",
+          fvg_count: parseNumber(getValue(r, "FVG_COUNT") ?? getValue(r, "FVG") ?? ""),
+          execution_timing: getValue(r, "EXECUTION_TIMING") ?? null,
+          news_time: getValue(r, "NEWS_TIME") ?? null,
+          notes: getValue(r, "NOTES") ?? getValue(r, "NOTAS") ?? null,
         });
       }
 
