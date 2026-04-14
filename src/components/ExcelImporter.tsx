@@ -300,7 +300,14 @@ export function ExcelImporter({ onSuccess, accountId }: ExcelImporterProps) {
         const fmt = dateFormat === "auto" ? detectedAuto : dateFormat;
 
         let dateStr: string | null = null;
-        if (rawMes) {
+
+        // Handle ISO format YYYY-MM-DD (from our own CSV export)
+        const isoMatch = rawFecha.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+        if (isoMatch) {
+          dateStr = rawFecha;
+        }
+
+        if (!dateStr && rawMes) {
           dateStr = parseFechaWithMesGuarantee(rawFecha, rawMes, fmt);
         }
 
