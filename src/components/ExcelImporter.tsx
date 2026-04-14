@@ -353,7 +353,7 @@ export function ExcelImporter({ onSuccess, accountId }: ExcelImporterProps) {
           day_of_week: mapDayOfWeek(getValue(r, "DÍA") ?? getValue(r, "DIA")),
           week_of_month: parseWeekOfMonth(getValue(r, "SEMANA")),
           entry_time: parseTime(getValue(r, "HORA ENTRADA")),
-          exit_time: getValue(r, "HORA SALIDA EN 1:2") || getValue(r, "HORA SALIDA") ? parseTime(getValue(r, "HORA SALIDA EN 1:2") || getValue(r, "HORA SALIDA")) : null,
+          exit_time: parseTimeNullable(getValue(r, "HORA SALIDA EN 1:2") || getValue(r, "HORA SALIDA")),
           trade_type: mapTradeType(getValue(r, "TIPO")),
           entry_model: mapEntryModel(getValue(r, "MODELO")),
           entry_subtype: getValue(r, "ENTRY_SUBTYPE") ?? getValue(r, "SUBTIPO ENTRADA") ?? null,
@@ -373,8 +373,8 @@ export function ExcelImporter({ onSuccess, accountId }: ExcelImporterProps) {
           risk_percentage: riskRaw ?? 1,
           asset: getValue(r, "ASSET") ?? getValue(r, "ACTIVO") ?? "Nasdaq 100",
           fvg_count: parseNumber(getValue(r, "FVG_COUNT") ?? getValue(r, "FVG") ?? ""),
-          execution_timing: getValue(r, "EXECUTION_TIMING") ?? null,
-          news_time: getValue(r, "NEWS_TIME") ?? null,
+          execution_timing: getValue(r, "EXECUTION_TIMING")?.trim() || null,
+          news_time: parseTimeNullable(getValue(r, "NEWS_TIME")),
           notes: getValue(r, "NOTES") ?? getValue(r, "NOTAS") ?? null,
         };
 
@@ -507,7 +507,7 @@ export function ExcelImporter({ onSuccess, accountId }: ExcelImporterProps) {
           day_of_week: mapDayOfWeek(getValue(r, "DÍA") ?? getValue(r, "DIA")),
           week_of_month: parseWeekOfMonth(getValue(r, "SEMANA")),
           entry_time: parseTime(getValue(r, "HORA ENTRADA")),
-          exit_time: getValue(r, "HORA SALIDA EN 1:2") || getValue(r, "HORA SALIDA") ? parseTime(getValue(r, "HORA SALIDA EN 1:2") || getValue(r, "HORA SALIDA")) : null,
+          exit_time: parseTimeNullable(getValue(r, "HORA SALIDA EN 1:2") || getValue(r, "HORA SALIDA")),
           trade_type: mapTradeType(getValue(r, "TIPO")),
           entry_model: mapEntryModel(getValue(r, "MODELO")),
           entry_subtype: getValue(r, "ENTRY_SUBTYPE") ?? getValue(r, "SUBTIPO ENTRADA") ?? null,
@@ -527,8 +527,8 @@ export function ExcelImporter({ onSuccess, accountId }: ExcelImporterProps) {
           risk_percentage: riskRaw ?? 1,
           asset: getValue(r, "ASSET") ?? getValue(r, "ACTIVO") ?? "Nasdaq 100",
           fvg_count: parseNumber(getValue(r, "FVG_COUNT") ?? getValue(r, "FVG") ?? ""),
-          execution_timing: getValue(r, "EXECUTION_TIMING") ?? null,
-          news_time: getValue(r, "NEWS_TIME") ?? null,
+          execution_timing: getValue(r, "EXECUTION_TIMING")?.trim() || null,
+          news_time: parseTimeNullable(getValue(r, "NEWS_TIME")),
           notes: getValue(r, "NOTES") ?? getValue(r, "NOTAS") ?? null,
         });
       }
