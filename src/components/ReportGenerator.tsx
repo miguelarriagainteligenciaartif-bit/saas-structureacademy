@@ -354,7 +354,6 @@ export const ReportGenerator = ({ trades, filterLabel }: ReportGeneratorProps) =
             }
           }
         },
-        margin: { left: 14, right: 14, bottom: 25 }
       });
 
       yPos = (doc as any).lastAutoTable.finalY + 12;
@@ -377,7 +376,6 @@ export const ReportGenerator = ({ trades, filterLabel }: ReportGeneratorProps) =
           2: { halign: 'right' },
           3: { halign: 'right' }
         },
-        margin: { left: 14, right: 14, bottom: 25 }
       });
 
       yPos = (doc as any).lastAutoTable.finalY + 12;
@@ -400,7 +398,6 @@ export const ReportGenerator = ({ trades, filterLabel }: ReportGeneratorProps) =
           2: { halign: 'right' },
           3: { halign: 'right' }
         },
-        margin: { left: 14, right: 14, bottom: 25 }
       });
 
       // New page for additional analysis
@@ -422,7 +419,6 @@ export const ReportGenerator = ({ trades, filterLabel }: ReportGeneratorProps) =
         columnStyles: {
           3: { halign: 'right' }
         },
-        margin: { left: 14, right: 14, bottom: 25 }
       });
 
       yPos = (doc as any).lastAutoTable.finalY + 12;
@@ -443,7 +439,6 @@ export const ReportGenerator = ({ trades, filterLabel }: ReportGeneratorProps) =
           2: { halign: 'right' },
           3: { halign: 'right' }
         },
-        margin: { left: 14, right: 14, bottom: 25 }
       });
 
       yPos = (doc as any).lastAutoTable.finalY + 12;
@@ -465,7 +460,6 @@ export const ReportGenerator = ({ trades, filterLabel }: ReportGeneratorProps) =
         columnStyles: {
           1: { halign: 'right' }
         },
-        margin: { left: 14, right: 14, bottom: 25 }
       });
 
       yPos = (doc as any).lastAutoTable.finalY + 15;
@@ -496,7 +490,6 @@ export const ReportGenerator = ({ trades, filterLabel }: ReportGeneratorProps) =
         columnStyles: {
           6: { halign: 'right' }
         },
-        margin: { left: 14, right: 14, bottom: 25 },
         didParseCell: (data) => {
           if (data.section === 'body' && data.column.index === 5) {
             if (data.cell.raw === 'TP') {
