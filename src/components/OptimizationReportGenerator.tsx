@@ -110,7 +110,7 @@ export const OptimizationReportGenerator = ({
           0: { fontStyle: "bold", cellWidth: 80 },
           1: { halign: "center" },
         },
-        margin: { left: 14, right: 14 },
+        margin: { left: 14, right: 14, bottom: 25 },
       });
 
       y = (doc as any).lastAutoTable.finalY + 12;
@@ -187,7 +187,7 @@ export const OptimizationReportGenerator = ({
             }
           }
         },
-        margin: { left: 14, right: 14 },
+        margin: { left: 14, right: 14, bottom: 25 },
       });
 
       y = (doc as any).lastAutoTable.finalY + 12;
@@ -224,7 +224,7 @@ export const OptimizationReportGenerator = ({
             }
           }
         },
-        margin: { left: 14, right: 14 },
+        margin: { left: 14, right: 14, bottom: 25 },
       });
 
       y = (doc as any).lastAutoTable.finalY + 12;
@@ -270,7 +270,7 @@ export const OptimizationReportGenerator = ({
             5: { halign: "center", textColor: brandColors.quantumBlue },
             6: { halign: "center", textColor: brandColors.success, fontStyle: "bold" },
           },
-          margin: { left: 14, right: 14 },
+          margin: { left: 14, right: 14, bottom: 25 },
         });
       }
 
@@ -330,7 +330,7 @@ export const OptimizationReportGenerator = ({
           1: { cellWidth: 24 },
           2: { halign: "center", fontStyle: "bold" },
         },
-        margin: { left: 14, right: 14 },
+        margin: { left: 14, right: 14, bottom: 25 },
       });
 
       // --- Methodology explanation (last page) ---

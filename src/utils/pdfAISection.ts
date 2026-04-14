@@ -16,7 +16,7 @@ export const addAIAnalysisSection = (
   const marginRight = 14;
   const maxWidth = pageWidth - marginLeft - marginRight;
   const lineHeight = 5;
-  const footerHeight = 22;
+  const footerHeight = 25;
 
   let y = startY;
 
