@@ -25,15 +25,23 @@ interface ParsedTrade {
   exit_time: string | null;
   trade_type: string;
   entry_model: string;
+  entry_subtype: string | null;
+  continuation_subtype: string | null;
   result_type: string;
   result_dollars: number;
   had_news: boolean;
   news_description: string | null;
+  custom_news_description: string | null;
   max_rr: number | null;
   drawdown: number | null;
   image_link: string | null;
   no_trade_day: boolean;
   risk_percentage: number;
+  asset: string;
+  fvg_count: number | null;
+  execution_timing: string | null;
+  news_time: string | null;
+  notes: string | null;
 }
 
 interface PreviewRow {
