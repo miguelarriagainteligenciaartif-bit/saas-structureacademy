@@ -168,6 +168,7 @@ export const getBrandedTableStyles = () => ({
     lineColor: [200, 200, 200] as [number, number, number],
     lineWidth: 0.1,
   },
+  margin: { left: 14, right: 14, bottom: 25 },
 });
 
 /**
