@@ -356,26 +356,26 @@ export function ExcelImporter({ onSuccess, accountId }: ExcelImporterProps) {
           exit_time: parseTimeNullable(getValue(r, "HORA SALIDA EN 1:2") || getValue(r, "HORA SALIDA")),
           trade_type: mapTradeType(getValue(r, "TIPO")),
           entry_model: mapEntryModel(getValue(r, "MODELO")),
-          entry_subtype: getValue(r, "ENTRY_SUBTYPE") ?? getValue(r, "SUBTIPO ENTRADA") ?? null,
-          continuation_subtype: getValue(r, "CONTINUATION_SUBTYPE") ?? getValue(r, "SUBTIPO CONTINUACION") ?? null,
+          entry_subtype: getValue(r, "ENTRY_SUBTYPE")?.trim() || getValue(r, "SUBTIPO ENTRADA")?.trim() || null,
+          continuation_subtype: getValue(r, "CONTINUATION_SUBTYPE")?.trim() || getValue(r, "SUBTIPO CONTINUACION")?.trim() || null,
           result_type: mapResultType(getValue(r, "RESULTADO"), pnl),
           result_dollars: pnl,
           had_news: hadNews || hadNewsUpper === "T" || hadNewsUpper === "TRUE",
           news_description:
             hadNewsRaw && !hadNewsUpper.includes("NO NEWS") && hadNewsUpper !== "F" && hadNewsUpper !== "FALSE" && hadNewsUpper !== "T" && hadNewsUpper !== "TRUE"
               ? String(hadNewsRaw)
-              : (getValue(r, "NEWS_DESCRIPTION") ?? null),
-          custom_news_description: getValue(r, "CUSTOM_NEWS_DESCRIPTION") ?? null,
+              : (getValue(r, "NEWS_DESCRIPTION")?.trim() || null),
+          custom_news_description: getValue(r, "CUSTOM_NEWS_DESCRIPTION")?.trim() || null,
           max_rr: parseNumber(getValue(r, "RR MÁXIMO")),
           drawdown: parseNumber(getValue(r, "DRAWDOWN")),
-          image_link: (getValue(r, "LINK m1 (EJECUCIÓN)") || getValue(r, "LINK")) ?? null,
+          image_link: getValue(r, "LINK m1 (EJECUCIÓN)")?.trim() || getValue(r, "LINK")?.trim() || null,
           no_trade_day: noTradeDayRaw === "T" || noTradeDayRaw === "TRUE",
           risk_percentage: riskRaw ?? 1,
-          asset: getValue(r, "ASSET") ?? getValue(r, "ACTIVO") ?? "Nasdaq 100",
+          asset: getValue(r, "ASSET")?.trim() || getValue(r, "ACTIVO")?.trim() || "Nasdaq 100",
           fvg_count: parseNumber(getValue(r, "FVG_COUNT") ?? getValue(r, "FVG") ?? ""),
           execution_timing: getValue(r, "EXECUTION_TIMING")?.trim() || null,
           news_time: parseTimeNullable(getValue(r, "NEWS_TIME")),
-          notes: getValue(r, "NOTES") ?? getValue(r, "NOTAS") ?? null,
+          notes: getValue(r, "NOTES")?.trim() || getValue(r, "NOTAS")?.trim() || null,
         };
 
         valid++;
