@@ -456,7 +456,11 @@ export function ExcelImporter({ onSuccess, accountId }: ExcelImporterProps) {
         const rawMes = String(getValue(r, "MES") ?? "").trim();
 
         let dateStr: string | null = null;
-        if (rawMes) dateStr = parseFechaWithMesGuarantee(rawFecha, rawMes, fmt);
+        const isoMatch = rawFecha.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+        if (isoMatch) {
+          dateStr = rawFecha;
+        }
+        if (!dateStr && rawMes) dateStr = parseFechaWithMesGuarantee(rawFecha, rawMes, fmt);
         if (!dateStr) {
           const parts = rawFecha.split("/");
           if (parts.length !== 3) continue;
