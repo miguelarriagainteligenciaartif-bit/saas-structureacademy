@@ -88,7 +88,10 @@ const parseWeekOfMonth = (semana: string | undefined): number => {
 };
 
 const parseTime = (timeValue: any): string => {
-  if (!timeValue) return "09:30:00";
+  if (!timeValue || (typeof timeValue === "string" && timeValue.trim() === "")) return "09:30:00";
+
+const parseTimeNullable = (timeValue: any): string | null => {
+  if (!timeValue || (typeof timeValue === "string" && timeValue.trim() === "")) return null;
 
   if (typeof timeValue === "string") {
     const match = timeValue.match(/(\d{1,2}):(\d{2})(?::(\d{2}))?/);
