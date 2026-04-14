@@ -217,11 +217,37 @@ export function ExcelImporter({ onSuccess, accountId }: ExcelImporterProps) {
     return mdyVotes > dmyVotes ? "mdy" : "dmy";
   }, [dateFormat, rawRows]);
 
+  // Alias map: normalized desired header → array of alternative normalized names
+  const headerAliases: Record<string, string[]> = {
+    "FECHA": ["DATE"],
+    "DIA": ["DAY_OF_WEEK"],
+    "HORA ENTRADA": ["ENTRY_TIME"],
+    "HORA SALIDA EN 1:2": ["EXIT_TIME"],
+    "HORA SALIDA": ["EXIT_TIME"],
+    "TIPO": ["TRADE_TYPE"],
+    "MODELO": ["ENTRY_MODEL"],
+    "RESULTADO": ["RESULT_TYPE"],
+    "P&L": ["RESULT_DOLLARS"],
+    "NOTICIA": ["NEWS_DESCRIPTION", "HAD_NEWS"],
+    "RR MAXIMO": ["MAX_RR"],
+    "DRAWDOWN": ["DRAWDOWN"],
+    "SEMANA": ["WEEK_OF_MONTH"],
+    "LINK M1 (EJECUCION)": ["IMAGE_LINK"],
+    "LINK": ["IMAGE_LINK"],
+    "MES": [],
+  };
+
   function getValue(row: CsvRow, header: string) {
-    // Build normalized key map on the fly (small row count, fine).
     const desired = normalizeHeader(header);
     for (const [k, v] of Object.entries(row)) {
       if (normalizeHeader(k) === desired) return v;
+    }
+    // Try aliases
+    const aliases = headerAliases[desired] ?? [];
+    for (const alias of aliases) {
+      for (const [k, v] of Object.entries(row)) {
+        if (normalizeHeader(k) === alias) return v;
+      }
     }
     return undefined;
   }
