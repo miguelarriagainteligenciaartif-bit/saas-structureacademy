@@ -203,28 +203,6 @@ export function ExcelImporter({ onSuccess, accountId }: ExcelImporterProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dropZoneRef = useRef<HTMLDivElement>(null);
 
-  const detectedAuto = useMemo<Exclude<DateFormat, "auto">>(() => {
-    // If MES is present in most rows, DMY is more likely for Spanish sources.
-    // But we still let user override.
-    if (dateFormat !== "auto") return dateFormat;
-
-    // Vote by looking at FECHA ambiguity in first N rows.
-    let dmyVotes = 0;
-    let mdyVotes = 0;
-    for (const r of rawRows.slice(0, 80)) {
-      const rawFecha = String(getValue(r, "FECHA") ?? "").trim();
-      if (!rawFecha.includes("/")) continue;
-      const parts = rawFecha.split("/");
-      if (parts.length !== 3) continue;
-      const a = parseInt(parts[0], 10);
-      const b = parseInt(parts[1], 10);
-      if (!Number.isFinite(a) || !Number.isFinite(b)) continue;
-      if (a > 12 && a <= 31) dmyVotes += 2;
-      if (b > 12 && b <= 31) mdyVotes += 2;
-    }
-    return mdyVotes > dmyVotes ? "mdy" : "dmy";
-  }, [dateFormat, rawRows]);
-
   // Alias map: normalized desired header → array of alternative normalized names
   const headerAliases: Record<string, string[]> = {
     "FECHA": ["DATE"],
@@ -259,6 +237,25 @@ export function ExcelImporter({ onSuccess, accountId }: ExcelImporterProps) {
     }
     return undefined;
   }
+
+  const detectedAuto = useMemo<Exclude<DateFormat, "auto">>(() => {
+    if (dateFormat !== "auto") return dateFormat;
+
+    let dmyVotes = 0;
+    let mdyVotes = 0;
+    for (const r of rawRows.slice(0, 80)) {
+      const rawFecha = String(getValue(r, "FECHA") ?? "").trim();
+      if (!rawFecha.includes("/")) continue;
+      const parts = rawFecha.split("/");
+      if (parts.length !== 3) continue;
+      const a = parseInt(parts[0], 10);
+      const b = parseInt(parts[1], 10);
+      if (!Number.isFinite(a) || !Number.isFinite(b)) continue;
+      if (a > 12 && a <= 31) dmyVotes += 2;
+      if (b > 12 && b <= 31) mdyVotes += 2;
+    }
+    return mdyVotes > dmyVotes ? "mdy" : "dmy";
+  }, [dateFormat, rawRows]);
 
   const resetState = () => {
     setErrors([]);
