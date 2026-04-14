@@ -90,27 +90,24 @@ const parseWeekOfMonth = (semana: string | undefined): number => {
 const parseTime = (timeValue: any): string => {
   if (!timeValue || (typeof timeValue === "string" && timeValue.trim() === "")) return "09:30:00";
 
-const parseTimeNullable = (timeValue: any): string | null => {
-  if (!timeValue || (typeof timeValue === "string" && timeValue.trim() === "")) return null;
-
   if (typeof timeValue === "string") {
     const match = timeValue.match(/(\d{1,2}):(\d{2})(?::(\d{2}))?/);
     if (match) {
       let hours = parseInt(match[1], 10);
       const minutes = match[2];
       const seconds = match[3] || "00";
-
       const lower = timeValue.toLowerCase();
-      const isPM = lower.includes("pm") || lower.includes("p.m");
-      const isAM = lower.includes("am") || lower.includes("a.m");
-      if (isPM && hours < 12) hours += 12;
-      if (isAM && hours === 12) hours = 0;
-
+      if (lower.includes("pm") || lower.includes("p.m")) { if (hours < 12) hours += 12; }
+      if (lower.includes("am") || lower.includes("a.m")) { if (hours === 12) hours = 0; }
       return `${String(hours).padStart(2, "0")}:${minutes}:${seconds}`;
     }
   }
-
   return "09:30:00";
+};
+
+const parseTimeNullable = (timeValue: any): string | null => {
+  if (!timeValue || (typeof timeValue === "string" && timeValue.trim() === "")) return null;
+  return parseTime(timeValue);
 };
 
 const parsePnL = (value: any): number => {
