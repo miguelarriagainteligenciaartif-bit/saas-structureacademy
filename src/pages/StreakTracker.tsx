@@ -203,7 +203,15 @@ export default function StreakTracker() {
     return decisiveTrades.filter(t => t.result_type === "TP").length / decisiveTrades.length;
   }, [decisiveTrades]);
 
-  const riskOfRuin = useMemo(() => calculateRiskOfRuin(winRate, 1, 0.5), [winRate]);
+  const payoffRatio = useMemo(() => {
+    const wins = decisiveTrades.filter(t => t.result_type === "TP");
+    const losses = decisiveTrades.filter(t => t.result_type === "SL");
+    const avgWin = wins.length > 0 ? wins.reduce((s, t) => s + Math.abs(t.result_dollars || 0), 0) / wins.length : 0;
+    const avgLoss = losses.length > 0 ? losses.reduce((s, t) => s + Math.abs(t.result_dollars || 0), 0) / losses.length : 1;
+    return avgLoss > 0 ? avgWin / avgLoss : 1;
+  }, [decisiveTrades]);
+
+  const riskOfRuin = useMemo(() => calculateRiskOfRuin(winRate, 1, payoffRatio), [winRate, payoffRatio]);
 
   const longestTP = useMemo(() => {
     const tpStreaks = streaks.filter(s => s.type === "TP");
