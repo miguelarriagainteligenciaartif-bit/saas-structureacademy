@@ -77,19 +77,21 @@ function buildDistribution(streaks: StreakInfo[], type: "TP" | "SL") {
   return { dist, maxLen, total: filtered.length };
 }
 
-function calculateRiskOfRuin(winRate: number, riskPercent: number, ruinThreshold: number = 0.5): number {
-  // Risk of ruin formula: ((1 - edge) / (1 + edge))^(units)
-  // edge = 2 * winRate - 1 (for 1:1, simplified for general use)
-  // For a more practical calculation using Kelly-adjacent approach
+function calculateRiskOfRuin(winRate: number, riskPercent: number, payoffRatio: number): number {
+  // Risk of ruin formula considering payoff ratio (avg win / avg loss)
+  // p = win rate, q = loss rate, b = payoff ratio
+  // If p*b > q (positive edge): RoR = (q / (p * b))^(capital_units)
+  // capital_units = 100 / riskPercent (number of risk units in account)
   if (winRate >= 1) return 0;
   if (winRate <= 0) return 1;
   
-  const lossRate = 1 - winRate;
-  if (winRate <= lossRate) return 1; // No edge = certain ruin eventually
+  const q = 1 - winRate;
+  const edge = winRate * payoffRatio - q;
+  if (edge <= 0) return 1; // No edge = certain ruin eventually
   
-  const units = Math.floor((ruinThreshold * 100) / riskPercent); // How many consecutive losses to reach ruin
-  const ratio = lossRate / winRate;
-  const ror = Math.pow(ratio, units);
+  const capitalUnits = Math.floor(100 / riskPercent); // Units to lose 100% of capital
+  const ratio = q / (winRate * payoffRatio);
+  const ror = Math.pow(ratio, capitalUnits);
   return Math.min(ror, 1);
 }
 
@@ -201,7 +203,15 @@ export default function StreakTracker() {
     return decisiveTrades.filter(t => t.result_type === "TP").length / decisiveTrades.length;
   }, [decisiveTrades]);
 
-  const riskOfRuin = useMemo(() => calculateRiskOfRuin(winRate, 1, 0.5), [winRate]);
+  const payoffRatio = useMemo(() => {
+    const wins = decisiveTrades.filter(t => t.result_type === "TP");
+    const losses = decisiveTrades.filter(t => t.result_type === "SL");
+    const avgWin = wins.length > 0 ? wins.reduce((s, t) => s + Math.abs(t.result_dollars || 0), 0) / wins.length : 0;
+    const avgLoss = losses.length > 0 ? losses.reduce((s, t) => s + Math.abs(t.result_dollars || 0), 0) / losses.length : 1;
+    return avgLoss > 0 ? avgWin / avgLoss : 1;
+  }, [decisiveTrades]);
+
+  const riskOfRuin = useMemo(() => calculateRiskOfRuin(winRate, 1, payoffRatio), [winRate, payoffRatio]);
 
   const longestTP = useMemo(() => {
     const tpStreaks = streaks.filter(s => s.type === "TP");
@@ -313,7 +323,7 @@ export default function StreakTracker() {
             value={`${(riskOfRuin * 100).toFixed(2)}%`}
             icon={AlertTriangle}
             trend={riskOfRuin < 0.01 ? "up" : riskOfRuin < 0.05 ? "neutral" : "down"}
-            subtitle="Prob. perder 50% del capital (1% riesgo)"
+            subtitle="Prob. perder 100% del capital (1% riesgo)"
           />
         </div>
 
@@ -482,13 +492,17 @@ export default function StreakTracker() {
               <AlertTriangle className="h-5 w-5 text-warning" />
               Riesgo de Ruina
             </CardTitle>
-            <CardDescription>Probabilidad estimada de perder un porcentaje significativo del capital</CardDescription>
+            <CardDescription>Probabilidad estimada de perder el 100% del capital</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div className="p-4 rounded-lg bg-muted/50 border">
                 <p className="text-xs text-muted-foreground mb-1">Win Rate actual</p>
                 <p className="text-2xl font-bold">{(winRate * 100).toFixed(1)}%</p>
+              </div>
+              <div className="p-4 rounded-lg bg-muted/50 border">
+                <p className="text-xs text-muted-foreground mb-1">Payoff Ratio (Avg Win / Avg Loss)</p>
+                <p className="text-2xl font-bold">{payoffRatio.toFixed(2)}</p>
               </div>
               <div className="p-4 rounded-lg bg-muted/50 border">
                 <p className="text-xs text-muted-foreground mb-1">Riesgo por trade</p>
@@ -498,7 +512,7 @@ export default function StreakTracker() {
                 "p-4 rounded-lg border",
                 riskOfRuin < 0.01 ? "bg-success/5 border-success/30" : riskOfRuin < 0.05 ? "bg-warning/5 border-warning/30" : "bg-destructive/5 border-destructive/30"
               )}>
-                <p className="text-xs text-muted-foreground mb-1">Prob. perder 50% capital</p>
+                <p className="text-xs text-muted-foreground mb-1">Prob. perder 100% capital</p>
                 <p className={cn(
                   "text-2xl font-bold",
                   riskOfRuin < 0.01 ? "text-success" : riskOfRuin < 0.05 ? "text-warning" : "text-destructive"
