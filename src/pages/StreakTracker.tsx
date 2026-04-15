@@ -77,19 +77,21 @@ function buildDistribution(streaks: StreakInfo[], type: "TP" | "SL") {
   return { dist, maxLen, total: filtered.length };
 }
 
-function calculateRiskOfRuin(winRate: number, riskPercent: number, ruinThreshold: number = 0.5): number {
-  // Risk of ruin formula: ((1 - edge) / (1 + edge))^(units)
-  // edge = 2 * winRate - 1 (for 1:1, simplified for general use)
-  // For a more practical calculation using Kelly-adjacent approach
+function calculateRiskOfRuin(winRate: number, riskPercent: number, payoffRatio: number): number {
+  // Risk of ruin formula considering payoff ratio (avg win / avg loss)
+  // p = win rate, q = loss rate, b = payoff ratio
+  // If p*b > q (positive edge): RoR = (q / (p * b))^(capital_units)
+  // capital_units = 100 / riskPercent (number of risk units in account)
   if (winRate >= 1) return 0;
   if (winRate <= 0) return 1;
   
-  const lossRate = 1 - winRate;
-  if (winRate <= lossRate) return 1; // No edge = certain ruin eventually
+  const q = 1 - winRate;
+  const edge = winRate * payoffRatio - q;
+  if (edge <= 0) return 1; // No edge = certain ruin eventually
   
-  const units = Math.floor((ruinThreshold * 100) / riskPercent); // How many consecutive losses to reach ruin
-  const ratio = lossRate / winRate;
-  const ror = Math.pow(ratio, units);
+  const capitalUnits = Math.floor(100 / riskPercent); // Units to lose 100% of capital
+  const ratio = q / (winRate * payoffRatio);
+  const ror = Math.pow(ratio, capitalUnits);
   return Math.min(ror, 1);
 }
 
