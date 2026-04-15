@@ -14,6 +14,7 @@ import SavedSimulations from "./pages/SavedSimulations";
 import ForexCalendar from "./pages/ForexCalendar";
 import Checklist from "./pages/Checklist";
 import Optimization from "./pages/Optimization";
+import StreakTracker from "./pages/StreakTracker";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -39,6 +40,7 @@ function App() {
             <Route path="/forex-calendar" element={<ForexCalendar />} />
             <Route path="/checklist" element={<Checklist />} />
             <Route path="/optimization" element={<Optimization />} />
+            <Route path="/streak-tracker" element={<StreakTracker />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
