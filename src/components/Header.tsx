@@ -1,4 +1,4 @@
-import { FlaskConical, Activity, Save, Layers, Newspaper, ClipboardCheck, Menu, Crosshair } from "lucide-react";
+import { FlaskConical, Activity, Save, Layers, Newspaper, ClipboardCheck, Menu, Crosshair, Flame } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -38,6 +38,7 @@ export const Header = ({ userName }: HeaderProps) => {
     { path: "/edgecore-x5", label: "X5 Simulator", icon: Activity },
     { path: "/flip-rotational", label: "Flip Rotacional", icon: Layers },
     { path: "/optimization", label: "Optimization", icon: Crosshair },
+    { path: "/streak-tracker", label: "Racha Tracker", icon: Flame },
     { path: "/saved-simulations", label: "Simulaciones", icon: Save },
     { path: "/forex-calendar", label: "Calendario USD", icon: Newspaper },
     { path: "/checklist", label: "Checklist", icon: ClipboardCheck },
