@@ -495,10 +495,14 @@ export default function StreakTracker() {
             <CardDescription>Probabilidad estimada de perder el 100% del capital</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div className="p-4 rounded-lg bg-muted/50 border">
                 <p className="text-xs text-muted-foreground mb-1">Win Rate actual</p>
                 <p className="text-2xl font-bold">{(winRate * 100).toFixed(1)}%</p>
+              </div>
+              <div className="p-4 rounded-lg bg-muted/50 border">
+                <p className="text-xs text-muted-foreground mb-1">Payoff Ratio (Avg Win / Avg Loss)</p>
+                <p className="text-2xl font-bold">{payoffRatio.toFixed(2)}</p>
               </div>
               <div className="p-4 rounded-lg bg-muted/50 border">
                 <p className="text-xs text-muted-foreground mb-1">Riesgo por trade</p>
