@@ -323,7 +323,7 @@ export default function StreakTracker() {
             value={`${(riskOfRuin * 100).toFixed(2)}%`}
             icon={AlertTriangle}
             trend={riskOfRuin < 0.01 ? "up" : riskOfRuin < 0.05 ? "neutral" : "down"}
-            subtitle="Prob. perder 50% del capital (1% riesgo)"
+            subtitle="Prob. perder 100% del capital (1% riesgo)"
           />
         </div>
 
@@ -492,7 +492,7 @@ export default function StreakTracker() {
               <AlertTriangle className="h-5 w-5 text-warning" />
               Riesgo de Ruina
             </CardTitle>
-            <CardDescription>Probabilidad estimada de perder un porcentaje significativo del capital</CardDescription>
+            <CardDescription>Probabilidad estimada de perder el 100% del capital</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -508,7 +508,7 @@ export default function StreakTracker() {
                 "p-4 rounded-lg border",
                 riskOfRuin < 0.01 ? "bg-success/5 border-success/30" : riskOfRuin < 0.05 ? "bg-warning/5 border-warning/30" : "bg-destructive/5 border-destructive/30"
               )}>
-                <p className="text-xs text-muted-foreground mb-1">Prob. perder 50% capital</p>
+                <p className="text-xs text-muted-foreground mb-1">Prob. perder 100% capital</p>
                 <p className={cn(
                   "text-2xl font-bold",
                   riskOfRuin < 0.01 ? "text-success" : riskOfRuin < 0.05 ? "text-warning" : "text-destructive"
