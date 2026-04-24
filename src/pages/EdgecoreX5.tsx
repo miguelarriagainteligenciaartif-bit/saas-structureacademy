@@ -88,8 +88,8 @@ const EdgecoreX5 = () => {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold tracking-tight">
-                <span className="text-foreground">EDGECORE X5</span>{" "}
-                <span className="text-primary">SIMULATOR</span>
+                <span className="text-primary">X5</span>{" "}
+                <span className="text-foreground">SIMULATOR</span>
               </h1>
               <p className="text-xs text-muted-foreground">
                 Gestión de Riesgo con Apalancado Personalizado
