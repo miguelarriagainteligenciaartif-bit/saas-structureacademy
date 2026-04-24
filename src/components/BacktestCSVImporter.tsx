@@ -89,16 +89,16 @@ const COLUMN_ALIASES: Record<string, string[]> = {
   FECHA: ["FECHA", "FECHA OPERATIVA", "DATE", "TRADE DATE"],
   DIA: ["DIA", "DAY", "DAY OF WEEK"],
   SEMANA: ["SEMANA", "WEEK", "WEEK OF MONTH"],
-  HORA_ENTRADA: ["HORA ENTRADA", "ENTRY TIME", "HORA"],
-  HORA_SALIDA: ["HORA SALIDA EN 1:2", "HORA SALIDA", "EXIT TIME"],
+  HORA_ENTRADA: ["HORA ENTRADA", "ENTRY TIME", "HORA", "TIME", "OPEN TIME"],
+  HORA_SALIDA: ["HORA SALIDA EN 1:2", "HORA SALIDA", "EXIT TIME", "CLOSE TIME"],
   TIPO: ["TIPO", "DIRECCION", "DIRECTION", "SIDE", "TYPE"],
   MODELO: ["MODELO", "MODEL", "ENTRY MODEL", "EDUCADOR", "EDUCATOR"],
   RESULTADO: ["RESULTADO", "RESULT", "OUTCOME"],
-  PNL: ["P&L", "PNL", "PROFIT", "PROFIT/LOSS", "R'S", "RS", "R S"],
-  NOTICIA: ["NOTICIA", "NEWS"],
+  PNL: ["P&L", "PNL", "PROFIT", "PROFIT/LOSS", "R'S", "RS", "R S", "P L", "GAIN", "NET"],
+  NOTICIA: ["NOTICIA", "NEWS", "DESCRIPCION NOTICIAS"],
   RR_MAX: ["RR MAXIMO", "RR MAX", "MAX RR"],
   DRAWDOWN: ["DRAWDOWN", "DD"],
-  LINK: ["LINK M1 (EJECUCION)", "LINK", "LINK TRADINGVIEW", "IMAGE", "SCREENSHOT"],
+  LINK: ["LINK M1 (EJECUCION)", "LINK", "LINK TRADINGVIEW", "IMAGE", "SCREENSHOT", "URL"],
   ASSET: ["PAR OPERADO", "PAR", "ASSET", "SYMBOL", "INSTRUMENT", "TICKER"],
   MES: ["MES", "MONTH"],
 };
@@ -342,8 +342,40 @@ export function BacktestCSVImporter({ onSuccess, strategyId }: BacktestCSVImport
     setIsDragging(false);
 
     try {
-      const text = await file.text();
-      const parsed = Papa.parse<CsvRow>(text, { header: true, skipEmptyLines: "greedy" });
+      const rawText = await file.text();
+      // Strip BOM and normalize line endings
+      let text = rawText.replace(/^\uFEFF/, "").replace(/\r\n?/g, "\n");
+
+      // Auto-detect Dashboard export: skip everything before "=== DETALLE DE OPERACIONES ===" / "=== DETAIL OF TRADES ==="
+      const lines = text.split("\n");
+      const detailIdx = lines.findIndex((l) =>
+        /=+\s*(DETALLE\s+DE\s+OPERACIONES|TRADE\s+DETAIL|DETAIL\s+OF\s+TRADES)\s*=+/i.test(l)
+      );
+      if (detailIdx >= 0 && detailIdx + 1 < lines.length) {
+        text = lines.slice(detailIdx + 1).join("\n");
+        toast.info("Detectado export del Dashboard. Saltando resumen…");
+      } else {
+        // Otherwise, skip leading non-tabular lines (no comma/semicolon/tab) until we find a header-looking row
+        let firstHeader = 0;
+        for (let i = 0; i < Math.min(lines.length, 60); i++) {
+          const l = lines[i].trim();
+          if (!l) continue;
+          if (/[,;\t]/.test(l) && /(fecha|date|modelo|model|resultado|result|p&l|pnl)/i.test(l)) {
+            firstHeader = i;
+            break;
+          }
+        }
+        if (firstHeader > 0) {
+          text = lines.slice(firstHeader).join("\n");
+        }
+      }
+
+      // Auto-detect delimiter (comma, semicolon, or tab)
+      const sample = text.split("\n").slice(0, 5).join("\n");
+      const counts = { ",": (sample.match(/,/g) || []).length, ";": (sample.match(/;/g) || []).length, "\t": (sample.match(/\t/g) || []).length };
+      const delimiter = (Object.entries(counts).sort((a, b) => b[1] - a[1])[0]?.[0]) || ",";
+
+      const parsed = Papa.parse<CsvRow>(text, { header: true, skipEmptyLines: "greedy", delimiter });
       if (parsed.errors?.length) {
         setErrors(parsed.errors.slice(0, 5).map((e) => `CSV: ${e.message}`));
       }
@@ -471,6 +503,24 @@ export function BacktestCSVImporter({ onSuccess, strategyId }: BacktestCSVImport
         </DialogHeader>
 
         <div className="space-y-4 py-4">
+          <Card className="border-primary/30 bg-primary/5">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm">Formato esperado</CardTitle>
+            </CardHeader>
+            <CardContent className="text-xs text-muted-foreground space-y-2">
+              <p>
+                <strong className="text-foreground">Columnas mínimas (obligatorias):</strong> <code>Fecha</code>, <code>Modelo</code>, <code>Resultado</code>, <code>P&amp;L</code>.
+                Opcionales: <code>Hora Entrada</code>, <code>Hora Salida</code>, <code>Día</code>, <code>Semana</code>, <code>Tipo</code>, <code>RR Max</code>, <code>Drawdown</code>, <code>Par Operado</code>, <code>Link</code>, <code>Mes</code>.
+              </p>
+              <p>
+                <strong className="text-foreground">Auto-soportado:</strong> exports del Dashboard (con bloque de resumen arriba), separadores <code>,</code> <code>;</code> o tab, fechas <code>YYYY-MM-DD</code> · <code>DD/MM/YYYY</code> · <code>"October 2, 2025"</code>, valores con <code>$</code> y aliases EN/ES (Date/Fecha, Model/Modelo, Result/Resultado…).
+              </p>
+              <p>
+                <strong className="text-foreground">Si falla:</strong> abre el CSV y comprueba que la <em>primera fila</em> contenga los nombres de columnas (no un título). Borra cualquier línea decorativa antes de la cabecera.
+              </p>
+            </CardContent>
+          </Card>
+
           <Card>
             <CardContent className="pt-6">
               <div ref={dropZoneRef} className="flex items-center justify-center w-full" onDragEnter={handleDragEnter} onDragLeave={handleDragLeave} onDragOver={handleDragOver} onDrop={handleDrop}>
