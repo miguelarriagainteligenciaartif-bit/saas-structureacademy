@@ -316,7 +316,7 @@ export default function StreakTracker() {
             value={`${(winRate * 100).toFixed(1)}%`}
             icon={Shield}
             trend={winRate >= 0.5 ? "up" : "down"}
-            subtitle={`${decisiveTrades.filter(t => t.result_type === "TP").length} TP / ${decisiveTrades.length} decisivos`}
+            subtitle={`${decisiveTrades.filter(t => t.result_type === "TP").length} TP / ${decisiveTrades.filter(t => t.result_type === "SL").length} SL`}
           />
           <StatsCard
             title="Riesgo de Ruina"
