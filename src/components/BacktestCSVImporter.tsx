@@ -503,6 +503,24 @@ export function BacktestCSVImporter({ onSuccess, strategyId }: BacktestCSVImport
         </DialogHeader>
 
         <div className="space-y-4 py-4">
+          <Card className="border-primary/30 bg-primary/5">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm">Formato esperado</CardTitle>
+            </CardHeader>
+            <CardContent className="text-xs text-muted-foreground space-y-2">
+              <p>
+                <strong className="text-foreground">Columnas mínimas (obligatorias):</strong> <code>Fecha</code>, <code>Modelo</code>, <code>Resultado</code>, <code>P&amp;L</code>.
+                Opcionales: <code>Hora Entrada</code>, <code>Hora Salida</code>, <code>Día</code>, <code>Semana</code>, <code>Tipo</code>, <code>RR Max</code>, <code>Drawdown</code>, <code>Par Operado</code>, <code>Link</code>, <code>Mes</code>.
+              </p>
+              <p>
+                <strong className="text-foreground">Auto-soportado:</strong> exports del Dashboard (con bloque de resumen arriba), separadores <code>,</code> <code>;</code> o tab, fechas <code>YYYY-MM-DD</code> · <code>DD/MM/YYYY</code> · <code>"October 2, 2025"</code>, valores con <code>$</code> y aliases EN/ES (Date/Fecha, Model/Modelo, Result/Resultado…).
+              </p>
+              <p>
+                <strong className="text-foreground">Si falla:</strong> abre el CSV y comprueba que la <em>primera fila</em> contenga los nombres de columnas (no un título). Borra cualquier línea decorativa antes de la cabecera.
+              </p>
+            </CardContent>
+          </Card>
+
           <Card>
             <CardContent className="pt-6">
               <div ref={dropZoneRef} className="flex items-center justify-center w-full" onDragEnter={handleDragEnter} onDragLeave={handleDragLeave} onDragOver={handleDragOver} onDrop={handleDrop}>
