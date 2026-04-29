@@ -22,6 +22,9 @@ export interface RealTrade {
   entry_model: string;
   trade_type: string;
   entry_time: string;
+  fvg_count?: number | null;
+  entry_subtype?: string | null;
+  continuation_subtype?: string | null;
 }
 
 interface BacktestStrategy {
@@ -50,6 +53,9 @@ export const FlipTradeSelector = ({ onTradesSelected }: FlipTradeSelectorProps) 
   const [selectedTradeIds, setSelectedTradeIds] = useState<Set<string>>(new Set());
   const [filterModel, setFilterModel] = useState<string>("all");
   const [filterResult, setFilterResult] = useState<string>("all");
+  const [filterContSubtype, setFilterContSubtype] = useState<string>("all");
+  const [filterFvgCount, setFilterFvgCount] = useState<string>("all");
+  const [filterEntrySubtype, setFilterEntrySubtype] = useState<string>("all");
   const [dateFrom, setDateFrom] = useState<string>("");
   const [dateTo, setDateTo] = useState<string>("");
   const [selectCount, setSelectCount] = useState<number>(10);
@@ -79,7 +85,7 @@ export const FlipTradeSelector = ({ onTradesSelected }: FlipTradeSelectorProps) 
     try {
       const { data, error } = await supabase
         .from("trades")
-        .select("id, date, result_type, result_dollars, entry_model, trade_type, entry_time")
+        .select("id, date, result_type, result_dollars, entry_model, trade_type, entry_time, fvg_count, entry_subtype, continuation_subtype")
         .eq("no_trade_day", false)
         .in("result_type", ["TP", "SL"])
         .order("date", { ascending: true })
@@ -186,6 +192,18 @@ export const FlipTradeSelector = ({ onTradesSelected }: FlipTradeSelectorProps) 
   const filteredTrades = trades.filter((trade) => {
     if (filterModel !== "all" && trade.entry_model !== filterModel) return false;
     if (filterResult !== "all" && trade.result_type !== filterResult) return false;
+    // Continuación subtype (Bloque / FVG)
+    if (filterModel === "Continuación" && filterContSubtype !== "all") {
+      if (trade.continuation_subtype !== filterContSubtype) return false;
+    }
+    // M1/M3 FVG count
+    if ((filterModel === "M1" || filterModel === "M3") && filterFvgCount !== "all") {
+      if (Number(trade.fvg_count) !== Number(filterFvgCount)) return false;
+    }
+    // M1/M3 entry subtype
+    if ((filterModel === "M1" || filterModel === "M3") && filterEntrySubtype !== "all") {
+      if (trade.entry_subtype !== filterEntrySubtype) return false;
+    }
     if (dateFrom && trade.date < dateFrom) return false;
     if (dateTo && trade.date > dateTo) return false;
     if (timeFrom && trade.entry_time) {
@@ -543,6 +561,52 @@ export const FlipTradeSelector = ({ onTradesSelected }: FlipTradeSelectorProps) 
                   </SelectContent>
                 </Select>
               </div>
+              {filterModel === "Continuación" && (
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Subtipo Cont.</Label>
+                  <Select value={filterContSubtype} onValueChange={setFilterContSubtype}>
+                    <SelectTrigger className="h-8 text-sm">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos</SelectItem>
+                      <SelectItem value="Bloque">Bloque</SelectItem>
+                      <SelectItem value="FVG">FVG</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+              {(filterModel === "M1" || filterModel === "M3") && (
+                <>
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground">Nº FVGs</Label>
+                    <Select value={filterFvgCount} onValueChange={setFilterFvgCount}>
+                      <SelectTrigger className="h-8 text-sm">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todos</SelectItem>
+                        <SelectItem value="1">1 FVG</SelectItem>
+                        <SelectItem value="2">2 FVGs</SelectItem>
+                        <SelectItem value="3">3 FVGs</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground">Subtipo entrada</Label>
+                    <Select value={filterEntrySubtype} onValueChange={setFilterEntrySubtype}>
+                      <SelectTrigger className="h-8 text-sm">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todos</SelectItem>
+                        <SelectItem value="Envolvente + Bloque">Env+Bloque</SelectItem>
+                        <SelectItem value="Envolvente + FVG">Env+FVG</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </>
+              )}
               <div className="space-y-1">
                 <Label className="text-xs text-muted-foreground flex items-center gap-1">
                   <Calendar className="h-3 w-3" /> Desde
