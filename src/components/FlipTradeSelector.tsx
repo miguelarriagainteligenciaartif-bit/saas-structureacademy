@@ -22,6 +22,9 @@ export interface RealTrade {
   entry_model: string;
   trade_type: string;
   entry_time: string;
+  fvg_count?: number | null;
+  entry_subtype?: string | null;
+  continuation_subtype?: string | null;
 }
 
 interface BacktestStrategy {
@@ -50,6 +53,9 @@ export const FlipTradeSelector = ({ onTradesSelected }: FlipTradeSelectorProps) 
   const [selectedTradeIds, setSelectedTradeIds] = useState<Set<string>>(new Set());
   const [filterModel, setFilterModel] = useState<string>("all");
   const [filterResult, setFilterResult] = useState<string>("all");
+  const [filterContSubtype, setFilterContSubtype] = useState<string>("all");
+  const [filterFvgCount, setFilterFvgCount] = useState<string>("all");
+  const [filterEntrySubtype, setFilterEntrySubtype] = useState<string>("all");
   const [dateFrom, setDateFrom] = useState<string>("");
   const [dateTo, setDateTo] = useState<string>("");
   const [selectCount, setSelectCount] = useState<number>(10);
@@ -79,7 +85,7 @@ export const FlipTradeSelector = ({ onTradesSelected }: FlipTradeSelectorProps) 
     try {
       const { data, error } = await supabase
         .from("trades")
-        .select("id, date, result_type, result_dollars, entry_model, trade_type, entry_time")
+        .select("id, date, result_type, result_dollars, entry_model, trade_type, entry_time, fvg_count, entry_subtype, continuation_subtype")
         .eq("no_trade_day", false)
         .in("result_type", ["TP", "SL"])
         .order("date", { ascending: true })
@@ -186,6 +192,18 @@ export const FlipTradeSelector = ({ onTradesSelected }: FlipTradeSelectorProps) 
   const filteredTrades = trades.filter((trade) => {
     if (filterModel !== "all" && trade.entry_model !== filterModel) return false;
     if (filterResult !== "all" && trade.result_type !== filterResult) return false;
+    // Continuación subtype (Bloque / FVG)
+    if (filterModel === "Continuación" && filterContSubtype !== "all") {
+      if (trade.continuation_subtype !== filterContSubtype) return false;
+    }
+    // M1/M3 FVG count
+    if ((filterModel === "M1" || filterModel === "M3") && filterFvgCount !== "all") {
+      if (Number(trade.fvg_count) !== Number(filterFvgCount)) return false;
+    }
+    // M1/M3 entry subtype
+    if ((filterModel === "M1" || filterModel === "M3") && filterEntrySubtype !== "all") {
+      if (trade.entry_subtype !== filterEntrySubtype) return false;
+    }
     if (dateFrom && trade.date < dateFrom) return false;
     if (dateTo && trade.date > dateTo) return false;
     if (timeFrom && trade.entry_time) {
