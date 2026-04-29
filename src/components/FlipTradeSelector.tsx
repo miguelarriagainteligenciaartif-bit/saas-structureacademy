@@ -561,6 +561,52 @@ export const FlipTradeSelector = ({ onTradesSelected }: FlipTradeSelectorProps) 
                   </SelectContent>
                 </Select>
               </div>
+              {filterModel === "Continuación" && (
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Subtipo Cont.</Label>
+                  <Select value={filterContSubtype} onValueChange={setFilterContSubtype}>
+                    <SelectTrigger className="h-8 text-sm">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos</SelectItem>
+                      <SelectItem value="Bloque">Bloque</SelectItem>
+                      <SelectItem value="FVG">FVG</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+              {(filterModel === "M1" || filterModel === "M3") && (
+                <>
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground">Nº FVGs</Label>
+                    <Select value={filterFvgCount} onValueChange={setFilterFvgCount}>
+                      <SelectTrigger className="h-8 text-sm">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todos</SelectItem>
+                        <SelectItem value="1">1 FVG</SelectItem>
+                        <SelectItem value="2">2 FVGs</SelectItem>
+                        <SelectItem value="3">3 FVGs</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground">Subtipo entrada</Label>
+                    <Select value={filterEntrySubtype} onValueChange={setFilterEntrySubtype}>
+                      <SelectTrigger className="h-8 text-sm">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todos</SelectItem>
+                        <SelectItem value="Envolvente + Bloque">Env+Bloque</SelectItem>
+                        <SelectItem value="Envolvente + FVG">Env+FVG</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </>
+              )}
               <div className="space-y-1">
                 <Label className="text-xs text-muted-foreground flex items-center gap-1">
                   <Calendar className="h-3 w-3" /> Desde
