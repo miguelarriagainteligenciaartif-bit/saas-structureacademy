@@ -417,6 +417,101 @@ export type Database = {
         }
         Relationships: []
       }
+      funding_accounts: {
+        Row: {
+          account_label: string | null
+          account_size: number
+          account_type: string
+          closed_date: string | null
+          cost: number
+          created_at: string
+          funded_date: string | null
+          funding_company: string
+          id: string
+          notes: string | null
+          passed_date: string | null
+          purchase_date: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          account_label?: string | null
+          account_size?: number
+          account_type?: string
+          closed_date?: string | null
+          cost?: number
+          created_at?: string
+          funded_date?: string | null
+          funding_company: string
+          id?: string
+          notes?: string | null
+          passed_date?: string | null
+          purchase_date?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          account_label?: string | null
+          account_size?: number
+          account_type?: string
+          closed_date?: string | null
+          cost?: number
+          created_at?: string
+          funded_date?: string | null
+          funding_company?: string
+          id?: string
+          notes?: string | null
+          passed_date?: string | null
+          purchase_date?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      funding_payouts: {
+        Row: {
+          amount: number
+          created_at: string
+          funding_account_id: string
+          id: string
+          notes: string | null
+          payout_date: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          funding_account_id: string
+          id?: string
+          notes?: string | null
+          payout_date: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          funding_account_id?: string
+          id?: string
+          notes?: string | null
+          payout_date?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "funding_payouts_funding_account_id_fkey"
+            columns: ["funding_account_id"]
+            isOneToOne: false
+            referencedRelation: "funding_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       group_rotational_simulations: {
         Row: {
           config: Json
