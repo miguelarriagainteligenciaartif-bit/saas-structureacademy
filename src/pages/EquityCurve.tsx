@@ -296,6 +296,8 @@ export default function EquityCurve() {
             liveCountByCompany={liveCountByCompany}
             userId={user.id}
             onChange={loadData}
+            accounts={fundingAccounts}
+            payouts={payouts}
           />
         )}
 
