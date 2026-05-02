@@ -9,7 +9,10 @@ import { StatsCard } from "@/components/StatsCard";
 import { FundingAccountManager, FundingAccount, FundingPayout } from "@/components/funding/FundingAccountManager";
 import { CompanySummaryManager, CompanySummary } from "@/components/funding/CompanySummaryManager";
 import { BulkPasteLiveAccounts } from "@/components/funding/BulkPasteLiveAccounts";
-import { Briefcase, Activity, Target, TrendingDown, TrendingUp, Wallet } from "lucide-react";
+import { Briefcase, Activity, Target, TrendingDown, TrendingUp, Wallet, FileDown } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { generateFundingReportPdf } from "@/utils/fundingReportPdf";
+import { toast } from "sonner";
 
 interface Trade {
   id: string;
@@ -193,6 +196,22 @@ export default function EquityCurve() {
 
   const fmt = (v: number) => `$${v.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
+  const handleExportPdf = async () => {
+    try {
+      toast.loading("Generando informe PDF...", { id: "funding-pdf" });
+      await generateFundingReportPdf({
+        summaries,
+        accounts: fundingAccounts,
+        payouts,
+        userEmail: user?.email,
+      });
+      toast.success("Informe descargado", { id: "funding-pdf" });
+    } catch (err) {
+      console.error(err);
+      toast.error("No se pudo generar el PDF", { id: "funding-pdf" });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Header userName={user?.email} />
@@ -204,7 +223,11 @@ export default function EquityCurve() {
             <p className="text-muted-foreground mt-2">Resumen financiero de evaluaciones, cuentas live y curva de capital</p>
           </div>
           
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
+            <Button onClick={handleExportPdf} variant="outline" size="sm" className="gap-2">
+              <FileDown className="h-4 w-4" />
+              Exportar PDF
+            </Button>
             <span className="text-sm font-medium">Filtrar por cuenta:</span>
             <Select value={selectedAccount} onValueChange={setSelectedAccount}>
               <SelectTrigger className="w-[250px]">
