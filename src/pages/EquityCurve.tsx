@@ -5,6 +5,9 @@ import { Header } from "@/components/Header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
+import { StatsCard } from "@/components/StatsCard";
+import { FundingAccountManager, FundingAccount, FundingPayout } from "@/components/funding/FundingAccountManager";
+import { Briefcase, Activity, Target, TrendingDown, TrendingUp, Wallet } from "lucide-react";
 
 interface Trade {
   id: string;
@@ -21,6 +24,8 @@ export default function EquityCurve() {
   const [loading, setLoading] = useState(true);
   const [accounts, setAccounts] = useState<any[]>([]);
   const [selectedAccount, setSelectedAccount] = useState<string>("all");
+  const [fundingAccounts, setFundingAccounts] = useState<FundingAccount[]>([]);
+  const [payouts, setPayouts] = useState<FundingPayout[]>([]);
 
   useEffect(() => {
     checkUser();
@@ -56,6 +61,18 @@ export default function EquityCurve() {
     if (accountsData) {
       setAccounts(accountsData);
     }
+
+    const { data: fundingData } = await supabase
+      .from("funding_accounts")
+      .select("*")
+      .order("created_at", { ascending: false });
+    if (fundingData) setFundingAccounts(fundingData as any);
+
+    const { data: payoutsData } = await supabase
+      .from("funding_payouts")
+      .select("*")
+      .order("payout_date", { ascending: false });
+    if (payoutsData) setPayouts(payoutsData as any);
 
     setLoading(false);
   };
@@ -137,15 +154,31 @@ export default function EquityCurve() {
 
   const equityCurve = equityCurveData();
 
+  // ===== KPIs Panel de Cuentas Fondeadas =====
+  const evaluations = fundingAccounts.filter(a => a.account_type === "evaluation");
+  const liveAccounts = fundingAccounts.filter(a => a.account_type === "live" || a.status === "live");
+  const inProgressEvals = evaluations.filter(a => a.status === "in_progress").length;
+  const passedEvals = evaluations.filter(a => a.status === "passed" || a.status === "live").length;
+  const fundingRatio = evaluations.length > 0 ? (passedEvals / evaluations.length) * 100 : 0;
+
+  const totalCosts = fundingAccounts.reduce((s, a) => s + Number(a.cost ?? 0), 0);
+  const totalPayouts = payouts.reduce((s, p) => s + Number(p.amount ?? 0), 0);
+  const netProfit = totalPayouts - totalCosts;
+  const roi = totalCosts > 0 ? (netProfit / totalCosts) * 100 : 0;
+  const avgCost = fundingAccounts.length > 0 ? totalCosts / fundingAccounts.length : 0;
+  const avgPayout = payouts.length > 0 ? totalPayouts / payouts.length : 0;
+
+  const fmt = (v: number) => `$${v.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
   return (
     <div className="min-h-screen bg-background">
       <Header userName={user?.email} />
       
       <main className="container mx-auto px-4 py-8 space-y-8">
-        <div className="flex justify-between items-center">
+        <div className="flex justify-between items-start flex-wrap gap-4">
           <div>
-            <h2 className="text-3xl font-bold text-foreground">Curva de Capital</h2>
-            <p className="text-muted-foreground mt-2">Visualización del progreso acumulado de tus operaciones</p>
+            <h2 className="text-3xl font-bold text-foreground">Panel de Cuentas Fondeadas</h2>
+            <p className="text-muted-foreground mt-2">Resumen financiero de evaluaciones, cuentas live y curva de capital</p>
           </div>
           
           <div className="flex items-center gap-2">
@@ -165,6 +198,60 @@ export default function EquityCurve() {
             </Select>
           </div>
         </div>
+
+        {/* KPIs */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <StatsCard
+            title="Evaluaciones"
+            value={evaluations.length}
+            icon={Briefcase}
+            subtitle={`${inProgressEvals} en progreso`}
+          />
+          <StatsCard
+            title="Cuentas Live"
+            value={liveAccounts.length}
+            icon={Activity}
+            subtitle={`${liveAccounts.filter(a => a.status === "live").length} activas`}
+            trend="up"
+          />
+          <StatsCard
+            title="Funding Ratio"
+            value={`${fundingRatio.toFixed(1)}%`}
+            icon={Target}
+            subtitle={`${passedEvals} de ${evaluations.length} aprobadas`}
+          />
+          <StatsCard
+            title="Gastos Totales"
+            value={fmt(totalCosts)}
+            icon={TrendingDown}
+            trend="down"
+            subtitle={`Promedio: ${fmt(avgCost)}`}
+          />
+          <StatsCard
+            title="Ganancias Totales"
+            value={fmt(totalPayouts)}
+            icon={TrendingUp}
+            trend="up"
+            subtitle={`Promedio: ${fmt(avgPayout)}`}
+          />
+          <StatsCard
+            title="Beneficio Neto"
+            value={fmt(netProfit)}
+            icon={Wallet}
+            trend={netProfit >= 0 ? "up" : "down"}
+            subtitle={`ROI: ${roi.toFixed(1)}%`}
+          />
+        </div>
+
+        {/* Funding Accounts Manager */}
+        {user && (
+          <FundingAccountManager
+            accounts={fundingAccounts}
+            payouts={payouts}
+            userId={user.id}
+            onChange={loadData}
+          />
+        )}
 
         {loading ? (
           <Card>
