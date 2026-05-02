@@ -7,6 +7,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { StatsCard } from "@/components/StatsCard";
 import { FundingAccountManager, FundingAccount, FundingPayout } from "@/components/funding/FundingAccountManager";
+import { CompanySummaryManager, CompanySummary } from "@/components/funding/CompanySummaryManager";
+import { BulkPasteLiveAccounts } from "@/components/funding/BulkPasteLiveAccounts";
 import { Briefcase, Activity, Target, TrendingDown, TrendingUp, Wallet } from "lucide-react";
 
 interface Trade {
@@ -26,6 +28,7 @@ export default function EquityCurve() {
   const [selectedAccount, setSelectedAccount] = useState<string>("all");
   const [fundingAccounts, setFundingAccounts] = useState<FundingAccount[]>([]);
   const [payouts, setPayouts] = useState<FundingPayout[]>([]);
+  const [summaries, setSummaries] = useState<CompanySummary[]>([]);
 
   useEffect(() => {
     checkUser();
@@ -73,6 +76,12 @@ export default function EquityCurve() {
       .select("*")
       .order("payout_date", { ascending: false });
     if (payoutsData) setPayouts(payoutsData as any);
+
+    const { data: summaryData } = await supabase
+      .from("funding_company_summary")
+      .select("*")
+      .order("funding_company");
+    if (summaryData) setSummaries(summaryData as any);
 
     setLoading(false);
   };
@@ -154,19 +163,33 @@ export default function EquityCurve() {
 
   const equityCurve = equityCurveData();
 
-  // ===== KPIs Panel de Cuentas Fondeadas =====
-  const evaluations = fundingAccounts.filter(a => a.account_type === "evaluation");
-  const liveAccounts = fundingAccounts.filter(a => a.account_type === "live" || a.status === "live");
-  const inProgressEvals = evaluations.filter(a => a.status === "in_progress").length;
-  const passedEvals = evaluations.filter(a => a.status === "passed" || a.status === "live").length;
-  const fundingRatio = evaluations.length > 0 ? (passedEvals / evaluations.length) * 100 : 0;
+  // ===== KPIs (combinan resumen agregado + cuentas live individuales) =====
+  const liveAccountsDetailed = fundingAccounts.filter(a => a.status === "live" || a.account_type === "live");
+  const inProgressDetailed = fundingAccounts.filter(a => a.status === "in_progress").length;
 
-  const totalCosts = fundingAccounts.reduce((s, a) => s + Number(a.cost ?? 0), 0);
+  // Totales desde el resumen agregado por empresa
+  const totalEvaluationsBought = summaries.reduce((s, x) => s + (x.total_evaluations || 0), 0);
+  const totalEvaluationsPassed = summaries.reduce((s, x) => s + (x.total_passed || 0), 0);
+  const totalSummaryCost = summaries.reduce((s, x) => s + Number(x.total_cost || 0), 0);
+
+  // Combinados
+  const detailedEvals = fundingAccounts.filter(a => a.account_type === "evaluation");
+  const totalEvaluations = totalEvaluationsBought + detailedEvals.length;
+  const totalPassed = totalEvaluationsPassed + detailedEvals.filter(a => a.status === "passed" || a.status === "live").length;
+  const fundingRatio = totalEvaluations > 0 ? (totalPassed / totalEvaluations) * 100 : 0;
+
+  const detailedCosts = fundingAccounts.reduce((s, a) => s + Number(a.cost ?? 0), 0);
+  const totalCosts = totalSummaryCost + detailedCosts;
   const totalPayouts = payouts.reduce((s, p) => s + Number(p.amount ?? 0), 0);
   const netProfit = totalPayouts - totalCosts;
   const roi = totalCosts > 0 ? (netProfit / totalCosts) * 100 : 0;
-  const avgCost = fundingAccounts.length > 0 ? totalCosts / fundingAccounts.length : 0;
+  const avgCost = totalEvaluations > 0 ? totalCosts / totalEvaluations : 0;
   const avgPayout = payouts.length > 0 ? totalPayouts / payouts.length : 0;
+
+  const liveCountByCompany: Record<string, number> = {};
+  liveAccountsDetailed.forEach(a => {
+    liveCountByCompany[a.funding_company] = (liveCountByCompany[a.funding_company] || 0) + 1;
+  });
 
   const fmt = (v: number) => `$${v.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
@@ -203,22 +226,22 @@ export default function EquityCurve() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <StatsCard
             title="Evaluaciones"
-            value={evaluations.length}
+            value={totalEvaluations}
             icon={Briefcase}
-            subtitle={`${inProgressEvals} en progreso`}
+            subtitle={`${inProgressDetailed} en progreso · ${totalPassed} aprobadas`}
           />
           <StatsCard
             title="Cuentas Live"
-            value={liveAccounts.length}
+            value={liveAccountsDetailed.length}
             icon={Activity}
-            subtitle={`${liveAccounts.filter(a => a.status === "live").length} activas`}
+            subtitle={`${liveAccountsDetailed.filter(a => a.status === "live").length} activas`}
             trend="up"
           />
           <StatsCard
             title="Funding Ratio"
             value={`${fundingRatio.toFixed(1)}%`}
             icon={Target}
-            subtitle={`${passedEvals} de ${evaluations.length} aprobadas`}
+            subtitle={`${totalPassed} de ${totalEvaluations} aprobadas`}
           />
           <StatsCard
             title="Gastos Totales"
@@ -243,14 +266,29 @@ export default function EquityCurve() {
           />
         </div>
 
-        {/* Funding Accounts Manager */}
+        {/* Resumen agregado por empresa */}
         {user && (
-          <FundingAccountManager
-            accounts={fundingAccounts}
-            payouts={payouts}
+          <CompanySummaryManager
+            summaries={summaries}
+            liveCountByCompany={liveCountByCompany}
             userId={user.id}
             onChange={loadData}
           />
+        )}
+
+        {/* Cuentas live activas (detalle individual) + bulk paste */}
+        {user && (
+          <div className="space-y-2">
+            <div className="flex justify-end">
+              <BulkPasteLiveAccounts userId={user.id} onChange={loadData} />
+            </div>
+            <FundingAccountManager
+              accounts={fundingAccounts}
+              payouts={payouts}
+              userId={user.id}
+              onChange={loadData}
+            />
+          </div>
         )}
 
         {loading ? (
