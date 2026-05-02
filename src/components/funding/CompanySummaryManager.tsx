@@ -12,6 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { KNOWN_FUNDING_COMPANIES } from "./FundingAccountManager";
+import type { FundingAccount, FundingPayout } from "./FundingAccountManager";
 
 export interface CompanySummary {
   id: string;
@@ -39,9 +40,11 @@ interface Props {
   liveCountByCompany: Record<string, number>;
   userId: string;
   onChange: () => void;
+  accounts?: FundingAccount[];
+  payouts?: FundingPayout[];
 }
 
-export function CompanySummaryManager({ summaries, liveCountByCompany, userId, onChange }: Props) {
+export function CompanySummaryManager({ summaries, liveCountByCompany, userId, onChange, accounts = [], payouts = [] }: Props) {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<CompanySummary | null>(null);
   const [form, setForm] = useState(empty);
@@ -96,6 +99,14 @@ export function CompanySummaryManager({ summaries, liveCountByCompany, userId, o
   };
 
   const fmt = (v: number) => `$${(v ?? 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+  const payoutsByCompany = (company: string) =>
+    payouts
+      .filter(p => {
+        const acc = accounts.find(a => a.id === p.funding_account_id);
+        return acc?.funding_company === company;
+      })
+      .reduce((s, p) => s + Number(p.amount || 0), 0);
 
   return (
     <Card>
@@ -178,6 +189,9 @@ export function CompanySummaryManager({ summaries, liveCountByCompany, userId, o
                 <TableHead className="text-right">Live activas</TableHead>
                 <TableHead className="text-right">Pass rate</TableHead>
                 <TableHead className="text-right">Coste total</TableHead>
+                <TableHead className="text-right">Payouts</TableHead>
+                <TableHead className="text-right">Neto</TableHead>
+                <TableHead className="text-right">ROI</TableHead>
                 <TableHead className="text-right">Acciones</TableHead>
               </TableRow>
             </TableHeader>
@@ -185,6 +199,10 @@ export function CompanySummaryManager({ summaries, liveCountByCompany, userId, o
               {summaries.map(s => {
                 const passRate = s.total_evaluations > 0 ? (s.total_passed / s.total_evaluations) * 100 : 0;
                 const liveCount = liveCountByCompany[s.funding_company] ?? 0;
+                const cost = Number(s.total_cost) || 0;
+                const companyPayouts = payoutsByCompany(s.funding_company);
+                const net = companyPayouts - cost;
+                const roi = cost > 0 ? (net / cost) * 100 : 0;
                 return (
                   <TableRow key={s.id}>
                     <TableCell className="font-medium">{s.funding_company}</TableCell>
@@ -193,7 +211,10 @@ export function CompanySummaryManager({ summaries, liveCountByCompany, userId, o
                     <TableCell className="text-right text-destructive">{s.total_failed}</TableCell>
                     <TableCell className="text-right text-primary">{liveCount}</TableCell>
                     <TableCell className="text-right">{passRate.toFixed(1)}%</TableCell>
-                    <TableCell className="text-right text-destructive">{fmt(Number(s.total_cost))}</TableCell>
+                    <TableCell className="text-right text-destructive">{fmt(cost)}</TableCell>
+                    <TableCell className="text-right text-emerald-500">{fmt(companyPayouts)}</TableCell>
+                    <TableCell className={`text-right font-semibold ${net >= 0 ? "text-emerald-500" : "text-destructive"}`}>{fmt(net)}</TableCell>
+                    <TableCell className={`text-right ${net >= 0 ? "text-emerald-500" : "text-destructive"}`}>{cost > 0 ? `${roi.toFixed(1)}%` : "—"}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-1">
                         <Button size="icon" variant="ghost" onClick={() => setEditing(s)}>
