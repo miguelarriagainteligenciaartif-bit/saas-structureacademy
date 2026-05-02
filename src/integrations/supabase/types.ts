@@ -471,6 +471,45 @@ export type Database = {
         }
         Relationships: []
       }
+      funding_company_summary: {
+        Row: {
+          created_at: string
+          funding_company: string
+          id: string
+          notes: string | null
+          total_cost: number
+          total_evaluations: number
+          total_failed: number
+          total_passed: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          funding_company: string
+          id?: string
+          notes?: string | null
+          total_cost?: number
+          total_evaluations?: number
+          total_failed?: number
+          total_passed?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          funding_company?: string
+          id?: string
+          notes?: string | null
+          total_cost?: number
+          total_evaluations?: number
+          total_failed?: number
+          total_passed?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       funding_payouts: {
         Row: {
           amount: number
