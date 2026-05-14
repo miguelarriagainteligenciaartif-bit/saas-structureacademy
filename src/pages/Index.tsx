@@ -539,8 +539,8 @@ export default function Index() {
           <CardContent>
             {loading ? (
               <p className="text-center text-muted-foreground py-8">Cargando...</p>
-            ) : trades.length === 0 ? (
-              <p className="text-center text-muted-foreground py-8">No hay operaciones registradas aún</p>
+            ) : filteredTradesForMetrics.length === 0 ? (
+              <p className="text-center text-muted-foreground py-8">No hay operaciones que coincidan con los filtros</p>
             ) : (
               <div className="overflow-x-auto">
                 <Table>
