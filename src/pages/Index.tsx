@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { format } from "date-fns";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Header } from "@/components/Header";
@@ -51,6 +52,8 @@ interface Trade {
   entry_subtype: string | null;
 }
 
+const formatDateFilter = (date: Date) => format(date, "yyyy-MM-dd");
+
 export default function Index() {
   const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
@@ -85,6 +88,11 @@ export default function Index() {
       setHasMoreTrades(allTrades.length > tradesLimit);
     }
   }, [tradesLimit, allTrades]);
+
+  useEffect(() => {
+    setTradesLimit(50);
+    setSelectedTradeIds(new Set());
+  }, [selectedAccount, filterDateFrom, filterDateTo, filterModels, filterTimeFrom, filterTimeTo, filterFvgCount, filterEntrySubtype, filterContinuationSubtype]);
 
   const checkUser = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -137,11 +145,11 @@ export default function Index() {
       filtered = filtered.filter(t => t.account_id === selectedAccount);
     }
     if (filterDateFrom) {
-      const fromStr = filterDateFrom.toISOString().split("T")[0];
+      const fromStr = formatDateFilter(filterDateFrom);
       filtered = filtered.filter(t => t.date >= fromStr);
     }
     if (filterDateTo) {
-      const toStr = filterDateTo.toISOString().split("T")[0];
+      const toStr = formatDateFilter(filterDateTo);
       filtered = filtered.filter(t => t.date <= toStr);
     }
     const allModels = ["M1", "M3", "Continuación"];
