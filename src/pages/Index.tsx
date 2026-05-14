@@ -501,8 +501,8 @@ export default function Index() {
               <div>
                 <CardTitle>Operaciones Recientes</CardTitle>
                 <CardDescription>
-                  Mostrando {trades.length} operación{trades.length !== 1 ? 'es' : ''}
-                  {hasMoreTrades && ' - Hay más operaciones disponibles'}
+                  Mostrando {filteredTradesForTable.length} de {filteredTradesForMetrics.length} operación{filteredTradesForMetrics.length !== 1 ? 'es' : ''}
+                  {hasMoreFilteredTrades && ' - Hay más operaciones disponibles'}
                   {selectedTradeIds.size > 0 && ` • ${selectedTradeIds.size} seleccionado(s)`}
                 </CardDescription>
               </div>
@@ -638,7 +638,7 @@ export default function Index() {
                 </Table>
               </div>
             )}
-            {hasMoreTrades && (
+            {hasMoreFilteredTrades && (
               <div className="mt-4 flex justify-center">
                 <Button 
                   variant="outline" 
