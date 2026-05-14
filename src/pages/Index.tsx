@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { format } from "date-fns";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Header } from "@/components/Header";
@@ -51,6 +52,8 @@ interface Trade {
   entry_subtype: string | null;
 }
 
+const formatDateFilter = (date: Date) => format(date, "yyyy-MM-dd");
+
 export default function Index() {
   const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
@@ -85,6 +88,11 @@ export default function Index() {
       setHasMoreTrades(allTrades.length > tradesLimit);
     }
   }, [tradesLimit, allTrades]);
+
+  useEffect(() => {
+    setTradesLimit(50);
+    setSelectedTradeIds(new Set());
+  }, [selectedAccount, filterDateFrom, filterDateTo, filterModels, filterTimeFrom, filterTimeTo, filterFvgCount, filterEntrySubtype, filterContinuationSubtype]);
 
   const checkUser = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -137,11 +145,11 @@ export default function Index() {
       filtered = filtered.filter(t => t.account_id === selectedAccount);
     }
     if (filterDateFrom) {
-      const fromStr = filterDateFrom.toISOString().split("T")[0];
+      const fromStr = formatDateFilter(filterDateFrom);
       filtered = filtered.filter(t => t.date >= fromStr);
     }
     if (filterDateTo) {
-      const toStr = filterDateTo.toISOString().split("T")[0];
+      const toStr = formatDateFilter(filterDateTo);
       filtered = filtered.filter(t => t.date <= toStr);
     }
     const allModels = ["M1", "M3", "Continuación"];
@@ -200,8 +208,9 @@ export default function Index() {
   const filteredTradesForMetrics = applyFilters(allTrades);
   const actualTrades = filteredTradesForMetrics.filter(t => !t.no_trade_day);
 
-  // For table display, use limited then filtered
-  const filteredTradesForTable = applyFilters(trades);
+  // Filter first, then limit only the visible table rows so filters search the full history.
+  const filteredTradesForTable = filteredTradesForMetrics.slice(0, tradesLimit);
+  const hasMoreFilteredTrades = filteredTradesForMetrics.length > tradesLimit;
 
   const clearFilters = () => {
     setFilterDateFrom(undefined);
@@ -492,8 +501,8 @@ export default function Index() {
               <div>
                 <CardTitle>Operaciones Recientes</CardTitle>
                 <CardDescription>
-                  Mostrando {trades.length} operación{trades.length !== 1 ? 'es' : ''}
-                  {hasMoreTrades && ' - Hay más operaciones disponibles'}
+                  Mostrando {filteredTradesForTable.length} de {filteredTradesForMetrics.length} operación{filteredTradesForMetrics.length !== 1 ? 'es' : ''}
+                  {hasMoreFilteredTrades && ' - Hay más operaciones disponibles'}
                   {selectedTradeIds.size > 0 && ` • ${selectedTradeIds.size} seleccionado(s)`}
                 </CardDescription>
               </div>
@@ -530,8 +539,8 @@ export default function Index() {
           <CardContent>
             {loading ? (
               <p className="text-center text-muted-foreground py-8">Cargando...</p>
-            ) : trades.length === 0 ? (
-              <p className="text-center text-muted-foreground py-8">No hay operaciones registradas aún</p>
+            ) : filteredTradesForMetrics.length === 0 ? (
+              <p className="text-center text-muted-foreground py-8">No hay operaciones que coincidan con los filtros</p>
             ) : (
               <div className="overflow-x-auto">
                 <Table>
@@ -629,7 +638,7 @@ export default function Index() {
                 </Table>
               </div>
             )}
-            {hasMoreTrades && (
+            {hasMoreFilteredTrades && (
               <div className="mt-4 flex justify-center">
                 <Button 
                   variant="outline" 
