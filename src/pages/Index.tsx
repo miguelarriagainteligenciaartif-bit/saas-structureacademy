@@ -208,8 +208,9 @@ export default function Index() {
   const filteredTradesForMetrics = applyFilters(allTrades);
   const actualTrades = filteredTradesForMetrics.filter(t => !t.no_trade_day);
 
-  // For table display, use limited then filtered
-  const filteredTradesForTable = applyFilters(trades);
+  // Filter first, then limit only the visible table rows so filters search the full history.
+  const filteredTradesForTable = filteredTradesForMetrics.slice(0, tradesLimit);
+  const hasMoreFilteredTrades = filteredTradesForMetrics.length > tradesLimit;
 
   const clearFilters = () => {
     setFilterDateFrom(undefined);
