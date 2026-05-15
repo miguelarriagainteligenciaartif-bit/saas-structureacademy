@@ -51,7 +51,6 @@ const formSchema = z.object({
   execution_timing: z.enum(EXECUTION_TIMING_OPTIONS).optional(),
   entry_model: z.enum(ENTRY_MODEL_OPTIONS).optional(),
   continuation_subtype: z.enum(CONTINUATION_SUBTYPE_OPTIONS).optional(),
-  fvg_count: z.enum(["1", "2", "3"] as const).optional(),
   entry_subtype: z.enum(["Envolvente + Bloque", "Envolvente + FVG", "FVG"] as const).optional(),
   result_dollars: z.string().optional(),
   image_link: z.string().url().optional().or(z.literal("")),
