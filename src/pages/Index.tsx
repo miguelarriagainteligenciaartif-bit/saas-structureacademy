@@ -444,13 +444,17 @@ export default function Index() {
           />
           <StatsCard
             title="Mejor Modelo"
-            value={
-              stats.m1Trades.length >= stats.m3Trades.length && stats.m1Trades.length >= stats.contTrades.length
-                ? "M1"
-                : stats.m3Trades.length >= stats.contTrades.length
-                ? "M3"
-                : "Continuación"
-            }
+            value={(() => {
+              const pnl = (arr: typeof stats.m1Trades) =>
+                arr.reduce((s, t) => s + (t.result_dollars || 0), 0);
+              const candidates = [
+                { name: "M1", pnl: pnl(stats.m1Trades), n: stats.m1Trades.length },
+                { name: "M3", pnl: pnl(stats.m3Trades), n: stats.m3Trades.length },
+                { name: "Continuación", pnl: pnl(stats.contTrades), n: stats.contTrades.length },
+              ].filter(c => c.n > 0);
+              if (candidates.length === 0) return "—";
+              return candidates.reduce((b, c) => (c.pnl > b.pnl ? c : b)).name;
+            })()}
             icon={Layers}
             trend="neutral"
           />
