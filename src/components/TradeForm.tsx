@@ -39,7 +39,6 @@ const formSchema = z.object({
   execution_timing: z.enum(["Antes de noticia", "Después de noticia"]).optional(),
   entry_model: z.enum(["M1", "M3", "Continuación"]).optional(),
   continuation_subtype: z.enum(["Bloque", "FVG"]).optional(),
-  fvg_count: z.enum(["1", "2", "3"]).optional(),
   entry_subtype: z.enum(["Envolvente + Bloque", "Envolvente + FVG", "FVG"]).optional(),
   result_dollars: z.string().optional(),
   image_link: z.string().url().optional().or(z.literal("")),
@@ -194,7 +193,7 @@ export const TradeForm = ({ onSuccess, isBacktest = false, strategyId }: TradeFo
         insertData.continuation_subtype = values.entry_model === "Continuación" ? (values.continuation_subtype || null) : null;
         // FVG count and entry subtype for M1/M3
         const isM1M3 = values.entry_model === "M1" || values.entry_model === "M3";
-        insertData.fvg_count = isM1M3 ? (values.fvg_count ? parseInt(values.fvg_count) : null) : null;
+        insertData.fvg_count = null;
         insertData.entry_subtype = isM1M3 ? (values.entry_subtype || null) : null;
       }
 
@@ -519,28 +518,6 @@ export const TradeForm = ({ onSuccess, isBacktest = false, strategyId }: TradeFo
 
               {(form.watch("entry_model") === "M1" || form.watch("entry_model") === "M3") && !noTradeDay && !isBacktest && (
                 <>
-                  <FormField
-                    control={form.control}
-                    name="fvg_count"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Cantidad de FVGs</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value || ""}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="¿Cuántos FVGs?" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="1">1 FVG</SelectItem>
-                            <SelectItem value="2">2 FVGs</SelectItem>
-                            <SelectItem value="3">3 FVGs</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
                   <FormField
                     control={form.control}
                     name="entry_subtype"
