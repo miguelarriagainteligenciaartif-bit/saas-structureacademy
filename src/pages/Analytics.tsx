@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Header } from "@/components/Header";
 import { StatsCard } from "@/components/StatsCard";
+import { getEntryPattern } from "@/lib/entryPattern";
 import { ReportGenerator } from "@/components/ReportGenerator";
 import { DashboardFilters } from "@/components/DashboardFilters";
 import { DollarSign, TrendingUp, TrendingDown, Target, Calendar, BarChart3, Clock, Flame, Award } from "lucide-react";
