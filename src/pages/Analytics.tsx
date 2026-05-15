@@ -50,8 +50,7 @@ export default function Analytics() {
   const [filterTimeFrom, setFilterTimeFrom] = useState<string>("");
   const [filterTimeTo, setFilterTimeTo] = useState<string>("");
   const [filterFvgCount, setFilterFvgCount] = useState<string>("all");
-  const [filterEntrySubtype, setFilterEntrySubtype] = useState<string>("all");
-  const [filterContinuationSubtype, setFilterContinuationSubtype] = useState<string>("all");
+  const [filterPattern, setFilterPattern] = useState<string>("all");
 
   useEffect(() => {
     checkUser();
@@ -102,21 +101,15 @@ export default function Analytics() {
     if (filterTimeTo) {
       filtered = filtered.filter(t => t.entry_time && t.entry_time <= filterTimeTo);
     }
-    const hasM1M3SubFilter = filterFvgCount !== "all" || filterEntrySubtype !== "all";
-    const hasContinuationSubFilter = filterContinuationSubtype !== "all";
-    if (hasM1M3SubFilter || hasContinuationSubFilter) {
+    if (filterFvgCount !== "all") {
       filtered = filtered.filter(t => {
         const isM1M3 = t.entry_model === "M1" || t.entry_model === "M3";
-        const isCont = t.entry_model === "Continuación";
-        if (isM1M3 && hasM1M3SubFilter) {
-          if (filterFvgCount !== "all" && t.fvg_count !== parseInt(filterFvgCount)) return false;
-          if (filterEntrySubtype !== "all" && t.entry_subtype !== filterEntrySubtype) return false;
-        }
-        if (isCont && hasContinuationSubFilter) {
-          if (filterContinuationSubtype !== "all" && t.continuation_subtype !== filterContinuationSubtype) return false;
-        }
-        return true;
+        if (!isM1M3) return false;
+        return t.fvg_count === parseInt(filterFvgCount);
       });
+    }
+    if (filterPattern !== "all") {
+      filtered = filtered.filter(t => getEntryPattern(t) === filterPattern);
     }
     return filtered;
   };
@@ -128,13 +121,12 @@ export default function Analytics() {
     setFilterTimeFrom("");
     setFilterTimeTo("");
     setFilterFvgCount("all");
-    setFilterEntrySubtype("all");
-    setFilterContinuationSubtype("all");
+    setFilterPattern("all");
   };
 
   const allModels = ["M1", "M3", "Continuación"];
   const isModelFiltered = filterModels.length < allModels.length;
-  const hasActiveFilters = filterDateFrom || filterDateTo || isModelFiltered || filterTimeFrom || filterTimeTo || filterFvgCount !== "all" || filterEntrySubtype !== "all" || filterContinuationSubtype !== "all";
+  const hasActiveFilters = filterDateFrom || filterDateTo || isModelFiltered || filterTimeFrom || filterTimeTo || filterFvgCount !== "all" || filterPattern !== "all";
 
   const activeFilterLabel = (() => {
     const parts: string[] = [];
@@ -144,8 +136,7 @@ export default function Analytics() {
     if (filterTimeTo) parts.push(`Hora hasta: ${filterTimeTo}`);
     if (isModelFiltered) parts.push(`Modelos: ${filterModels.join(", ")}`);
     if (filterFvgCount !== "all") parts.push(`FVGs: ${filterFvgCount}`);
-    if (filterEntrySubtype !== "all") parts.push(filterEntrySubtype);
-    if (filterContinuationSubtype !== "all") parts.push(`Cont: ${filterContinuationSubtype}`);
+    if (filterPattern !== "all") parts.push(`Patrón: ${filterPattern}`);
     return parts.join(" · ");
   })();
 
@@ -360,16 +351,14 @@ export default function Analytics() {
           timeFrom={filterTimeFrom}
           timeTo={filterTimeTo}
           fvgCount={filterFvgCount}
-          entrySubtype={filterEntrySubtype}
-          continuationSubtype={filterContinuationSubtype}
+          pattern={filterPattern}
           onDateFromChange={setFilterDateFrom}
           onDateToChange={setFilterDateTo}
           onModelsChange={setFilterModels}
           onTimeFromChange={setFilterTimeFrom}
           onTimeToChange={setFilterTimeTo}
           onFvgCountChange={setFilterFvgCount}
-          onEntrySubtypeChange={setFilterEntrySubtype}
-          onContinuationSubtypeChange={setFilterContinuationSubtype}
+          onPatternChange={setFilterPattern}
           onClearFilters={clearFilters}
         />
 
