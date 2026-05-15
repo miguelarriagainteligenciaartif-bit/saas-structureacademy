@@ -56,6 +56,9 @@ export function DashboardFilters({
 
   const showM1M3Filters = selectedModels.includes("M1") || selectedModels.includes("M3");
   const showContinuationFilter = selectedModels.includes("Continuación");
+  // Bloque/FVG subtype filter is meaningful for any model (M1/M3 via entry_subtype,
+  // Continuación via the equivalent continuation_subtype)
+  const showSubtypeFilter = showM1M3Filters || showContinuationFilter;
 
   const toggleModel = (model: string) => {
     if (selectedModels.includes(model)) {
@@ -202,16 +205,16 @@ export function DashboardFilters({
         </Select>
       )}
 
-      {/* Entry Subtype Filter (M1/M3) */}
-      {showM1M3Filters && (
+      {/* Entry Subtype Filter — applies to M1/M3 (Envolvente+X) and to Continuación (equivalent X) */}
+      {showSubtypeFilter && (
         <Select value={entrySubtype} onValueChange={onEntrySubtypeChange}>
-          <SelectTrigger className="w-[190px] h-9">
-            <SelectValue placeholder="Tipo entrada" />
+          <SelectTrigger className="w-[210px] h-9">
+            <SelectValue placeholder="Bloque / FVG" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Todos los tipos</SelectItem>
-            <SelectItem value="Envolvente + Bloque">Envolvente + Bloque</SelectItem>
-            <SelectItem value="Envolvente + FVG">Envolvente + FVG</SelectItem>
+            <SelectItem value="all">Bloque + FVG (todos)</SelectItem>
+            <SelectItem value="Envolvente + Bloque">Bloque (Env+Bloque / Cont. Bloque)</SelectItem>
+            <SelectItem value="Envolvente + FVG">FVG (Env+FVG / Cont. FVG)</SelectItem>
           </SelectContent>
         </Select>
       )}
