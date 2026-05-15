@@ -14,6 +14,7 @@ export function getEntryPattern(t: {
   if (t.entry_model === "M1" || t.entry_model === "M3") {
     if (t.entry_subtype === "Envolvente + Bloque") return "Envolvente + Bloque";
     if (t.entry_subtype === "Envolvente + FVG") return "por FVG";
+    if (t.entry_subtype === "FVG") return "por FVG";
   }
   if (t.entry_model === "Continuación") {
     if (t.continuation_subtype === "Bloque") return "Envolvente + Bloque";
