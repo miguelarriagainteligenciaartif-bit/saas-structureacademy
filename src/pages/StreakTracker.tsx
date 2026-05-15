@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Header } from "@/components/Header";
 import { DashboardFilters } from "@/components/DashboardFilters";
+import { getEntryPattern } from "@/lib/entryPattern";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -107,8 +108,7 @@ export default function StreakTracker() {
   const [filterTimeFrom, setFilterTimeFrom] = useState<string>("");
   const [filterTimeTo, setFilterTimeTo] = useState<string>("");
   const [filterFvgCount, setFilterFvgCount] = useState<string>("all");
-  const [filterEntrySubtype, setFilterEntrySubtype] = useState<string>("all");
-  const [filterContinuationSubtype, setFilterContinuationSubtype] = useState<string>("all");
+  const [filterPattern, setFilterPattern] = useState<string>("all");
 
   const [expandedStreaks, setExpandedStreaks] = useState<Set<string>>(new Set());
 
@@ -160,21 +160,15 @@ export default function StreakTracker() {
     if (filterTimeTo) {
       filtered = filtered.filter(t => t.entry_time && t.entry_time <= filterTimeTo);
     }
-    const hasM1M3SubFilter = filterFvgCount !== "all" || filterEntrySubtype !== "all";
-    const hasContinuationSubFilter = filterContinuationSubtype !== "all";
-    if (hasM1M3SubFilter || hasContinuationSubFilter) {
+    if (filterFvgCount !== "all") {
       filtered = filtered.filter(t => {
         const isM1M3 = t.entry_model === "M1" || t.entry_model === "M3";
-        const isCont = t.entry_model === "Continuación";
-        if (isM1M3 && hasM1M3SubFilter) {
-          if (filterFvgCount !== "all" && t.fvg_count !== parseInt(filterFvgCount)) return false;
-          if (filterEntrySubtype !== "all" && t.entry_subtype !== filterEntrySubtype) return false;
-        }
-        if (isCont && hasContinuationSubFilter) {
-          if (filterContinuationSubtype !== "all" && t.continuation_subtype !== filterContinuationSubtype) return false;
-        }
-        return true;
+        if (!isM1M3) return false;
+        return t.fvg_count === parseInt(filterFvgCount);
       });
+    }
+    if (filterPattern !== "all") {
+      filtered = filtered.filter(t => getEntryPattern(t) === filterPattern);
     }
     return filtered;
   };
@@ -186,11 +180,10 @@ export default function StreakTracker() {
     setFilterTimeFrom("");
     setFilterTimeTo("");
     setFilterFvgCount("all");
-    setFilterEntrySubtype("all");
-    setFilterContinuationSubtype("all");
+    setFilterPattern("all");
   };
 
-  const filteredTrades = useMemo(() => applyFilters(trades), [trades, filterDateFrom, filterDateTo, filterModels, filterTimeFrom, filterTimeTo, filterFvgCount, filterEntrySubtype, filterContinuationSubtype]);
+  const filteredTrades = useMemo(() => applyFilters(trades), [trades, filterDateFrom, filterDateTo, filterModels, filterTimeFrom, filterTimeTo, filterFvgCount, filterPattern]);
 
   const streaks = useMemo(() => computeStreaks(filteredTrades), [filteredTrades]);
 
@@ -280,16 +273,14 @@ export default function StreakTracker() {
               timeFrom={filterTimeFrom}
               timeTo={filterTimeTo}
               fvgCount={filterFvgCount}
-              entrySubtype={filterEntrySubtype}
-              continuationSubtype={filterContinuationSubtype}
+              pattern={filterPattern}
               onDateFromChange={setFilterDateFrom}
               onDateToChange={setFilterDateTo}
               onModelsChange={setFilterModels}
               onTimeFromChange={setFilterTimeFrom}
               onTimeToChange={setFilterTimeTo}
               onFvgCountChange={setFilterFvgCount}
-              onEntrySubtypeChange={setFilterEntrySubtype}
-              onContinuationSubtypeChange={setFilterContinuationSubtype}
+              onPatternChange={setFilterPattern}
               onClearFilters={clearFilters}
             />
           </CardContent>
