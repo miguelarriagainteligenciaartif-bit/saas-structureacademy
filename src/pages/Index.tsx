@@ -14,6 +14,7 @@ import { MonthlyResults } from "@/components/MonthlyResults";
 import { DollarSign, TrendingUp, TrendingDown, Target, Calendar, Layers, Trash2 } from "lucide-react";
 import { DashboardFilters } from "@/components/DashboardFilters";
 import { ModelComparisonTable } from "@/components/ModelComparisonTable";
+import { getEntryPattern } from "@/lib/entryPattern";
 import { DrawdownByModel } from "@/components/DrawdownByModel";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -74,8 +75,7 @@ export default function Index() {
   const [filterTimeFrom, setFilterTimeFrom] = useState<string>("");
   const [filterTimeTo, setFilterTimeTo] = useState<string>("");
   const [filterFvgCount, setFilterFvgCount] = useState<string>("all");
-  const [filterEntrySubtype, setFilterEntrySubtype] = useState<string>("all");
-  const [filterContinuationSubtype, setFilterContinuationSubtype] = useState<string>("all");
+  const [filterPattern, setFilterPattern] = useState<string>("all");
 
   useEffect(() => {
     checkUser();
@@ -92,7 +92,7 @@ export default function Index() {
   useEffect(() => {
     setTradesLimit(50);
     setSelectedTradeIds(new Set());
-  }, [selectedAccount, filterDateFrom, filterDateTo, filterModels, filterTimeFrom, filterTimeTo, filterFvgCount, filterEntrySubtype, filterContinuationSubtype]);
+  }, [selectedAccount, filterDateFrom, filterDateTo, filterModels, filterTimeFrom, filterTimeTo, filterFvgCount, filterPattern]);
 
   const checkUser = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -162,46 +162,24 @@ export default function Index() {
     if (filterTimeTo && filtered.length > 0) {
       filtered = filtered.filter(t => t.entry_time && t.entry_time <= filterTimeTo);
     }
-    // Sub-filters apply only to their respective models, other models pass through
-    const hasM1M3SubFilter = filterFvgCount !== "all" || filterEntrySubtype !== "all";
-    const hasContinuationSubFilter = filterContinuationSubtype !== "all";
-    
-    if (hasM1M3SubFilter || hasContinuationSubFilter) {
-      // Map entry_subtype to its equivalent continuation_subtype
-      // (e.g., "Envolvente + Bloque" <=> Continuación "Bloque")
-      const entrySubtypeToContinuation: Record<string, string> = {
-        "Envolvente + Bloque": "Bloque",
-        "Envolvente + FVG": "FVG",
-      };
-      const equivalentContSubtype = filterEntrySubtype !== "all"
-        ? entrySubtypeToContinuation[filterEntrySubtype]
-        : undefined;
-
+    // FVG count filter (M1/M3 dimension; Continuación has no fvg_count → excluded when active)
+    if (filterFvgCount !== "all") {
       filtered = filtered.filter(t => {
         const isM1M3 = t.entry_model === "M1" || t.entry_model === "M3";
-        const isCont = t.entry_model === "Continuación";
-
-        if (isM1M3) {
-          if (filterFvgCount !== "all" && t.fvg_count !== parseInt(filterFvgCount)) return false;
-          if (filterEntrySubtype !== "all" && t.entry_subtype !== filterEntrySubtype) return false;
-        }
-        if (isCont) {
-          if (filterContinuationSubtype !== "all" && t.continuation_subtype !== filterContinuationSubtype) return false;
-          // When filtering by entry subtype, also restrict Continuación trades
-          // to the equivalent continuation_subtype so the breakdown stays coherent.
-          if (equivalentContSubtype && t.continuation_subtype !== equivalentContSubtype) return false;
-          // FVG count doesn't apply to Continuación → exclude them when that filter is active.
-          if (filterFvgCount !== "all") return false;
-        }
-        return true;
+        if (!isM1M3) return false;
+        return t.fvg_count === parseInt(filterFvgCount);
       });
+    }
+    // Entry pattern filter (transversal: applies to M1, M3 and Continuación by deriving the pattern)
+    if (filterPattern !== "all") {
+      filtered = filtered.filter(t => getEntryPattern(t) === filterPattern);
     }
     return filtered;
   };
 
   const allModels = ["M1", "M3", "Continuación"];
   const isModelFiltered = filterModels.length < allModels.length;
-  const hasActiveFilters = selectedAccount !== "all" || filterDateFrom || filterDateTo || isModelFiltered || filterTimeFrom || filterTimeTo || filterFvgCount !== "all" || filterEntrySubtype !== "all" || filterContinuationSubtype !== "all";
+  const hasActiveFilters = selectedAccount !== "all" || filterDateFrom || filterDateTo || isModelFiltered || filterTimeFrom || filterTimeTo || filterFvgCount !== "all" || filterPattern !== "all";
 
   const activeFilterLabel = (() => {
     const parts: string[] = [];
@@ -211,8 +189,7 @@ export default function Index() {
     if (filterTimeTo) parts.push(`Hora hasta: ${filterTimeTo}`);
     if (isModelFiltered) parts.push(`Modelos: ${filterModels.join(", ")}`);
     if (filterFvgCount !== "all") parts.push(`FVGs: ${filterFvgCount}`);
-    if (filterEntrySubtype !== "all") parts.push(filterEntrySubtype);
-    if (filterContinuationSubtype !== "all") parts.push(`Cont: ${filterContinuationSubtype}`);
+    if (filterPattern !== "all") parts.push(`Patrón: ${filterPattern}`);
     if (selectedAccount !== "all") {
       const acc = accounts.find(a => a.id === selectedAccount);
       if (acc) parts.push(`Cuenta: ${acc.name}`);
@@ -234,8 +211,7 @@ export default function Index() {
     setFilterTimeFrom("");
     setFilterTimeTo("");
     setFilterFvgCount("all");
-    setFilterEntrySubtype("all");
-    setFilterContinuationSubtype("all");
+    setFilterPattern("all");
   };
 
   // Calcular rachas consecutivas (orden cronológico real: fecha + hora de entrada)
@@ -427,16 +403,14 @@ export default function Index() {
           timeFrom={filterTimeFrom}
           timeTo={filterTimeTo}
           fvgCount={filterFvgCount}
-          entrySubtype={filterEntrySubtype}
-          continuationSubtype={filterContinuationSubtype}
+          pattern={filterPattern}
           onDateFromChange={setFilterDateFrom}
           onDateToChange={setFilterDateTo}
           onModelsChange={setFilterModels}
           onTimeFromChange={setFilterTimeFrom}
           onTimeToChange={setFilterTimeTo}
           onFvgCountChange={setFilterFvgCount}
-          onEntrySubtypeChange={setFilterEntrySubtype}
-          onContinuationSubtypeChange={setFilterContinuationSubtype}
+          onPatternChange={setFilterPattern}
           onClearFilters={clearFilters}
         />
 

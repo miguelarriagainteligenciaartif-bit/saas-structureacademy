@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 
 const ALL_MODELS = ["M1", "M3", "Continuación"];
+const ALL_PATTERNS = ["Envolvente + Bloque", "Envolvente + FVG", "FVG único"];
 
 interface DashboardFiltersProps {
   dateFrom: Date | undefined;
@@ -19,16 +20,14 @@ interface DashboardFiltersProps {
   timeFrom: string;
   timeTo: string;
   fvgCount: string;
-  entrySubtype: string;
-  continuationSubtype: string;
+  pattern: string;
   onDateFromChange: (date: Date | undefined) => void;
   onDateToChange: (date: Date | undefined) => void;
   onModelsChange: (models: string[]) => void;
   onTimeFromChange: (time: string) => void;
   onTimeToChange: (time: string) => void;
   onFvgCountChange: (value: string) => void;
-  onEntrySubtypeChange: (value: string) => void;
-  onContinuationSubtypeChange: (value: string) => void;
+  onPatternChange: (value: string) => void;
   onClearFilters: () => void;
 }
 
@@ -39,26 +38,23 @@ export function DashboardFilters({
   timeFrom,
   timeTo,
   fvgCount,
-  entrySubtype,
-  continuationSubtype,
+  pattern,
   onDateFromChange,
   onDateToChange,
   onModelsChange,
   onTimeFromChange,
   onTimeToChange,
   onFvgCountChange,
-  onEntrySubtypeChange,
-  onContinuationSubtypeChange,
+  onPatternChange,
   onClearFilters,
 }: DashboardFiltersProps) {
   const isAllSelected = selectedModels.length === ALL_MODELS.length;
-  const hasActiveFilters = dateFrom || dateTo || !isAllSelected || timeFrom || timeTo || fvgCount !== "all" || entrySubtype !== "all" || continuationSubtype !== "all";
+  const hasActiveFilters = dateFrom || dateTo || !isAllSelected || timeFrom || timeTo || fvgCount !== "all" || pattern !== "all";
 
   const showM1M3Filters = selectedModels.includes("M1") || selectedModels.includes("M3");
-  const showContinuationFilter = selectedModels.includes("Continuación");
-  // Bloque/FVG subtype filter is meaningful for any model (M1/M3 via entry_subtype,
-  // Continuación via the equivalent continuation_subtype)
-  const showSubtypeFilter = showM1M3Filters || showContinuationFilter;
+  // Pattern filter applies to any selected model (M1/M3 via entry_subtype,
+  // Continuación via continuation_subtype, "FVG único" via fvg_count===1)
+  const showPatternFilter = selectedModels.length > 0;
 
   const toggleModel = (model: string) => {
     if (selectedModels.includes(model)) {
@@ -205,30 +201,17 @@ export function DashboardFilters({
         </Select>
       )}
 
-      {/* Entry Subtype Filter — applies to M1/M3 (Envolvente+X) and to Continuación (equivalent X) */}
-      {showSubtypeFilter && (
-        <Select value={entrySubtype} onValueChange={onEntrySubtypeChange}>
-          <SelectTrigger className="w-[210px] h-9">
-            <SelectValue placeholder="Bloque / FVG" />
+      {/* Entry Pattern Filter — transversal across M1/M3/Continuación */}
+      {showPatternFilter && (
+        <Select value={pattern} onValueChange={onPatternChange}>
+          <SelectTrigger className="w-[220px] h-9">
+            <SelectValue placeholder="Patrón de entrada" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Bloque + FVG (todos)</SelectItem>
-            <SelectItem value="Envolvente + Bloque">Bloque (Env+Bloque / Cont. Bloque)</SelectItem>
-            <SelectItem value="Envolvente + FVG">FVG (Env+FVG / Cont. FVG)</SelectItem>
-          </SelectContent>
-        </Select>
-      )}
-
-      {/* Continuation Subtype Filter */}
-      {showContinuationFilter && (
-        <Select value={continuationSubtype} onValueChange={onContinuationSubtypeChange}>
-          <SelectTrigger className="w-[180px] h-9">
-            <SelectValue placeholder="Tipo continuación" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Toda continuación</SelectItem>
-            <SelectItem value="Bloque">Bloque</SelectItem>
-            <SelectItem value="FVG">FVG</SelectItem>
+            <SelectItem value="all">Todos los patrones</SelectItem>
+            {ALL_PATTERNS.map(p => (
+              <SelectItem key={p} value={p}>{p}</SelectItem>
+            ))}
           </SelectContent>
         </Select>
       )}
@@ -274,14 +257,9 @@ export function DashboardFilters({
               FVGs: {fvgCount}
             </Badge>
           )}
-          {entrySubtype !== "all" && (
+          {pattern !== "all" && (
             <Badge variant="secondary" className="text-xs">
-              {entrySubtype}
-            </Badge>
-          )}
-          {continuationSubtype !== "all" && (
-            <Badge variant="secondary" className="text-xs">
-              Cont: {continuationSubtype}
+              Patrón: {pattern}
             </Badge>
           )}
         </div>
