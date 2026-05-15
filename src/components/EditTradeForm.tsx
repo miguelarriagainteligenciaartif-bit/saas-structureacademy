@@ -152,7 +152,6 @@ export const EditTradeForm = ({ trade, onSuccess, isBacktest = false }: EditTrad
       day_of_week: DAY_OPTIONS.includes(trade.day_of_week) ? trade.day_of_week : undefined,
       notes: trade.notes || "",
       continuation_subtype: normalizedContinuationSubtype,
-      fvg_count: trade.fvg_count ? trade.fvg_count.toString() : undefined,
       entry_subtype: trade.entry_subtype || undefined,
     },
   });
@@ -239,7 +238,7 @@ export const EditTradeForm = ({ trade, onSuccess, isBacktest = false }: EditTrad
         updateData.account_id = values.account_id || null;
         updateData.continuation_subtype = values.entry_model === "Continuación" ? (values.continuation_subtype || null) : null;
         const isM1M3 = values.entry_model === "M1" || values.entry_model === "M3";
-        updateData.fvg_count = isM1M3 ? (values.fvg_count ? parseInt(values.fvg_count) : null) : null;
+        updateData.fvg_count = null;
         updateData.entry_subtype = isM1M3 ? (values.entry_subtype || null) : null;
       }
 
@@ -544,28 +543,6 @@ export const EditTradeForm = ({ trade, onSuccess, isBacktest = false }: EditTrad
 
           {(form.watch("entry_model") === "M1" || form.watch("entry_model") === "M3") && !noTradeDay && !isBacktest && (
             <>
-              <FormField
-                control={form.control}
-                name="fvg_count"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Cantidad de FVGs</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value || ""}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="¿Cuántos FVGs?" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="1">1 FVG</SelectItem>
-                        <SelectItem value="2">2 FVGs</SelectItem>
-                        <SelectItem value="3">3 FVGs</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
               <FormField
                 control={form.control}
                 name="entry_subtype"
