@@ -40,7 +40,7 @@ const formSchema = z.object({
   entry_model: z.enum(["M1", "M3", "Continuación"]).optional(),
   continuation_subtype: z.enum(["Bloque", "FVG"]).optional(),
   fvg_count: z.enum(["1", "2", "3"]).optional(),
-  entry_subtype: z.enum(["Envolvente + Bloque", "Envolvente + FVG"]).optional(),
+  entry_subtype: z.enum(["Envolvente + Bloque", "Envolvente + FVG", "FVG"]).optional(),
   result_dollars: z.string().optional(),
   image_link: z.string().url().optional().or(z.literal("")),
   risk_percentage: z.string().default("1"),
@@ -556,6 +556,7 @@ export const TradeForm = ({ onSuccess, isBacktest = false, strategyId }: TradeFo
                           <SelectContent>
                             <SelectItem value="Envolvente + Bloque">Envolvente + Bloque</SelectItem>
                             <SelectItem value="Envolvente + FVG">Envolvente + FVG</SelectItem>
+                            <SelectItem value="FVG">FVG</SelectItem>
                           </SelectContent>
                         </Select>
                         <FormMessage />
