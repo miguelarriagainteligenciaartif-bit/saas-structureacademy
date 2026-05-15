@@ -107,8 +107,7 @@ export default function StreakTracker() {
   const [filterModels, setFilterModels] = useState<string[]>(["M1", "M3", "Continuación"]);
   const [filterTimeFrom, setFilterTimeFrom] = useState<string>("");
   const [filterTimeTo, setFilterTimeTo] = useState<string>("");
-  const [filterFvgCount, setFilterFvgCount] = useState<string>("all");
-  const [filterPattern, setFilterPattern] = useState<string>("all");
+  const [filterPatterns, setFilterPatterns] = useState<string[]>([]);
 
   const [expandedStreaks, setExpandedStreaks] = useState<Set<string>>(new Set());
 
@@ -160,15 +159,11 @@ export default function StreakTracker() {
     if (filterTimeTo) {
       filtered = filtered.filter(t => t.entry_time && t.entry_time <= filterTimeTo);
     }
-    if (filterFvgCount !== "all") {
+    if (filterPatterns.length > 0 && filterPatterns.length < 3) {
       filtered = filtered.filter(t => {
-        const isM1M3 = t.entry_model === "M1" || t.entry_model === "M3";
-        if (!isM1M3) return false;
-        return t.fvg_count === parseInt(filterFvgCount);
+        const p = getEntryPattern(t);
+        return p !== null && filterPatterns.includes(p);
       });
-    }
-    if (filterPattern !== "all") {
-      filtered = filtered.filter(t => getEntryPattern(t) === filterPattern);
     }
     return filtered;
   };
@@ -179,11 +174,10 @@ export default function StreakTracker() {
     setFilterModels(["M1", "M3", "Continuación"]);
     setFilterTimeFrom("");
     setFilterTimeTo("");
-    setFilterFvgCount("all");
-    setFilterPattern("all");
+    setFilterPatterns([]);
   };
 
-  const filteredTrades = useMemo(() => applyFilters(trades), [trades, filterDateFrom, filterDateTo, filterModels, filterTimeFrom, filterTimeTo, filterFvgCount, filterPattern]);
+  const filteredTrades = useMemo(() => applyFilters(trades), [trades, filterDateFrom, filterDateTo, filterModels, filterTimeFrom, filterTimeTo, filterPatterns]);
 
   const streaks = useMemo(() => computeStreaks(filteredTrades), [filteredTrades]);
 
@@ -272,15 +266,13 @@ export default function StreakTracker() {
               selectedModels={filterModels}
               timeFrom={filterTimeFrom}
               timeTo={filterTimeTo}
-              fvgCount={filterFvgCount}
-              pattern={filterPattern}
+              patterns={filterPatterns}
               onDateFromChange={setFilterDateFrom}
               onDateToChange={setFilterDateTo}
               onModelsChange={setFilterModels}
               onTimeFromChange={setFilterTimeFrom}
               onTimeToChange={setFilterTimeTo}
-              onFvgCountChange={setFilterFvgCount}
-              onPatternChange={setFilterPattern}
+              onPatternsChange={setFilterPatterns}
               onClearFilters={clearFilters}
             />
           </CardContent>
