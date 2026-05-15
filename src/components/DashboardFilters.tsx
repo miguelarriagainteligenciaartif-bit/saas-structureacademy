@@ -19,15 +19,13 @@ interface DashboardFiltersProps {
   selectedModels: string[];
   timeFrom: string;
   timeTo: string;
-  fvgCount: string;
-  pattern: string;
+  patterns: string[];
   onDateFromChange: (date: Date | undefined) => void;
   onDateToChange: (date: Date | undefined) => void;
   onModelsChange: (models: string[]) => void;
   onTimeFromChange: (time: string) => void;
   onTimeToChange: (time: string) => void;
-  onFvgCountChange: (value: string) => void;
-  onPatternChange: (value: string) => void;
+  onPatternsChange: (value: string[]) => void;
   onClearFilters: () => void;
 }
 
@@ -37,24 +35,34 @@ export function DashboardFilters({
   selectedModels,
   timeFrom,
   timeTo,
-  fvgCount,
-  pattern,
+  patterns,
   onDateFromChange,
   onDateToChange,
   onModelsChange,
   onTimeFromChange,
   onTimeToChange,
-  onFvgCountChange,
-  onPatternChange,
+  onPatternsChange,
   onClearFilters,
 }: DashboardFiltersProps) {
   const isAllSelected = selectedModels.length === ALL_MODELS.length;
-  const hasActiveFilters = dateFrom || dateTo || !isAllSelected || timeFrom || timeTo || fvgCount !== "all" || pattern !== "all";
+  const allPatternsSelected = patterns.length === 0 || patterns.length === ALL_PATTERNS.length;
+  const hasActiveFilters = dateFrom || dateTo || !isAllSelected || timeFrom || timeTo || !allPatternsSelected;
 
-  const showM1M3Filters = selectedModels.includes("M1") || selectedModels.includes("M3");
-  // Pattern filter applies to any selected model (M1/M3 via entry_subtype,
-  // Continuación via continuation_subtype, "FVG único" via fvg_count===1)
   const showPatternFilter = selectedModels.length > 0;
+
+  const togglePattern = (p: string) => {
+    const current = patterns.length === 0 ? [...ALL_PATTERNS] : patterns;
+    if (current.includes(p)) {
+      if (current.length <= 1) return;
+      onPatternsChange(current.filter(x => x !== p));
+    } else {
+      onPatternsChange([...current, p]);
+    }
+  };
+
+  const patternsLabel = allPatternsSelected
+    ? "Todos los patrones"
+    : patterns.join(" + ");
 
   const toggleModel = (model: string) => {
     if (selectedModels.includes(model)) {
@@ -186,34 +194,40 @@ export function DashboardFilters({
         </PopoverContent>
       </Popover>
 
-      {/* FVG Count Filter (M1/M3) */}
-      {showM1M3Filters && (
-        <Select value={fvgCount} onValueChange={onFvgCountChange}>
-          <SelectTrigger className="w-[130px] h-9">
-            <SelectValue placeholder="FVGs" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todos FVGs</SelectItem>
-            <SelectItem value="1">1 FVG</SelectItem>
-            <SelectItem value="2">2 FVGs</SelectItem>
-            <SelectItem value="3">3 FVGs</SelectItem>
-          </SelectContent>
-        </Select>
-      )}
-
-      {/* Entry Pattern Filter — transversal across M1/M3/Continuación */}
+      {/* Entry Pattern Multi-Select — transversal across M1/M3/Continuación */}
       {showPatternFilter && (
-        <Select value={pattern} onValueChange={onPatternChange}>
-          <SelectTrigger className="w-[220px] h-9">
-            <SelectValue placeholder="Patrón de entrada" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todos los patrones</SelectItem>
-            {ALL_PATTERNS.map(p => (
-              <SelectItem key={p} value={p}>{p}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              size="sm"
+              className={cn(
+                "justify-start text-left font-normal min-w-[220px]",
+                !allPatternsSelected && "border-primary text-primary"
+              )}
+            >
+              <Layers className="mr-2 h-4 w-4" />
+              {patternsLabel}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-[260px] p-3" align="start">
+            <div className="space-y-3">
+              <p className="text-sm font-medium text-muted-foreground">Patrón de entrada</p>
+              {ALL_PATTERNS.map((p) => {
+                const effective = patterns.length === 0 ? ALL_PATTERNS : patterns;
+                return (
+                  <label key={p} className="flex items-center gap-2 cursor-pointer">
+                    <Checkbox
+                      checked={effective.includes(p)}
+                      onCheckedChange={() => togglePattern(p)}
+                    />
+                    <span className="text-sm">{p}</span>
+                  </label>
+                );
+              })}
+            </div>
+          </PopoverContent>
+        </Popover>
       )}
 
       {/* Clear Filters */}
@@ -252,14 +266,9 @@ export function DashboardFilters({
               Modelos: {selectedModels.join(" + ")}
             </Badge>
           )}
-          {fvgCount !== "all" && (
+          {!allPatternsSelected && (
             <Badge variant="secondary" className="text-xs">
-              FVGs: {fvgCount}
-            </Badge>
-          )}
-          {pattern !== "all" && (
-            <Badge variant="secondary" className="text-xs">
-              Patrón: {pattern}
+              Patrón: {patterns.join(" + ")}
             </Badge>
           )}
         </div>

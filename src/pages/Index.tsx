@@ -74,8 +74,7 @@ export default function Index() {
   const [filterModels, setFilterModels] = useState<string[]>(["M1", "M3", "Continuación"]);
   const [filterTimeFrom, setFilterTimeFrom] = useState<string>("");
   const [filterTimeTo, setFilterTimeTo] = useState<string>("");
-  const [filterFvgCount, setFilterFvgCount] = useState<string>("all");
-  const [filterPattern, setFilterPattern] = useState<string>("all");
+  const [filterPatterns, setFilterPatterns] = useState<string[]>([]);
 
   useEffect(() => {
     checkUser();
@@ -92,7 +91,7 @@ export default function Index() {
   useEffect(() => {
     setTradesLimit(50);
     setSelectedTradeIds(new Set());
-  }, [selectedAccount, filterDateFrom, filterDateTo, filterModels, filterTimeFrom, filterTimeTo, filterFvgCount, filterPattern]);
+  }, [selectedAccount, filterDateFrom, filterDateTo, filterModels, filterTimeFrom, filterTimeTo, filterPatterns]);
 
   const checkUser = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -162,24 +161,20 @@ export default function Index() {
     if (filterTimeTo && filtered.length > 0) {
       filtered = filtered.filter(t => t.entry_time && t.entry_time <= filterTimeTo);
     }
-    // FVG count filter (M1/M3 dimension; Continuación has no fvg_count → excluded when active)
-    if (filterFvgCount !== "all") {
+    // Entry pattern filter (transversal, multi-select)
+    if (filterPatterns.length > 0 && filterPatterns.length < 3) {
       filtered = filtered.filter(t => {
-        const isM1M3 = t.entry_model === "M1" || t.entry_model === "M3";
-        if (!isM1M3) return false;
-        return t.fvg_count === parseInt(filterFvgCount);
+        const p = getEntryPattern(t);
+        return p !== null && filterPatterns.includes(p);
       });
-    }
-    // Entry pattern filter (transversal: applies to M1, M3 and Continuación by deriving the pattern)
-    if (filterPattern !== "all") {
-      filtered = filtered.filter(t => getEntryPattern(t) === filterPattern);
     }
     return filtered;
   };
 
   const allModels = ["M1", "M3", "Continuación"];
   const isModelFiltered = filterModels.length < allModels.length;
-  const hasActiveFilters = selectedAccount !== "all" || filterDateFrom || filterDateTo || isModelFiltered || filterTimeFrom || filterTimeTo || filterFvgCount !== "all" || filterPattern !== "all";
+  const isPatternFiltered = filterPatterns.length > 0 && filterPatterns.length < 3;
+  const hasActiveFilters = selectedAccount !== "all" || filterDateFrom || filterDateTo || isModelFiltered || filterTimeFrom || filterTimeTo || isPatternFiltered;
 
   const activeFilterLabel = (() => {
     const parts: string[] = [];
@@ -188,8 +183,7 @@ export default function Index() {
     if (filterTimeFrom) parts.push(`Hora desde: ${filterTimeFrom}`);
     if (filterTimeTo) parts.push(`Hora hasta: ${filterTimeTo}`);
     if (isModelFiltered) parts.push(`Modelos: ${filterModels.join(", ")}`);
-    if (filterFvgCount !== "all") parts.push(`FVGs: ${filterFvgCount}`);
-    if (filterPattern !== "all") parts.push(`Patrón: ${filterPattern}`);
+    if (isPatternFiltered) parts.push(`Patrón: ${filterPatterns.join(" + ")}`);
     if (selectedAccount !== "all") {
       const acc = accounts.find(a => a.id === selectedAccount);
       if (acc) parts.push(`Cuenta: ${acc.name}`);
@@ -210,8 +204,7 @@ export default function Index() {
     setFilterModels(["M1", "M3", "Continuación"]);
     setFilterTimeFrom("");
     setFilterTimeTo("");
-    setFilterFvgCount("all");
-    setFilterPattern("all");
+    setFilterPatterns([]);
   };
 
   // Calcular rachas consecutivas (orden cronológico real: fecha + hora de entrada)
@@ -402,15 +395,13 @@ export default function Index() {
           selectedModels={filterModels}
           timeFrom={filterTimeFrom}
           timeTo={filterTimeTo}
-          fvgCount={filterFvgCount}
-          pattern={filterPattern}
+          patterns={filterPatterns}
           onDateFromChange={setFilterDateFrom}
           onDateToChange={setFilterDateTo}
           onModelsChange={setFilterModels}
           onTimeFromChange={setFilterTimeFrom}
           onTimeToChange={setFilterTimeTo}
-          onFvgCountChange={setFilterFvgCount}
-          onPatternChange={setFilterPattern}
+          onPatternsChange={setFilterPatterns}
           onClearFilters={clearFilters}
         />
 

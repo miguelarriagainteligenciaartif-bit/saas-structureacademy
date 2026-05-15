@@ -50,8 +50,7 @@ export default function Analytics() {
   const [filterModels, setFilterModels] = useState<string[]>(["M1", "M3", "Continuación"]);
   const [filterTimeFrom, setFilterTimeFrom] = useState<string>("");
   const [filterTimeTo, setFilterTimeTo] = useState<string>("");
-  const [filterFvgCount, setFilterFvgCount] = useState<string>("all");
-  const [filterPattern, setFilterPattern] = useState<string>("all");
+  const [filterPatterns, setFilterPatterns] = useState<string[]>([]);
 
   useEffect(() => {
     checkUser();
@@ -102,15 +101,11 @@ export default function Analytics() {
     if (filterTimeTo) {
       filtered = filtered.filter(t => t.entry_time && t.entry_time <= filterTimeTo);
     }
-    if (filterFvgCount !== "all") {
+    if (filterPatterns.length > 0 && filterPatterns.length < 3) {
       filtered = filtered.filter(t => {
-        const isM1M3 = t.entry_model === "M1" || t.entry_model === "M3";
-        if (!isM1M3) return false;
-        return t.fvg_count === parseInt(filterFvgCount);
+        const p = getEntryPattern(t);
+        return p !== null && filterPatterns.includes(p);
       });
-    }
-    if (filterPattern !== "all") {
-      filtered = filtered.filter(t => getEntryPattern(t) === filterPattern);
     }
     return filtered;
   };
@@ -121,13 +116,13 @@ export default function Analytics() {
     setFilterModels(["M1", "M3", "Continuación"]);
     setFilterTimeFrom("");
     setFilterTimeTo("");
-    setFilterFvgCount("all");
-    setFilterPattern("all");
+    setFilterPatterns([]);
   };
 
   const allModels = ["M1", "M3", "Continuación"];
   const isModelFiltered = filterModels.length < allModels.length;
-  const hasActiveFilters = filterDateFrom || filterDateTo || isModelFiltered || filterTimeFrom || filterTimeTo || filterFvgCount !== "all" || filterPattern !== "all";
+  const isPatternFiltered = filterPatterns.length > 0 && filterPatterns.length < 3;
+  const hasActiveFilters = filterDateFrom || filterDateTo || isModelFiltered || filterTimeFrom || filterTimeTo || isPatternFiltered;
 
   const activeFilterLabel = (() => {
     const parts: string[] = [];
@@ -136,8 +131,7 @@ export default function Analytics() {
     if (filterTimeFrom) parts.push(`Hora desde: ${filterTimeFrom}`);
     if (filterTimeTo) parts.push(`Hora hasta: ${filterTimeTo}`);
     if (isModelFiltered) parts.push(`Modelos: ${filterModels.join(", ")}`);
-    if (filterFvgCount !== "all") parts.push(`FVGs: ${filterFvgCount}`);
-    if (filterPattern !== "all") parts.push(`Patrón: ${filterPattern}`);
+    if (isPatternFiltered) parts.push(`Patrón: ${filterPatterns.join(" + ")}`);
     return parts.join(" · ");
   })();
 
@@ -351,15 +345,13 @@ export default function Analytics() {
           selectedModels={filterModels}
           timeFrom={filterTimeFrom}
           timeTo={filterTimeTo}
-          fvgCount={filterFvgCount}
-          pattern={filterPattern}
+          patterns={filterPatterns}
           onDateFromChange={setFilterDateFrom}
           onDateToChange={setFilterDateTo}
           onModelsChange={setFilterModels}
           onTimeFromChange={setFilterTimeFrom}
           onTimeToChange={setFilterTimeTo}
-          onFvgCountChange={setFilterFvgCount}
-          onPatternChange={setFilterPattern}
+          onPatternsChange={setFilterPatterns}
           onClearFilters={clearFilters}
         />
 
