@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 
 const ALL_MODELS = ["M1", "M3", "Continuación"];
-const ALL_PATTERNS = ["Envolvente + Bloque", "por FVG"];
+const ALL_PATTERNS = ["Envolvente + Bloque", "Envolvente + FVG", "FVG único"];
 
 interface DashboardFiltersProps {
   dateFrom: Date | undefined;
