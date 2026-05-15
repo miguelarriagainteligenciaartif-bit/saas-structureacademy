@@ -167,16 +167,31 @@ export default function Index() {
     const hasContinuationSubFilter = filterContinuationSubtype !== "all";
     
     if (hasM1M3SubFilter || hasContinuationSubFilter) {
+      // Map entry_subtype to its equivalent continuation_subtype
+      // (e.g., "Envolvente + Bloque" <=> Continuación "Bloque")
+      const entrySubtypeToContinuation: Record<string, string> = {
+        "Envolvente + Bloque": "Bloque",
+        "Envolvente + FVG": "FVG",
+      };
+      const equivalentContSubtype = filterEntrySubtype !== "all"
+        ? entrySubtypeToContinuation[filterEntrySubtype]
+        : undefined;
+
       filtered = filtered.filter(t => {
         const isM1M3 = t.entry_model === "M1" || t.entry_model === "M3";
         const isCont = t.entry_model === "Continuación";
-        
-        if (isM1M3 && hasM1M3SubFilter) {
+
+        if (isM1M3) {
           if (filterFvgCount !== "all" && t.fvg_count !== parseInt(filterFvgCount)) return false;
           if (filterEntrySubtype !== "all" && t.entry_subtype !== filterEntrySubtype) return false;
         }
-        if (isCont && hasContinuationSubFilter) {
+        if (isCont) {
           if (filterContinuationSubtype !== "all" && t.continuation_subtype !== filterContinuationSubtype) return false;
+          // When filtering by entry subtype, also restrict Continuación trades
+          // to the equivalent continuation_subtype so the breakdown stays coherent.
+          if (equivalentContSubtype && t.continuation_subtype !== equivalentContSubtype) return false;
+          // FVG count doesn't apply to Continuación → exclude them when that filter is active.
+          if (filterFvgCount !== "all") return false;
         }
         return true;
       });
