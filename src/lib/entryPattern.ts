@@ -14,6 +14,9 @@ export function getEntryPattern(t: {
   if (t.entry_model === "M1" || t.entry_model === "M3") {
     if (t.entry_subtype === "Envolvente + Bloque") return "Envolvente + Bloque";
     if (t.entry_subtype === "Envolvente + FVG") return "Envolvente + FVG";
+    // Eric's CSV uses bare "FVG" subtype with fvg_count >= 2 to mean
+    // "Envolvente + FVG" (the FVG-based entry pattern with multiple FVGs).
+    if (t.entry_subtype === "FVG" && (t.fvg_count ?? 0) >= 2) return "Envolvente + FVG";
   }
   if (t.entry_model === "Continuación") {
     if (t.continuation_subtype === "Bloque") return "Envolvente + Bloque";
