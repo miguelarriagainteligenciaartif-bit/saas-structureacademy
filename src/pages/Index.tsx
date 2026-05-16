@@ -29,6 +29,15 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 
+const formatCompactCurrency = (n: number): string => {
+  const sign = n < 0 ? "-" : "";
+  const abs = Math.abs(n);
+  if (abs >= 1_000_000) return `${sign}$${(abs / 1_000_000).toFixed(2)}M`;
+  if (abs >= 10_000) return `${sign}$${(abs / 1_000).toFixed(1)}K`;
+  if (abs >= 1_000) return `${sign}$${(abs / 1_000).toFixed(2)}K`;
+  return `${sign}$${abs.toFixed(2)}`;
+};
+
 interface Trade {
   id: string;
   date: string;
@@ -428,7 +437,8 @@ export default function Index() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-7 gap-4">
           <StatsCard
             title="P&L Total"
-            value={`$${stats.totalPnL.toFixed(2)}`}
+            value={formatCompactCurrency(stats.totalPnL)}
+            valueTitle={`$${stats.totalPnL.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
             icon={DollarSign}
             trend={stats.totalPnL >= 0 ? "up" : "down"}
           />
