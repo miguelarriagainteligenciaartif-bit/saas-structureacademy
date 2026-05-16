@@ -15,6 +15,8 @@ import { DollarSign, TrendingUp, TrendingDown, Target, Calendar, Layers, Trash2 
 import { DashboardFilters } from "@/components/DashboardFilters";
 import { ModelComparisonTable } from "@/components/ModelComparisonTable";
 import { getEntryPattern } from "@/lib/entryPattern";
+import { PatternModelFvgMatrix } from "@/components/PatternModelFvgMatrix";
+import { applyTradeFilters, defaultFilterState, hasActiveFilters as filtersAreActive, type FilterState, type NewsFilter } from "@/lib/tradeFilters";
 import { DrawdownByModel } from "@/components/DrawdownByModel";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -75,6 +77,12 @@ export default function Index() {
   const [filterTimeFrom, setFilterTimeFrom] = useState<string>("");
   const [filterTimeTo, setFilterTimeTo] = useState<string>("");
   const [filterPatterns, setFilterPatterns] = useState<string[]>([]);
+  const [filterFvgCounts, setFilterFvgCounts] = useState<number[]>([]);
+  const [filterResults, setFilterResults] = useState<string[]>([]);
+  const [filterTradeTypes, setFilterTradeTypes] = useState<string[]>([]);
+  const [filterNews, setFilterNews] = useState<NewsFilter>("all");
+  const [filterDrawdownLevels, setFilterDrawdownLevels] = useState<number[]>([]);
+  const [filterDaysOfWeek, setFilterDaysOfWeek] = useState<string[]>([]);
 
   useEffect(() => {
     checkUser();
@@ -91,7 +99,7 @@ export default function Index() {
   useEffect(() => {
     setTradesLimit(50);
     setSelectedTradeIds(new Set());
-  }, [selectedAccount, filterDateFrom, filterDateTo, filterModels, filterTimeFrom, filterTimeTo, filterPatterns]);
+  }, [selectedAccount, filterDateFrom, filterDateTo, filterModels, filterTimeFrom, filterTimeTo, filterPatterns, filterFvgCounts, filterResults, filterTradeTypes, filterNews, filterDrawdownLevels, filterDaysOfWeek]);
 
   const checkUser = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -137,44 +145,33 @@ export default function Index() {
     }
   };
 
-  // Apply all filters: account, date range, model
+  // Apply all filters: account, date range, model, etc.
+  const buildFilterState = (): FilterState => ({
+    dateFrom: filterDateFrom,
+    dateTo: filterDateTo,
+    models: filterModels,
+    timeFrom: filterTimeFrom,
+    timeTo: filterTimeTo,
+    patterns: filterPatterns,
+    fvgCounts: filterFvgCounts,
+    results: filterResults,
+    tradeTypes: filterTradeTypes,
+    newsFilter: filterNews,
+    drawdownLevels: filterDrawdownLevels,
+    daysOfWeek: filterDaysOfWeek,
+  });
   const applyFilters = (tradeList: Trade[]) => {
     let filtered = tradeList;
     if (selectedAccount !== "all") {
       filtered = filtered.filter(t => t.account_id === selectedAccount);
     }
-    if (filterDateFrom) {
-      const fromStr = formatDateFilter(filterDateFrom);
-      filtered = filtered.filter(t => t.date >= fromStr);
-    }
-    if (filterDateTo) {
-      const toStr = formatDateFilter(filterDateTo);
-      filtered = filtered.filter(t => t.date <= toStr);
-    }
-    const allModels = ["M1", "M3", "Continuación"];
-    if (filterModels.length < allModels.length) {
-      filtered = filtered.filter(t => t.entry_model && filterModels.includes(t.entry_model));
-    }
-    if (filterTimeFrom && filtered.length > 0) {
-      filtered = filtered.filter(t => t.entry_time && t.entry_time >= filterTimeFrom);
-    }
-    if (filterTimeTo && filtered.length > 0) {
-      filtered = filtered.filter(t => t.entry_time && t.entry_time <= filterTimeTo);
-    }
-    // Entry pattern filter (transversal, multi-select)
-    if (filterPatterns.length > 0 && filterPatterns.length < 3) {
-      filtered = filtered.filter(t => {
-        const p = getEntryPattern(t);
-        return p !== null && filterPatterns.includes(p);
-      });
-    }
-    return filtered;
+    return applyTradeFilters(filtered, buildFilterState());
   };
 
   const allModels = ["M1", "M3", "Continuación"];
   const isModelFiltered = filterModels.length < allModels.length;
   const isPatternFiltered = filterPatterns.length > 0 && filterPatterns.length < 3;
-  const hasActiveFilters = selectedAccount !== "all" || filterDateFrom || filterDateTo || isModelFiltered || filterTimeFrom || filterTimeTo || isPatternFiltered;
+  const hasActiveFilters = selectedAccount !== "all" || filtersAreActive(buildFilterState());
 
   const activeFilterLabel = (() => {
     const parts: string[] = [];
@@ -184,6 +181,12 @@ export default function Index() {
     if (filterTimeTo) parts.push(`Hora hasta: ${filterTimeTo}`);
     if (isModelFiltered) parts.push(`Modelos: ${filterModels.join(", ")}`);
     if (isPatternFiltered) parts.push(`Patrón: ${filterPatterns.join(" + ")}`);
+    if (filterFvgCounts.length > 0 && filterFvgCounts.length < 3) parts.push(`FVG: ${filterFvgCounts.join("/")}`);
+    if (filterResults.length > 0 && filterResults.length < 2) parts.push(`Resultado: ${filterResults.join("/")}`);
+    if (filterTradeTypes.length > 0 && filterTradeTypes.length < 2) parts.push(`Tipo: ${filterTradeTypes.join("/")}`);
+    if (filterNews !== "all") parts.push(`Noticia: ${filterNews === "with" ? "con" : "sin"}`);
+    if (filterDrawdownLevels.length > 0 && filterDrawdownLevels.length < 5) parts.push(`DD: ${filterDrawdownLevels.map(l => `${Math.round(l*100)}%`).join("/")}`);
+    if (filterDaysOfWeek.length > 0 && filterDaysOfWeek.length < 5) parts.push(`Días: ${filterDaysOfWeek.map(d => d.slice(0,3)).join("/")}`);
     if (selectedAccount !== "all") {
       const acc = accounts.find(a => a.id === selectedAccount);
       if (acc) parts.push(`Cuenta: ${acc.name}`);
@@ -199,12 +202,19 @@ export default function Index() {
   const hasMoreFilteredTrades = filteredTradesForMetrics.length > tradesLimit;
 
   const clearFilters = () => {
-    setFilterDateFrom(undefined);
-    setFilterDateTo(undefined);
-    setFilterModels(["M1", "M3", "Continuación"]);
-    setFilterTimeFrom("");
-    setFilterTimeTo("");
-    setFilterPatterns([]);
+    const d = defaultFilterState();
+    setFilterDateFrom(d.dateFrom);
+    setFilterDateTo(d.dateTo);
+    setFilterModels(d.models);
+    setFilterTimeFrom(d.timeFrom);
+    setFilterTimeTo(d.timeTo);
+    setFilterPatterns(d.patterns);
+    setFilterFvgCounts(d.fvgCounts);
+    setFilterResults(d.results);
+    setFilterTradeTypes(d.tradeTypes);
+    setFilterNews(d.newsFilter);
+    setFilterDrawdownLevels(d.drawdownLevels);
+    setFilterDaysOfWeek(d.daysOfWeek);
   };
 
   // Calcular rachas consecutivas (orden cronológico real: fecha + hora de entrada)
@@ -403,6 +413,18 @@ export default function Index() {
           onTimeToChange={setFilterTimeTo}
           onPatternsChange={setFilterPatterns}
           onClearFilters={clearFilters}
+          fvgCounts={filterFvgCounts}
+          results={filterResults}
+          tradeTypes={filterTradeTypes}
+          newsFilter={filterNews}
+          drawdownLevels={filterDrawdownLevels}
+          daysOfWeek={filterDaysOfWeek}
+          onFvgCountsChange={setFilterFvgCounts}
+          onResultsChange={setFilterResults}
+          onTradeTypesChange={setFilterTradeTypes}
+          onNewsFilterChange={setFilterNews}
+          onDrawdownLevelsChange={setFilterDrawdownLevels}
+          onDaysOfWeekChange={setFilterDaysOfWeek}
         />
 
         {/* Stats Grid */}
@@ -471,6 +493,9 @@ export default function Index() {
 
         {/* Model Comparison Table */}
         <ModelComparisonTable trades={filteredTradesForMetrics} />
+
+        {/* Pattern × Model × FVG matrix */}
+        <PatternModelFvgMatrix trades={filteredTradesForMetrics} />
 
         {/* Drawdown by Model */}
         <DrawdownByModel trades={filteredTradesForMetrics} />

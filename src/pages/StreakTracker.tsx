@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Header } from "@/components/Header";
 import { DashboardFilters } from "@/components/DashboardFilters";
 import { getEntryPattern } from "@/lib/entryPattern";
+import { applyTradeFilters, defaultFilterState, type FilterState, type NewsFilter } from "@/lib/tradeFilters";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -23,6 +24,9 @@ interface Trade {
   continuation_subtype: string | null;
   fvg_count: number | null;
   entry_subtype: string | null;
+  trade_type: string | null;
+  had_news: boolean | null;
+  drawdown: number | null;
 }
 
 interface StreakInfo {
@@ -108,6 +112,12 @@ export default function StreakTracker() {
   const [filterTimeFrom, setFilterTimeFrom] = useState<string>("");
   const [filterTimeTo, setFilterTimeTo] = useState<string>("");
   const [filterPatterns, setFilterPatterns] = useState<string[]>([]);
+  const [filterFvgCounts, setFilterFvgCounts] = useState<number[]>([]);
+  const [filterResults, setFilterResults] = useState<string[]>([]);
+  const [filterTradeTypes, setFilterTradeTypes] = useState<string[]>([]);
+  const [filterNews, setFilterNews] = useState<NewsFilter>("all");
+  const [filterDrawdownLevels, setFilterDrawdownLevels] = useState<number[]>([]);
+  const [filterDaysOfWeek, setFilterDaysOfWeek] = useState<string[]>([]);
 
   const [expandedStreaks, setExpandedStreaks] = useState<Set<string>>(new Set());
 
@@ -139,45 +149,39 @@ export default function StreakTracker() {
     setLoading(false);
   };
 
-  const applyFilters = (tradeList: Trade[]) => {
-    let filtered = tradeList;
-    if (filterDateFrom) {
-      const fromStr = filterDateFrom.toISOString().split("T")[0];
-      filtered = filtered.filter(t => t.date >= fromStr);
-    }
-    if (filterDateTo) {
-      const toStr = filterDateTo.toISOString().split("T")[0];
-      filtered = filtered.filter(t => t.date <= toStr);
-    }
-    const allModels = ["M1", "M3", "Continuación"];
-    if (filterModels.length < allModels.length) {
-      filtered = filtered.filter(t => t.entry_model && filterModels.includes(t.entry_model));
-    }
-    if (filterTimeFrom) {
-      filtered = filtered.filter(t => t.entry_time && t.entry_time >= filterTimeFrom);
-    }
-    if (filterTimeTo) {
-      filtered = filtered.filter(t => t.entry_time && t.entry_time <= filterTimeTo);
-    }
-    if (filterPatterns.length > 0 && filterPatterns.length < 3) {
-      filtered = filtered.filter(t => {
-        const p = getEntryPattern(t);
-        return p !== null && filterPatterns.includes(p);
-      });
-    }
-    return filtered;
-  };
+  const buildFilterState = (): FilterState => ({
+    dateFrom: filterDateFrom,
+    dateTo: filterDateTo,
+    models: filterModels,
+    timeFrom: filterTimeFrom,
+    timeTo: filterTimeTo,
+    patterns: filterPatterns,
+    fvgCounts: filterFvgCounts,
+    results: filterResults,
+    tradeTypes: filterTradeTypes,
+    newsFilter: filterNews,
+    drawdownLevels: filterDrawdownLevels,
+    daysOfWeek: filterDaysOfWeek,
+  });
+  const applyFilters = (tradeList: Trade[]) => applyTradeFilters(tradeList, buildFilterState());
 
   const clearFilters = () => {
-    setFilterDateFrom(undefined);
-    setFilterDateTo(undefined);
-    setFilterModels(["M1", "M3", "Continuación"]);
-    setFilterTimeFrom("");
-    setFilterTimeTo("");
-    setFilterPatterns([]);
+    const d = defaultFilterState();
+    setFilterDateFrom(d.dateFrom);
+    setFilterDateTo(d.dateTo);
+    setFilterModels(d.models);
+    setFilterTimeFrom(d.timeFrom);
+    setFilterTimeTo(d.timeTo);
+    setFilterPatterns(d.patterns);
+    setFilterFvgCounts(d.fvgCounts);
+    setFilterResults(d.results);
+    setFilterTradeTypes(d.tradeTypes);
+    setFilterNews(d.newsFilter);
+    setFilterDrawdownLevels(d.drawdownLevels);
+    setFilterDaysOfWeek(d.daysOfWeek);
   };
 
-  const filteredTrades = useMemo(() => applyFilters(trades), [trades, filterDateFrom, filterDateTo, filterModels, filterTimeFrom, filterTimeTo, filterPatterns]);
+  const filteredTrades = useMemo(() => applyFilters(trades), [trades, filterDateFrom, filterDateTo, filterModels, filterTimeFrom, filterTimeTo, filterPatterns, filterFvgCounts, filterResults, filterTradeTypes, filterNews, filterDrawdownLevels, filterDaysOfWeek]);
 
   const streaks = useMemo(() => computeStreaks(filteredTrades), [filteredTrades]);
 
