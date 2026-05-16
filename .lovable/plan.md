@@ -1,68 +1,84 @@
-## Objetivo
+# Adaptar los filtros a los datos importados de Eric
 
-Crear una copia completa de los 455 trades de **Eric Ruiz** (`erick.bambino@hotmail.com`) en la cuenta de **otro usuario** (a confirmar), convirtiendo `entry_time`, `exit_time` y `news_time` de hora de **Madrid** a hora de **Nueva York**, respetando los cambios de horario de verano (DST) de cada zona.
+## Buena noticia primero
 
-Rango detectado: 455 trades entre **2024-01-02 y 2026-04-13**.
+Los filtros que ya tienes (`DashboardFilters.tsx`) **son 100% compatibles** con los datos de Eric tal cual están. No hay que cambiar nada para que funcionen:
 
-## Confirmaciones que necesito antes de ejecutar
+| Filtro actual | Campo de Eric que ya filtra |
+|---|---|
+| Desde / Hasta (fecha) | `FECHA` |
+| Hora desde / hasta | `HORA ENTRADA` |
+| Todos los modelos (M1 / M3 / Continuación) | `MODELO` |
+| Todos los patrones (Envolvente+Bloque / Envolvente+FVG / FVG único) | Derivado de `ENTRY_SUBTYPE` + `CONTINUATION_SUBTYPE` + `FVG_COUNT` vía `getEntryPattern()` |
 
-1. **¿A qué cuenta copio los trades?** Veo estos candidatos en la base de datos:
-   - `miguelarriaga@hotmail.com` (509 trades propios)
-   - `arriagabringas@icloud.com` (455 trades — parece ya una copia previa)
-   - O una cuenta nueva / vacía como `jasanti30@hotmail.com` (0 trades)
-2. **¿Copio también los `account_id`?** Probablemente no, porque las cuentas (`accounts`) son del usuario origen. Mi propuesta por defecto: dejar `account_id = NULL` en la copia.
-3. **¿Qué hago si el usuario destino ya tiene trades en esas mismas fechas?** Por defecto **no borro nada** y solo inserto los nuevos (con nuevos `id`).
+Coinciden porque Eric usa exactamente los mismos enums que tu app. La única condición es que en la importación se respeten los nombres (M1, M3, Continuación / Envolvente + Bloque, Envolvente + FVG / valor numérico en FVG_COUNT).
 
-## Reglas de conversión horaria (Madrid → Nueva York)
+## Qué se puede **añadir** para exprimir los datos de Eric
 
-La diferencia entre Madrid y Nueva York es **normalmente -6h**, pero hay ~2 semanas al año en las que es **-5h** porque los cambios DST no coinciden:
+Eric trae 4 dimensiones que hoy no tienes como filtro y que valdría la pena exponer en la barra:
 
-- **Europa (Madrid)**: cambia el **último domingo de marzo** (a las 02:00 → 03:00) y el **último domingo de octubre** (a las 03:00 → 02:00).
-- **EE.UU. (Nueva York)**: cambia el **segundo domingo de marzo** y el **primer domingo de noviembre**.
+1. **Resultado** (TP / SL) — campo `RESULTADO`
+2. **Tipo de operación** (Compra / Venta) — campo `TIPO`
+3. **Noticia** (Con noticia / Sin noticia / Todos) — campo `NOTICIA` (T/F)
+4. **Drawdown recorrido** (0% / 33% / 50% / 66% / 100%, multi-select) — campo `DRAWDOWN`
+5. *(Opcional)* **Día de la semana** (Lun–Vie, multi-select) — campo `DIA`
 
-Ventanas con diferencia de **-5h** en lugar de -6h:
-- Marzo: desde el 2º domingo de marzo (NY adelanta) hasta el último domingo de marzo (Madrid adelanta) → 2 semanas.
-- Octubre/Noviembre: desde el último domingo de octubre (Madrid atrasa) hasta el 1er domingo de noviembre (NY atrasa) → ~1 semana.
+Estos cinco filtros, combinados con los actuales, te permiten responder preguntas tipo:
+- "¿Cuál es mi win rate solo en Continuación + Bloque, en días con noticia, los viernes?"
+- "¿Cómo rinde M3 cuando el drawdown es 50% o más?"
+- "¿Las ventas en la primera media hora tienen mejor EV que las compras?"
 
-Fechas exactas en el rango de los datos:
+## Cómo se implementaría (sección técnica)
 
-| Año | Ventana -5h (marzo) | Ventana -5h (oct/nov) |
-|---|---|---|
-| 2024 | 10 mar – 30 mar | 27 oct – 2 nov |
-| 2025 | 09 mar – 29 mar | 26 oct – 1 nov |
-| 2026 | 08 mar – 28 mar | 25 oct – 31 oct |
+### Cambios en `DashboardFilters.tsx`
 
-Fuera de esas ventanas → restar **6 horas**. Dentro → restar **5 horas**.
+Añadir cuatro/cinco popovers más con el mismo patrón visual (botón outline + checkbox list), siguiendo el estilo de "Todos los modelos / Todos los patrones":
 
-### Implementación técnica
-
-En lugar de codificar manualmente las fechas, voy a usar PostgreSQL con timezones reales para evitar errores:
-
-```sql
--- Para cada trade, construimos un timestamp en Madrid y lo convertimos a NY:
-((date + entry_time) AT TIME ZONE 'Europe/Madrid') AT TIME ZONE 'America/New_York'
+```text
+[Filter] [Desde] [Hasta] [Hora—Hora] [Modelos▾] [Patrones▾]
+        [Resultado▾] [Tipo▾] [Noticia▾] [Drawdown▾] [Día▾] [Limpiar]
 ```
 
-Esto le delega a Postgres el cálculo correcto del offset (incluyendo DST). Luego extraigo la nueva `date` y la nueva `entry_time` del resultado (y lo mismo para `exit_time`, `news_time`).
+Cada nuevo filtro sigue la misma convención que ya usas:
+- `[]` vacío o "todos seleccionados" = sin filtrar
+- Borde primary cuando hay selección parcial
+- Badge resumen al final de la fila
 
-**Importante**: la conversión puede cambiar también la **fecha** del trade (ej. una entrada Madrid 03:30 pasa a NY 21:30 del día anterior). En esos casos también recalculo `day_of_week` y `week_of_month` con la nueva fecha NY.
+### Extensión del contrato de props
 
-## Pasos de ejecución (una vez confirmes el destino)
+```ts
+interface DashboardFiltersProps {
+  // ...existentes
+  results: ("TP" | "SL")[];
+  tradeTypes: ("Compra" | "Venta")[];
+  newsFilter: "all" | "with" | "without";
+  drawdownLevels: number[];   // [0, 0.33, 0.5, 0.66, 1]
+  daysOfWeek: string[];       // ["Lunes",...,"Viernes"]
+  onResultsChange / onTradeTypesChange / onNewsFilterChange / onDrawdownChange / onDaysChange
+}
+```
 
-1. `INSERT INTO public.trades (...) SELECT ...` desde los 455 trades de Eric, con:
-   - `id = gen_random_uuid()` (nuevos IDs)
-   - `user_id = <usuario destino>`
-   - `account_id = NULL`
-   - `entry_time`, `exit_time`, `news_time`, `date`, `day_of_week`, `week_of_month` recalculados según la conversión TZ
-   - resto de campos (modelo, subtipo, FVG, P&L, notas, etc.) **idénticos**
-2. Verificación: contar filas insertadas (debe ser 455) y mostrar 5 ejemplos con horario original vs convertido para que valides.
+### Lógica de filtrado (en el hook/page que consume los trades)
 
-## Lo que NO toco
+Añadir cinco predicados extra al `.filter()` ya existente:
 
-- El esquema de la BD.
-- Los trades originales de Eric (solo lectura).
-- Las cuentas (`accounts`), checklists ni ninguna otra tabla.
+```ts
+.filter(t => results.length === 0 || results.includes(t.result))
+.filter(t => tradeTypes.length === 0 || tradeTypes.includes(t.trade_type))
+.filter(t => newsFilter === "all"
+  || (newsFilter === "with" && t.has_news)
+  || (newsFilter === "without" && !t.has_news))
+.filter(t => drawdownLevels.length === 0 || drawdownLevels.includes(t.drawdown))
+.filter(t => daysOfWeek.length === 0 || daysOfWeek.includes(t.day_of_week))
+```
 
----
+### Pre-requisito de datos
 
-**Para continuar necesito que me confirmes a qué usuario copio los trades** (de la lista del punto 1).
+El filtro de **Drawdown** depende de que en la importación se mapee `0 / 0.33 / 0.5 / 0.66 / 1` al enum de tu app (lo identificamos en el análisis anterior). Si tu enum guarda `"0%" | "33%" | "50%" | "66%" | "100%"` como string, el filtro trabaja con strings; si guarda decimales, con números. Cualquiera funciona, solo hay que decidir una vez.
+
+## Decisión pendiente
+
+Antes de implementar quiero confirmar contigo:
+
+1. ¿Añadimos los **5** filtros nuevos (Resultado, Tipo, Noticia, Drawdown, Día) o solo un subconjunto?
+2. ¿Aplica este nuevo set de filtros **solo al Dashboard** o también a Backtesting / Analytics / Streak Tracker / generación de PDF? (la barra `DashboardFilters` hoy es transversal a la mayoría de vistas analíticas)
