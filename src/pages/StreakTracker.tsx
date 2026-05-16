@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Header } from "@/components/Header";
 import { DashboardFilters } from "@/components/DashboardFilters";
 import { getEntryPattern } from "@/lib/entryPattern";
-import { applyTradeFilters, defaultFilterState, type FilterState, type NewsFilter } from "@/lib/tradeFilters";
+import { applyTradeFilters, defaultFilterState, type FilterState, type ModelPatterns, type NewsFilter } from "@/lib/tradeFilters";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -111,7 +111,7 @@ export default function StreakTracker() {
   const [filterModels, setFilterModels] = useState<string[]>(["M1", "M3", "Continuación"]);
   const [filterTimeFrom, setFilterTimeFrom] = useState<string>("");
   const [filterTimeTo, setFilterTimeTo] = useState<string>("");
-  const [filterPatterns, setFilterPatterns] = useState<string[]>([]);
+  const [filterModelPatterns, setFilterModelPatterns] = useState<ModelPatterns>({});
   const [filterFvgCounts, setFilterFvgCounts] = useState<number[]>([]);
   const [filterResults, setFilterResults] = useState<string[]>([]);
   const [filterTradeTypes, setFilterTradeTypes] = useState<string[]>([]);
@@ -155,7 +155,7 @@ export default function StreakTracker() {
     models: filterModels,
     timeFrom: filterTimeFrom,
     timeTo: filterTimeTo,
-    patterns: filterPatterns,
+    modelPatterns: filterModelPatterns,
     fvgCounts: filterFvgCounts,
     results: filterResults,
     tradeTypes: filterTradeTypes,
@@ -172,7 +172,7 @@ export default function StreakTracker() {
     setFilterModels(d.models);
     setFilterTimeFrom(d.timeFrom);
     setFilterTimeTo(d.timeTo);
-    setFilterPatterns(d.patterns);
+    setFilterModelPatterns(d.modelPatterns);
     setFilterFvgCounts(d.fvgCounts);
     setFilterResults(d.results);
     setFilterTradeTypes(d.tradeTypes);
@@ -181,7 +181,7 @@ export default function StreakTracker() {
     setFilterDaysOfWeek(d.daysOfWeek);
   };
 
-  const filteredTrades = useMemo(() => applyFilters(trades), [trades, filterDateFrom, filterDateTo, filterModels, filterTimeFrom, filterTimeTo, filterPatterns, filterFvgCounts, filterResults, filterTradeTypes, filterNews, filterDrawdownLevels, filterDaysOfWeek]);
+  const filteredTrades = useMemo(() => applyFilters(trades), [trades, filterDateFrom, filterDateTo, filterModels, filterTimeFrom, filterTimeTo, filterModelPatterns, filterFvgCounts, filterResults, filterTradeTypes, filterNews, filterDrawdownLevels, filterDaysOfWeek]);
 
   const streaks = useMemo(() => computeStreaks(filteredTrades), [filteredTrades]);
 
@@ -270,13 +270,13 @@ export default function StreakTracker() {
               selectedModels={filterModels}
               timeFrom={filterTimeFrom}
               timeTo={filterTimeTo}
-              patterns={filterPatterns}
+              modelPatterns={filterModelPatterns}
               onDateFromChange={setFilterDateFrom}
               onDateToChange={setFilterDateTo}
               onModelsChange={setFilterModels}
               onTimeFromChange={setFilterTimeFrom}
               onTimeToChange={setFilterTimeTo}
-              onPatternsChange={setFilterPatterns}
+              onModelPatternsChange={setFilterModelPatterns}
               onClearFilters={clearFilters}
             />
           </CardContent>
