@@ -20,7 +20,7 @@ import {
   NewsFilter,
 } from "@/lib/tradeFilters";
 
-const ALL_PATTERNS = ["Envolvente + Bloque", "Envolvente + FVG", "FVG único"];
+const ALL_PATTERNS = ["Envolvente + Bloque", "Envolvente + FVG", "FVG"];
 const DRAWDOWN_LABELS: Record<number, string> = {
   0: "0%",
   0.33: "33%",
