@@ -6,7 +6,7 @@ import { StatsCard } from "@/components/StatsCard";
 import { getEntryPattern } from "@/lib/entryPattern";
 import { ReportGenerator } from "@/components/ReportGenerator";
 import { DashboardFilters } from "@/components/DashboardFilters";
-import { applyTradeFilters, defaultFilterState, type FilterState, type NewsFilter } from "@/lib/tradeFilters";
+import { applyTradeFilters, defaultFilterState, hasModelPatternRestriction, VALID_PATTERNS_BY_MODEL, type FilterState, type ModelPatterns, type NewsFilter } from "@/lib/tradeFilters";
 import { DollarSign, TrendingUp, TrendingDown, Target, Calendar, BarChart3, Clock, Flame, Award } from "lucide-react";
 import { ContinuationSubtypeAnalysis } from "@/components/ContinuationSubtypeAnalysis";
 import { DrawdownByModel } from "@/components/DrawdownByModel";
@@ -51,7 +51,7 @@ export default function Analytics() {
   const [filterModels, setFilterModels] = useState<string[]>(["M1", "M3", "Continuación"]);
   const [filterTimeFrom, setFilterTimeFrom] = useState<string>("");
   const [filterTimeTo, setFilterTimeTo] = useState<string>("");
-  const [filterPatterns, setFilterPatterns] = useState<string[]>([]);
+  const [filterModelPatterns, setFilterModelPatterns] = useState<ModelPatterns>({});
   const [filterFvgCounts, setFilterFvgCounts] = useState<number[]>([]);
   const [filterResults, setFilterResults] = useState<string[]>([]);
   const [filterTradeTypes, setFilterTradeTypes] = useState<string[]>([]);
@@ -93,7 +93,7 @@ export default function Analytics() {
     models: filterModels,
     timeFrom: filterTimeFrom,
     timeTo: filterTimeTo,
-    patterns: filterPatterns,
+    modelPatterns: filterModelPatterns,
     fvgCounts: filterFvgCounts,
     results: filterResults,
     tradeTypes: filterTradeTypes,
@@ -110,7 +110,7 @@ export default function Analytics() {
     setFilterModels(d.models);
     setFilterTimeFrom(d.timeFrom);
     setFilterTimeTo(d.timeTo);
-    setFilterPatterns(d.patterns);
+    setFilterModelPatterns(d.modelPatterns);
     setFilterFvgCounts(d.fvgCounts);
     setFilterResults(d.results);
     setFilterTradeTypes(d.tradeTypes);
@@ -121,7 +121,7 @@ export default function Analytics() {
 
   const allModels = ["M1", "M3", "Continuación"];
   const isModelFiltered = filterModels.length < allModels.length;
-  const isPatternFiltered = filterPatterns.length > 0 && filterPatterns.length < 3;
+  const isPatternFiltered = hasModelPatternRestriction(filterModelPatterns);
   const hasActiveFilters = filterDateFrom || filterDateTo || isModelFiltered || filterTimeFrom || filterTimeTo || isPatternFiltered;
 
   const activeFilterLabel = (() => {
@@ -131,7 +131,16 @@ export default function Analytics() {
     if (filterTimeFrom) parts.push(`Hora desde: ${filterTimeFrom}`);
     if (filterTimeTo) parts.push(`Hora hasta: ${filterTimeTo}`);
     if (isModelFiltered) parts.push(`Modelos: ${filterModels.join(", ")}`);
-    if (isPatternFiltered) parts.push(`Patrón: ${filterPatterns.join(" + ")}`);
+    if (isPatternFiltered) {
+      const summary = Object.entries(filterModelPatterns)
+        .filter(([m, ps]) => {
+          const valid = VALID_PATTERNS_BY_MODEL[m] || [];
+          return ps.length !== valid.length || !valid.every(v => ps.includes(v));
+        })
+        .map(([m, ps]) => `${m}: ${ps.length === 0 ? "ninguno" : ps.map(p => p.replace("Envolvente + ", "Env+")).join(", ")}`)
+        .join(" · ");
+      parts.push(`Patrón → ${summary}`);
+    }
     return parts.join(" · ");
   })();
 
@@ -345,13 +354,13 @@ export default function Analytics() {
           selectedModels={filterModels}
           timeFrom={filterTimeFrom}
           timeTo={filterTimeTo}
-          patterns={filterPatterns}
+          modelPatterns={filterModelPatterns}
           onDateFromChange={setFilterDateFrom}
           onDateToChange={setFilterDateTo}
           onModelsChange={setFilterModels}
           onTimeFromChange={setFilterTimeFrom}
           onTimeToChange={setFilterTimeTo}
-          onPatternsChange={setFilterPatterns}
+          onModelPatternsChange={setFilterModelPatterns}
           onClearFilters={clearFilters}
           fvgCounts={filterFvgCounts}
           results={filterResults}
