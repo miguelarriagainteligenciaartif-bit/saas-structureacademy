@@ -15,11 +15,11 @@ export const StatsCard = ({ title, value, icon: Icon, trend = "neutral", subtitl
   return (
     <Card className="overflow-hidden">
       <CardContent className="p-6">
-        <div className="flex items-start justify-between gap-3">
+        <div className="flex items-start justify-between gap-3 text-lg font-thin">
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-muted-foreground mb-1">{title}</p>
             <h3 title={valueTitle} className={cn(
-              "text-2xl font-bold mb-1 truncate",
+              "text-xl font-bold mb-1 truncate",
               trend === "up" && "text-success",
               trend === "down" && "text-destructive",
               trend === "neutral" && "text-foreground"
