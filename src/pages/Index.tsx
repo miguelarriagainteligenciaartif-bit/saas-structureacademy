@@ -413,6 +413,18 @@ export default function Index() {
           onTimeToChange={setFilterTimeTo}
           onPatternsChange={setFilterPatterns}
           onClearFilters={clearFilters}
+          fvgCounts={filterFvgCounts}
+          results={filterResults}
+          tradeTypes={filterTradeTypes}
+          newsFilter={filterNews}
+          drawdownLevels={filterDrawdownLevels}
+          daysOfWeek={filterDaysOfWeek}
+          onFvgCountsChange={setFilterFvgCounts}
+          onResultsChange={setFilterResults}
+          onTradeTypesChange={setFilterTradeTypes}
+          onNewsFilterChange={setFilterNews}
+          onDrawdownLevelsChange={setFilterDrawdownLevels}
+          onDaysOfWeekChange={setFilterDaysOfWeek}
         />
 
         {/* Stats Grid */}
@@ -481,6 +493,9 @@ export default function Index() {
 
         {/* Model Comparison Table */}
         <ModelComparisonTable trades={filteredTradesForMetrics} />
+
+        {/* Pattern × Model × FVG matrix */}
+        <PatternModelFvgMatrix trades={filteredTradesForMetrics} />
 
         {/* Drawdown by Model */}
         <DrawdownByModel trades={filteredTradesForMetrics} />
