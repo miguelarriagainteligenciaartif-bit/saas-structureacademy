@@ -76,7 +76,7 @@ export default function Index() {
   const [filterModels, setFilterModels] = useState<string[]>(["M1", "M3", "Continuación"]);
   const [filterTimeFrom, setFilterTimeFrom] = useState<string>("");
   const [filterTimeTo, setFilterTimeTo] = useState<string>("");
-  const [filterPatterns, setFilterPatterns] = useState<string[]>([]);
+  const [filterModelPatterns, setFilterModelPatterns] = useState<ModelPatterns>({});
   const [filterFvgCounts, setFilterFvgCounts] = useState<number[]>([]);
   const [filterResults, setFilterResults] = useState<string[]>([]);
   const [filterTradeTypes, setFilterTradeTypes] = useState<string[]>([]);
@@ -99,7 +99,7 @@ export default function Index() {
   useEffect(() => {
     setTradesLimit(50);
     setSelectedTradeIds(new Set());
-  }, [selectedAccount, filterDateFrom, filterDateTo, filterModels, filterTimeFrom, filterTimeTo, filterPatterns, filterFvgCounts, filterResults, filterTradeTypes, filterNews, filterDrawdownLevels, filterDaysOfWeek]);
+  }, [selectedAccount, filterDateFrom, filterDateTo, filterModels, filterTimeFrom, filterTimeTo, filterModelPatterns, filterFvgCounts, filterResults, filterTradeTypes, filterNews, filterDrawdownLevels, filterDaysOfWeek]);
 
   const checkUser = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -152,7 +152,7 @@ export default function Index() {
     models: filterModels,
     timeFrom: filterTimeFrom,
     timeTo: filterTimeTo,
-    patterns: filterPatterns,
+    modelPatterns: filterModelPatterns,
     fvgCounts: filterFvgCounts,
     results: filterResults,
     tradeTypes: filterTradeTypes,
@@ -170,7 +170,7 @@ export default function Index() {
 
   const allModels = ["M1", "M3", "Continuación"];
   const isModelFiltered = filterModels.length < allModels.length;
-  const isPatternFiltered = filterPatterns.length > 0 && filterPatterns.length < 3;
+  const isPatternFiltered = hasModelPatternRestriction(filterModelPatterns);
   const hasActiveFilters = selectedAccount !== "all" || filtersAreActive(buildFilterState());
 
   const activeFilterLabel = (() => {
@@ -180,7 +180,16 @@ export default function Index() {
     if (filterTimeFrom) parts.push(`Hora desde: ${filterTimeFrom}`);
     if (filterTimeTo) parts.push(`Hora hasta: ${filterTimeTo}`);
     if (isModelFiltered) parts.push(`Modelos: ${filterModels.join(", ")}`);
-    if (isPatternFiltered) parts.push(`Patrón: ${filterPatterns.join(" + ")}`);
+    if (isPatternFiltered) {
+      const summary = Object.entries(filterModelPatterns)
+        .filter(([m, ps]) => {
+          const valid = VALID_PATTERNS_BY_MODEL[m] || [];
+          return ps.length !== valid.length || !valid.every(v => ps.includes(v));
+        })
+        .map(([m, ps]) => `${m}: ${ps.length === 0 ? "ninguno" : ps.map(p => p.replace("Envolvente + ", "Env+")).join(", ")}`)
+        .join(" · ");
+      parts.push(`Patrón → ${summary}`);
+    }
     if (filterFvgCounts.length > 0 && filterFvgCounts.length < 3) parts.push(`FVG: ${filterFvgCounts.join("/")}`);
     if (filterResults.length > 0 && filterResults.length < 2) parts.push(`Resultado: ${filterResults.join("/")}`);
     if (filterTradeTypes.length > 0 && filterTradeTypes.length < 2) parts.push(`Tipo: ${filterTradeTypes.join("/")}`);
@@ -208,7 +217,7 @@ export default function Index() {
     setFilterModels(d.models);
     setFilterTimeFrom(d.timeFrom);
     setFilterTimeTo(d.timeTo);
-    setFilterPatterns(d.patterns);
+    setFilterModelPatterns(d.modelPatterns);
     setFilterFvgCounts(d.fvgCounts);
     setFilterResults(d.results);
     setFilterTradeTypes(d.tradeTypes);
@@ -405,13 +414,13 @@ export default function Index() {
           selectedModels={filterModels}
           timeFrom={filterTimeFrom}
           timeTo={filterTimeTo}
-          patterns={filterPatterns}
+          modelPatterns={filterModelPatterns}
           onDateFromChange={setFilterDateFrom}
           onDateToChange={setFilterDateTo}
           onModelsChange={setFilterModels}
           onTimeFromChange={setFilterTimeFrom}
           onTimeToChange={setFilterTimeTo}
-          onPatternsChange={setFilterPatterns}
+          onModelPatternsChange={setFilterModelPatterns}
           onClearFilters={clearFilters}
         />
 
