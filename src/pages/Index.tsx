@@ -413,18 +413,6 @@ export default function Index() {
           onTimeToChange={setFilterTimeTo}
           onPatternsChange={setFilterPatterns}
           onClearFilters={clearFilters}
-          fvgCounts={filterFvgCounts}
-          results={filterResults}
-          tradeTypes={filterTradeTypes}
-          newsFilter={filterNews}
-          drawdownLevels={filterDrawdownLevels}
-          daysOfWeek={filterDaysOfWeek}
-          onFvgCountsChange={setFilterFvgCounts}
-          onResultsChange={setFilterResults}
-          onTradeTypesChange={setFilterTradeTypes}
-          onNewsFilterChange={setFilterNews}
-          onDrawdownLevelsChange={setFilterDrawdownLevels}
-          onDaysOfWeekChange={setFilterDaysOfWeek}
         />
 
         {/* Stats Grid */}
