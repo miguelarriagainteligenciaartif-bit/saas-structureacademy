@@ -486,6 +486,7 @@ export default function Optimization() {
                       <SelectItem value="all">Todos</SelectItem>
                       <SelectItem value="Envolvente + Bloque">Envolvente + Bloque</SelectItem>
                       <SelectItem value="Envolvente + FVG">Envolvente + FVG</SelectItem>
+                      <SelectItem value="FVG">FVG</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
