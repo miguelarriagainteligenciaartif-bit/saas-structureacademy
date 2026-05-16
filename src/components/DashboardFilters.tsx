@@ -228,7 +228,7 @@ export function DashboardFilters({
         <Popover>
           <PopoverTrigger asChild>
             <Button variant="outline" size="sm" className={cn("justify-start text-left font-normal min-w-[150px]", !allFvg && "border-primary text-primary")}>
-              <Sigma className="mr-2 h-4 w-4" />{fvgLabel}
+              <Sigma className="mr-2 h-4 w-4 text-primary" />{fvgLabel}
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-[200px] p-3" align="start">
@@ -253,7 +253,7 @@ export function DashboardFilters({
         <Popover>
           <PopoverTrigger asChild>
             <Button variant="outline" size="sm" className={cn("justify-start text-left font-normal min-w-[160px]", !allResults && "border-primary text-primary")}>
-              <TrendingUp className="mr-2 h-4 w-4" />{resultsLabel}
+              <TrendingUp className="mr-2 h-4 w-4 text-primary" />{resultsLabel}
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-[200px] p-3" align="start">
@@ -278,7 +278,7 @@ export function DashboardFilters({
         <Popover>
           <PopoverTrigger asChild>
             <Button variant="outline" size="sm" className={cn("justify-start text-left font-normal min-w-[160px]", !allTradeTypes && "border-primary text-primary")}>
-              <ArrowLeftRight className="mr-2 h-4 w-4" />{typesLabel}
+              <ArrowLeftRight className="mr-2 h-4 w-4 text-primary" />{typesLabel}
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-[200px] p-3" align="start">
@@ -303,7 +303,7 @@ export function DashboardFilters({
         <Popover>
           <PopoverTrigger asChild>
             <Button variant="outline" size="sm" className={cn("justify-start text-left font-normal min-w-[180px]", newsActive && "border-primary text-primary")}>
-              <Newspaper className="mr-2 h-4 w-4" />{newsLabel}
+              <Newspaper className="mr-2 h-4 w-4 text-primary" />{newsLabel}
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-[220px] p-3" align="start">
@@ -333,7 +333,7 @@ export function DashboardFilters({
         <Popover>
           <PopoverTrigger asChild>
             <Button variant="outline" size="sm" className={cn("justify-start text-left font-normal min-w-[170px]", !allDrawdown && "border-primary text-primary")}>
-              <Activity className="mr-2 h-4 w-4" />{drawdownLabel}
+              <Activity className="mr-2 h-4 w-4 text-primary" />{drawdownLabel}
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-[220px] p-3" align="start">
@@ -358,7 +358,7 @@ export function DashboardFilters({
         <Popover>
           <PopoverTrigger asChild>
             <Button variant="outline" size="sm" className={cn("justify-start text-left font-normal min-w-[170px]", !allDays && "border-primary text-primary")}>
-              <CalendarDays className="mr-2 h-4 w-4" />{daysLabel}
+              <CalendarDays className="mr-2 h-4 w-4 text-primary" />{daysLabel}
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-[220px] p-3" align="start">
