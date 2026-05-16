@@ -1,84 +1,92 @@
-# Adaptar los filtros a los datos importados de Eric
+# Adaptar el sistema de filtros para los datos de Eric
 
-## Buena noticia primero
+## Objetivo
 
-Los filtros que ya tienes (`DashboardFilters.tsx`) **son 100% compatibles** con los datos de Eric tal cual están. No hay que cambiar nada para que funcionen:
+Permitir filtrar y analizar la base de Eric con la misma profundidad que su CSV original: por modelo, patrón, cantidad de FVG, resultado, tipo, noticia, drawdown y día de la semana — sin perder ningún trade en el proceso.
 
-| Filtro actual | Campo de Eric que ya filtra |
-|---|---|
-| Desde / Hasta (fecha) | `FECHA` |
-| Hora desde / hasta | `HORA ENTRADA` |
-| Todos los modelos (M1 / M3 / Continuación) | `MODELO` |
-| Todos los patrones (Envolvente+Bloque / Envolvente+FVG / FVG único) | Derivado de `ENTRY_SUBTYPE` + `CONTINUATION_SUBTYPE` + `FVG_COUNT` vía `getEntryPattern()` |
+## Cambios
 
-Coinciden porque Eric usa exactamente los mismos enums que tu app. La única condición es que en la importación se respeten los nombres (M1, M3, Continuación / Envolvente + Bloque, Envolvente + FVG / valor numérico en FVG_COUNT).
+### 1. Corregir el mapeo de patrón de entrada (`src/lib/entryPattern.ts`)
 
-## Qué se puede **añadir** para exprimir los datos de Eric
+Eric usa el subtipo `"FVG"` solo (sin "Envolvente +") en M1/M3. Hoy esos 50 trades quedan fuera del filtro de patrones.
 
-Eric trae 4 dimensiones que hoy no tienes como filtro y que valdría la pena exponer en la barra:
+Nueva regla:
+- `fvg_count === 1` → `"FVG único"` (prioridad, igual que ahora)
+- M1/M3 con `entry_subtype === "FVG"` y `fvg_count >= 2` → `"Envolvente + FVG"` (nuevo)
+- Resto: igual que hoy
 
-1. **Resultado** (TP / SL) — campo `RESULTADO`
-2. **Tipo de operación** (Compra / Venta) — campo `TIPO`
-3. **Noticia** (Con noticia / Sin noticia / Todos) — campo `NOTICIA` (T/F)
-4. **Drawdown recorrido** (0% / 33% / 50% / 66% / 100%, multi-select) — campo `DRAWDOWN`
-5. *(Opcional)* **Día de la semana** (Lun–Vie, multi-select) — campo `DIA`
+### 2. Ampliar `DashboardFilters.tsx` con 6 filtros nuevos
 
-Estos cinco filtros, combinados con los actuales, te permiten responder preguntas tipo:
-- "¿Cuál es mi win rate solo en Continuación + Bloque, en días con noticia, los viernes?"
-- "¿Cómo rinde M3 cuando el drawdown es 50% o más?"
-- "¿Las ventas en la primera media hora tienen mejor EV que las compras?"
+Manteniendo el patrón visual actual (botón outline + popover con checkboxes):
 
-## Cómo se implementaría (sección técnica)
+1. **Cantidad de FVG** — multi-select 1 / 2 / 3 (se oculta si solo Continuación)
+2. **Resultado** — multi-select TP / SL
+3. **Tipo de operación** — multi-select Compra / Venta
+4. **Noticia** — Todos / Con noticia / Sin noticia
+5. **Drawdown recorrido** — multi-select 0% / 33% / 50% / 66% / 100%
+6. **Día de la semana** — multi-select Lun–Vie
 
-### Cambios en `DashboardFilters.tsx`
+Cada uno se aplica con AND, igual que los actuales. Badges resumen y botón "Limpiar" se extienden para incluirlos.
 
-Añadir cuatro/cinco popovers más con el mismo patrón visual (botón outline + checkbox list), siguiendo el estilo de "Todos los modelos / Todos los patrones":
+### 3. Cablear los filtros en las páginas que usan la barra
+
+`src/pages/Index.tsx`, `src/pages/Analytics.tsx`, `src/pages/StreakTracker.tsx`:
+- Añadir estados y props correspondientes.
+- Extender el `.filter()` con los 6 nuevos predicados.
+- El filtro de patrones se sigue evaluando con el nuevo `getEntryPattern` corregido.
+
+### 4. Nueva matriz **Patrón × Modelo × FVG** en el Dashboard
+
+Componente `PatternModelFvgMatrix.tsx` en `src/components/`, ubicado en el Dashboard (Index) bajo las StatsCards. Tabla pivote en vivo que respeta los filtros activos:
 
 ```text
-[Filter] [Desde] [Hasta] [Hora—Hora] [Modelos▾] [Patrones▾]
-        [Resultado▾] [Tipo▾] [Noticia▾] [Drawdown▾] [Día▾] [Limpiar]
+                          M1            M3            Cont.   Total
+                       1   2   3      1   2   3       —
+Envolvente + Bloque    -   2   2      -   6  10       -       20
+Envolvente + FVG       -   8   -      -  43   8      56      115
+FVG único             38   -   -     99   -   -       -      137
+Total                 38  10   2     99  49  18      56      ...
 ```
 
-Cada nuevo filtro sigue la misma convención que ya usas:
-- `[]` vacío o "todos seleccionados" = sin filtrar
-- Borde primary cuando hay selección parcial
-- Badge resumen al final de la fila
+Cada celda muestra cantidad de trades. Tooltip opcional con Win Rate y EV de esa celda.
 
-### Extensión del contrato de props
+## Sección técnica
+
+### Contrato extendido de `DashboardFiltersProps`
 
 ```ts
 interface DashboardFiltersProps {
   // ...existentes
+  fvgCounts: number[];                       // []  = todos
   results: ("TP" | "SL")[];
   tradeTypes: ("Compra" | "Venta")[];
   newsFilter: "all" | "with" | "without";
-  drawdownLevels: number[];   // [0, 0.33, 0.5, 0.66, 1]
-  daysOfWeek: string[];       // ["Lunes",...,"Viernes"]
-  onResultsChange / onTradeTypesChange / onNewsFilterChange / onDrawdownChange / onDaysChange
+  drawdownLevels: number[];                  // [0, 0.33, 0.5, 0.66, 1]
+  daysOfWeek: string[];
+  onFvgCountsChange / onResultsChange / onTradeTypesChange /
+  onNewsFilterChange / onDrawdownChange / onDaysChange
 }
 ```
 
-### Lógica de filtrado (en el hook/page que consume los trades)
-
-Añadir cinco predicados extra al `.filter()` ya existente:
+### Predicados de filtrado (cliente, sobre el array `trades`)
 
 ```ts
-.filter(t => results.length === 0 || results.includes(t.result))
+.filter(t => fvgCounts.length === 0 || fvgCounts.includes(t.fvg_count))
+.filter(t => results.length === 0 || results.includes(t.result_type))
 .filter(t => tradeTypes.length === 0 || tradeTypes.includes(t.trade_type))
 .filter(t => newsFilter === "all"
-  || (newsFilter === "with" && t.has_news)
-  || (newsFilter === "without" && !t.has_news))
+  || (newsFilter === "with" && t.had_news)
+  || (newsFilter === "without" && !t.had_news))
 .filter(t => drawdownLevels.length === 0 || drawdownLevels.includes(t.drawdown))
 .filter(t => daysOfWeek.length === 0 || daysOfWeek.includes(t.day_of_week))
 ```
 
-### Pre-requisito de datos
+### Datos requeridos
 
-El filtro de **Drawdown** depende de que en la importación se mapee `0 / 0.33 / 0.5 / 0.66 / 1` al enum de tu app (lo identificamos en el análisis anterior). Si tu enum guarda `"0%" | "33%" | "50%" | "66%" | "100%"` como string, el filtro trabaja con strings; si guarda decimales, con números. Cualquiera funciona, solo hay que decidir una vez.
+Todos los campos ya existen en la tabla `trades` (`fvg_count`, `result_type`, `trade_type`, `had_news`, `drawdown`, `day_of_week`). **No hay migración ni cambio de esquema.**
 
-## Decisión pendiente
+## Fuera de alcance
 
-Antes de implementar quiero confirmar contigo:
-
-1. ¿Añadimos los **5** filtros nuevos (Resultado, Tipo, Noticia, Drawdown, Día) o solo un subconjunto?
-2. ¿Aplica este nuevo set de filtros **solo al Dashboard** o también a Backtesting / Analytics / Streak Tracker / generación de PDF? (la barra `DashboardFilters` hoy es transversal a la mayoría de vistas analíticas)
+- Importador de CSV de Eric (se trata aparte cuando vayas a importar).
+- Cambios en Backtesting (su esquema no tiene `fvg_count` ni `entry_subtype` según las memorias del proyecto).
+- PDF / Reportes (se replicarán los filtros en una iteración posterior si lo pides).
