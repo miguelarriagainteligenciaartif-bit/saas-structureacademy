@@ -428,7 +428,8 @@ export default function Index() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-7 gap-4">
           <StatsCard
             title="P&L Total"
-            value={`$${stats.totalPnL.toFixed(2)}`}
+            value={formatCompactCurrency(stats.totalPnL)}
+            valueTitle={`$${stats.totalPnL.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
             icon={DollarSign}
             trend={stats.totalPnL >= 0 ? "up" : "down"}
           />
