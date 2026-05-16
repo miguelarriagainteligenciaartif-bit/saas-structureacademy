@@ -602,6 +602,7 @@ export const FlipTradeSelector = ({ onTradesSelected }: FlipTradeSelectorProps) 
                         <SelectItem value="all">Todos</SelectItem>
                         <SelectItem value="Envolvente + Bloque">Env+Bloque</SelectItem>
                         <SelectItem value="Envolvente + FVG">Env+FVG</SelectItem>
+                        <SelectItem value="FVG">FVG</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
