@@ -24,6 +24,9 @@ interface Trade {
   continuation_subtype: string | null;
   fvg_count: number | null;
   entry_subtype: string | null;
+  trade_type: string | null;
+  had_news: boolean | null;
+  drawdown: number | null;
 }
 
 interface StreakInfo {
@@ -160,7 +163,7 @@ export default function StreakTracker() {
     drawdownLevels: filterDrawdownLevels,
     daysOfWeek: filterDaysOfWeek,
   });
-  const applyFilters = (tradeList: Trade[]) => applyTradeFilters(tradeList as any, buildFilterState()) as unknown as Trade[];
+  const applyFilters = (tradeList: Trade[]) => applyTradeFilters(tradeList, buildFilterState());
 
   const clearFilters = () => {
     const d = defaultFilterState();
