@@ -591,9 +591,9 @@ export type Database = {
           date: string
           day_of_week: string
           drawdown: number | null
-          entry_model: string
+          entry_model: string | null
           entry_subtype: string | null
-          entry_time: string
+          entry_time: string | null
           execution_timing: string | null
           exit_time: string | null
           fvg_count: number | null
@@ -606,9 +606,9 @@ export type Database = {
           no_trade_day: boolean | null
           notes: string | null
           result_dollars: number
-          result_type: string
+          result_type: string | null
           risk_percentage: number
-          trade_type: string
+          trade_type: string | null
           updated_at: string | null
           user_id: string
           week_of_month: number | null
@@ -622,9 +622,9 @@ export type Database = {
           date: string
           day_of_week: string
           drawdown?: number | null
-          entry_model: string
+          entry_model?: string | null
           entry_subtype?: string | null
-          entry_time: string
+          entry_time?: string | null
           execution_timing?: string | null
           exit_time?: string | null
           fvg_count?: number | null
@@ -637,9 +637,9 @@ export type Database = {
           no_trade_day?: boolean | null
           notes?: string | null
           result_dollars: number
-          result_type: string
+          result_type?: string | null
           risk_percentage?: number
-          trade_type: string
+          trade_type?: string | null
           updated_at?: string | null
           user_id: string
           week_of_month?: number | null
@@ -653,9 +653,9 @@ export type Database = {
           date?: string
           day_of_week?: string
           drawdown?: number | null
-          entry_model?: string
+          entry_model?: string | null
           entry_subtype?: string | null
-          entry_time?: string
+          entry_time?: string | null
           execution_timing?: string | null
           exit_time?: string | null
           fvg_count?: number | null
@@ -668,9 +668,9 @@ export type Database = {
           no_trade_day?: boolean | null
           notes?: string | null
           result_dollars?: number
-          result_type?: string
+          result_type?: string | null
           risk_percentage?: number
-          trade_type?: string
+          trade_type?: string | null
           updated_at?: string | null
           user_id?: string
           week_of_month?: number | null
