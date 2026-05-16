@@ -182,7 +182,7 @@ export function DashboardFilters({
       <Popover>
         <PopoverTrigger asChild>
           <Button variant="outline" size="sm" className={cn("justify-start text-left font-normal min-w-[180px]", !isAllModels && "border-primary text-primary")}>
-            <Layers className="mr-2 h-4 w-4" />{modelsLabel}
+              <Layers className="mr-2 h-4 w-4 text-primary" />{modelsLabel}
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-[200px] p-3" align="start">
@@ -203,7 +203,7 @@ export function DashboardFilters({
         <Popover>
           <PopoverTrigger asChild>
             <Button variant="outline" size="sm" className={cn("justify-start text-left font-normal min-w-[220px]", !allPatternsSelected && "border-primary text-primary")}>
-              <Layers className="mr-2 h-4 w-4" />{patternsLabel}
+              <Layers className="mr-2 h-4 w-4 text-primary" />{patternsLabel}
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-[260px] p-3" align="start">
