@@ -22,13 +22,36 @@ export const ALL_DRAWDOWN_LEVELS = [0, 0.33, 0.5, 0.66, 1] as const;
 export const ALL_DAYS = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"] as const;
 export type NewsFilter = "all" | "with" | "without";
 
+// Valid (model, pattern) combinations. Continuación does not support direct "FVG".
+export const VALID_PATTERNS_BY_MODEL: Record<string, string[]> = {
+  M1: ["Envolvente + Bloque", "Envolvente + FVG", "FVG"],
+  M3: ["Envolvente + Bloque", "Envolvente + FVG", "FVG"],
+  "Continuación": ["Envolvente + Bloque", "Envolvente + FVG"],
+};
+
+export type ModelPatterns = Record<string, string[]>;
+
+export function hasModelPatternRestriction(mp: ModelPatterns | undefined): boolean {
+  if (!mp) return false;
+  return Object.entries(mp).some(([m, ps]) => {
+    const valid = VALID_PATTERNS_BY_MODEL[m] || [];
+    if (ps.length !== valid.length) return true;
+    return !valid.every(v => ps.includes(v));
+  });
+}
+
 export interface FilterState {
   dateFrom?: Date;
   dateTo?: Date;
   models: string[];
   timeFrom: string;
   timeTo: string;
-  patterns: string[];
+  /**
+   * Per-model allowed patterns. If a model key is absent → all valid patterns
+   * for that model are allowed (default). If present, only the listed patterns
+   * are allowed for trades of that model.
+   */
+  modelPatterns: ModelPatterns;
   fvgCounts: number[];
   results: string[];
   tradeTypes: string[];
@@ -43,7 +66,7 @@ export const defaultFilterState = (): FilterState => ({
   models: [...ALL_MODELS],
   timeFrom: "",
   timeTo: "",
-  patterns: [],
+  modelPatterns: {},
   fvgCounts: [],
   results: [],
   tradeTypes: [],
@@ -79,10 +102,16 @@ export function applyTradeFilters<T extends FilterableTrade>(
   }
   if (f.timeFrom) out = out.filter(t => t.entry_time && t.entry_time >= f.timeFrom);
   if (f.timeTo) out = out.filter(t => t.entry_time && t.entry_time <= f.timeTo);
-  if (f.patterns.length > 0 && f.patterns.length < ENTRY_PATTERNS.length) {
+  if (hasModelPatternRestriction(f.modelPatterns)) {
+    const mp = f.modelPatterns;
     out = out.filter(t => {
+      const m = t.entry_model;
+      if (!m || !(m in mp)) return true; // model not restricted → keep
+      const allowed = mp[m];
+      const valid = VALID_PATTERNS_BY_MODEL[m] || [];
+      if (allowed.length === valid.length && valid.every(v => allowed.includes(v))) return true;
       const p = getEntryPattern(t);
-      return p !== null && f.patterns.includes(p);
+      return p !== null && allowed.includes(p);
     });
   }
   if (f.fvgCounts.length > 0 && f.fvgCounts.length < ALL_FVG_COUNTS.length) {
@@ -110,7 +139,7 @@ export function hasActiveFilters(f: FilterState): boolean {
     f.dateFrom || f.dateTo ||
     (f.models.length > 0 && f.models.length < ALL_MODELS.length) ||
     f.timeFrom || f.timeTo ||
-    (f.patterns.length > 0 && f.patterns.length < ENTRY_PATTERNS.length) ||
+    hasModelPatternRestriction(f.modelPatterns) ||
     (f.fvgCounts.length > 0 && f.fvgCounts.length < ALL_FVG_COUNTS.length) ||
     (f.results.length > 0 && f.results.length < ALL_RESULTS.length) ||
     (f.tradeTypes.length > 0 && f.tradeTypes.length < ALL_TRADE_TYPES.length) ||

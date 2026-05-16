@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
+import { Fragment } from "react";
 import {
   ALL_MODELS,
   ALL_FVG_COUNTS,
@@ -17,10 +18,13 @@ import {
   ALL_TRADE_TYPES,
   ALL_DRAWDOWN_LEVELS,
   ALL_DAYS,
+  VALID_PATTERNS_BY_MODEL,
+  hasModelPatternRestriction,
+  type ModelPatterns,
   NewsFilter,
 } from "@/lib/tradeFilters";
 
-const ALL_PATTERNS = ["Envolvente + Bloque", "Envolvente + FVG", "FVG"];
+const PATTERN_ROWS = ["Envolvente + Bloque", "Envolvente + FVG", "FVG"];
 const DRAWDOWN_LABELS: Record<number, string> = {
   0: "0%",
   0.33: "33%",
@@ -35,13 +39,13 @@ interface DashboardFiltersProps {
   selectedModels: string[];
   timeFrom: string;
   timeTo: string;
-  patterns: string[];
+  modelPatterns: ModelPatterns;
   onDateFromChange: (date: Date | undefined) => void;
   onDateToChange: (date: Date | undefined) => void;
   onModelsChange: (models: string[]) => void;
   onTimeFromChange: (time: string) => void;
   onTimeToChange: (time: string) => void;
-  onPatternsChange: (value: string[]) => void;
+  onModelPatternsChange: (value: ModelPatterns) => void;
   onClearFilters: () => void;
   // New optional filters (default to "all")
   fvgCounts?: number[];
@@ -64,13 +68,13 @@ export function DashboardFilters({
   selectedModels,
   timeFrom,
   timeTo,
-  patterns,
+  modelPatterns,
   onDateFromChange,
   onDateToChange,
   onModelsChange,
   onTimeFromChange,
   onTimeToChange,
-  onPatternsChange,
+  onModelPatternsChange,
   onClearFilters,
   fvgCounts = [],
   results = [],
@@ -86,7 +90,7 @@ export function DashboardFilters({
   onDaysOfWeekChange,
 }: DashboardFiltersProps) {
   const isAllModels = selectedModels.length === ALL_MODELS.length;
-  const allPatternsSelected = patterns.length === 0 || patterns.length === ALL_PATTERNS.length;
+  const patternsRestricted = hasModelPatternRestriction(modelPatterns);
   const allFvg = fvgCounts.length === 0 || fvgCounts.length === ALL_FVG_COUNTS.length;
   const allResults = results.length === 0 || results.length === ALL_RESULTS.length;
   const allTradeTypes = tradeTypes.length === 0 || tradeTypes.length === ALL_TRADE_TYPES.length;
@@ -95,13 +99,15 @@ export function DashboardFilters({
   const newsActive = newsFilter !== "all";
 
   const hasActive = !!(dateFrom || dateTo || !isAllModels || timeFrom || timeTo ||
-    !allPatternsSelected || !allFvg || !allResults || !allTradeTypes ||
+    patternsRestricted || !allFvg || !allResults || !allTradeTypes ||
     !allDrawdown || !allDays || newsActive);
 
   // Show FVG filter only when M1 or M3 is in the selection
   const showFvgFilter = selectedModels.includes("M1") || selectedModels.includes("M3");
   // Show pattern filter when any model is selected
   const showPatternFilter = selectedModels.length > 0;
+  // Only show currently selected models as columns of the matrix
+  const visibleModels = ALL_MODELS.filter(m => selectedModels.includes(m));
 
   const toggleInList = <T,>(list: T[], all: T[], v: T, setter?: (vs: T[]) => void) => {
     if (!setter) return;
@@ -114,7 +120,48 @@ export function DashboardFilters({
     }
   };
 
-  const togglePattern = (p: string) => toggleInList(patterns, ALL_PATTERNS, p, onPatternsChange);
+  const isComboChecked = (m: string, p: string) => {
+    const valid = VALID_PATTERNS_BY_MODEL[m] || [];
+    if (!valid.includes(p)) return false;
+    const allowed = modelPatterns[m];
+    if (!allowed) return true; // default: all allowed
+    return allowed.includes(p);
+  };
+
+  const toggleCombo = (m: string, p: string) => {
+    const valid = VALID_PATTERNS_BY_MODEL[m] || [];
+    if (!valid.includes(p)) return;
+    const current = modelPatterns[m] ?? [...valid];
+    const next = current.includes(p) ? current.filter(x => x !== p) : [...current, p];
+    const newMp: ModelPatterns = { ...modelPatterns };
+    if (next.length === valid.length && valid.every(v => next.includes(v))) {
+      delete newMp[m]; // back to default (all allowed)
+    } else {
+      newMp[m] = next;
+    }
+    onModelPatternsChange(newMp);
+  };
+
+  const togglePatternRow = (p: string) => {
+    // Toggle a whole row across all visible models.
+    const anyUnchecked = visibleModels.some(m => {
+      const valid = VALID_PATTERNS_BY_MODEL[m] || [];
+      return valid.includes(p) && !isComboChecked(m, p);
+    });
+    const newMp: ModelPatterns = { ...modelPatterns };
+    visibleModels.forEach(m => {
+      const valid = VALID_PATTERNS_BY_MODEL[m] || [];
+      if (!valid.includes(p)) return;
+      const current = newMp[m] ?? [...valid];
+      const next = anyUnchecked
+        ? (current.includes(p) ? current : [...current, p])
+        : current.filter(x => x !== p);
+      if (next.length === valid.length && valid.every(v => next.includes(v))) delete newMp[m];
+      else newMp[m] = next;
+    });
+    onModelPatternsChange(newMp);
+  };
+
   const toggleModel = (m: string) => {
     if (selectedModels.includes(m)) {
       if (selectedModels.length <= 1) return;
@@ -130,7 +177,22 @@ export function DashboardFilters({
   const toggleDay = (d: string) => toggleInList(daysOfWeek, [...ALL_DAYS], d, onDaysOfWeekChange);
 
   const modelsLabel = isAllModels ? "Todos los modelos" : selectedModels.join(" + ");
-  const patternsLabel = allPatternsSelected ? "Todos los patrones" : patterns.join(" + ");
+  const patternsLabel = patternsRestricted ? "Patrones personalizados" : "Todos los patrones";
+  const restrictedSummary = (() => {
+    if (!patternsRestricted) return "";
+    return ALL_MODELS
+      .filter(m => modelPatterns[m] !== undefined)
+      .map(m => {
+        const allowed = modelPatterns[m];
+        const valid = VALID_PATTERNS_BY_MODEL[m] || [];
+        if (allowed.length === valid.length && valid.every(v => allowed.includes(v))) return null;
+        const short = (p: string) => p.replace("Envolvente + ", "Env+");
+        const list = allowed.length === 0 ? "ninguno" : allowed.map(short).join(", ");
+        return `${m}: ${list}`;
+      })
+      .filter(Boolean)
+      .join(" · ");
+  })();
   const fvgLabel = allFvg ? "Todos los FVG" : fvgCounts.map(n => `${n} FVG`).join(" / ");
   const resultsLabel = allResults ? "Todos los resultados" : results.join(" / ");
   const typesLabel = allTradeTypes ? "Compra y Venta" : tradeTypes.join(" / ");
@@ -202,22 +264,65 @@ export function DashboardFilters({
       {showPatternFilter && (
         <Popover>
           <PopoverTrigger asChild>
-            <Button variant="outline" size="sm" className={cn("justify-start text-left font-normal min-w-[220px]", !allPatternsSelected && "border-primary text-primary")}>
+            <Button variant="outline" size="sm" className={cn("justify-start text-left font-normal min-w-[220px]", patternsRestricted && "border-primary text-primary")}>
               <Layers className="mr-2 h-4 w-4 text-primary" />{patternsLabel}
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-[260px] p-3" align="start">
+          <PopoverContent className="w-auto min-w-[320px] p-4" align="start">
             <div className="space-y-3">
-              <p className="text-sm font-medium text-muted-foreground">Patrón de entrada</p>
-              {ALL_PATTERNS.map(p => {
-                const effective = patterns.length === 0 ? ALL_PATTERNS : patterns;
-                return (
-                  <label key={p} className="flex items-center gap-2 cursor-pointer">
-                    <Checkbox checked={effective.includes(p)} onCheckedChange={() => togglePattern(p)} />
-                    <span className="text-sm">{p}</span>
-                  </label>
-                );
-              })}
+              <p className="text-sm font-medium text-muted-foreground">
+                Patrón × Modelo
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Marca/desmarca cada combinación de modelo y patrón de forma independiente.
+              </p>
+              <div
+                className="grid gap-x-4 gap-y-2 items-center"
+                style={{ gridTemplateColumns: `minmax(160px, auto) repeat(${visibleModels.length}, minmax(56px, auto))` }}
+              >
+                <div />
+                {visibleModels.map(m => (
+                  <div key={m} className="text-xs font-semibold text-center text-muted-foreground">
+                    {m === "Continuación" ? "Cont." : m}
+                  </div>
+                ))}
+                {PATTERN_ROWS.map(p => (
+                  <Fragment key={p}>
+                    <button
+                      type="button"
+                      onClick={() => togglePatternRow(p)}
+                      className="text-sm text-left hover:text-primary transition-colors"
+                      title="Click para alternar toda la fila"
+                    >
+                      {p}
+                    </button>
+                    {visibleModels.map(m => {
+                      const valid = (VALID_PATTERNS_BY_MODEL[m] || []).includes(p);
+                      return (
+                        <div key={m} className="flex justify-center">
+                          {valid ? (
+                            <Checkbox
+                              checked={isComboChecked(m, p)}
+                              onCheckedChange={() => toggleCombo(m, p)}
+                            />
+                          ) : (
+                            <span className="text-xs text-muted-foreground">—</span>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </Fragment>
+                ))}
+              </div>
+              {patternsRestricted && (
+                <button
+                  type="button"
+                  onClick={() => onModelPatternsChange({})}
+                  className="text-xs text-muted-foreground hover:text-foreground underline"
+                >
+                  Restablecer (todos los patrones en todos los modelos)
+                </button>
+              )}
             </div>
           </PopoverContent>
         </Popover>
@@ -393,7 +498,7 @@ export function DashboardFilters({
           {timeFrom && <Badge variant="secondary" className="text-xs">Hora desde: {timeFrom}</Badge>}
           {timeTo && <Badge variant="secondary" className="text-xs">Hora hasta: {timeTo}</Badge>}
           {!isAllModels && <Badge variant="secondary" className="text-xs">Modelos: {selectedModels.join(" + ")}</Badge>}
-          {!allPatternsSelected && <Badge variant="secondary" className="text-xs">Patrón: {patterns.join(" + ")}</Badge>}
+          {patternsRestricted && <Badge variant="secondary" className="text-xs">Patrón → {restrictedSummary}</Badge>}
           {!allFvg && <Badge variant="secondary" className="text-xs">FVG: {fvgCounts.join(" / ")}</Badge>}
           {!allResults && <Badge variant="secondary" className="text-xs">Resultado: {results.join(" / ")}</Badge>}
           {!allTradeTypes && <Badge variant="secondary" className="text-xs">Tipo: {tradeTypes.join(" / ")}</Badge>}
