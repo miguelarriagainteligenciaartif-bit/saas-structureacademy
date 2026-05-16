@@ -33,7 +33,7 @@ const formatCompactCurrency = (n: number): string => {
   const sign = n < 0 ? "-" : "";
   const abs = Math.abs(n);
   if (abs >= 1_000_000) return `${sign}$${(abs / 1_000_000).toFixed(2)}M`;
-  if (abs >= 10_000) return `${sign}$${(abs / 1_000).toFixed(1)}K`;
+  if (abs >= 10_000) return `${sign}$${Math.round(abs / 1_000)}K`;
   if (abs >= 1_000) return `${sign}$${(abs / 1_000).toFixed(2)}K`;
   return `${sign}$${abs.toFixed(2)}`;
 };
