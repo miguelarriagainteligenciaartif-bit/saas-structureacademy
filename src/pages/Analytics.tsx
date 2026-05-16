@@ -353,6 +353,18 @@ export default function Analytics() {
           onTimeToChange={setFilterTimeTo}
           onPatternsChange={setFilterPatterns}
           onClearFilters={clearFilters}
+          fvgCounts={filterFvgCounts}
+          results={filterResults}
+          tradeTypes={filterTradeTypes}
+          newsFilter={filterNews}
+          drawdownLevels={filterDrawdownLevels}
+          daysOfWeek={filterDaysOfWeek}
+          onFvgCountsChange={setFilterFvgCounts}
+          onResultsChange={setFilterResults}
+          onTradeTypesChange={setFilterTradeTypes}
+          onNewsFilterChange={setFilterNews}
+          onDrawdownLevelsChange={setFilterDrawdownLevels}
+          onDaysOfWeekChange={setFilterDaysOfWeek}
         />
 
         {/* Main Metrics Row 1 */}
