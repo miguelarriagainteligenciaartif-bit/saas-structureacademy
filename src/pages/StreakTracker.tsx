@@ -160,7 +160,7 @@ export default function StreakTracker() {
     drawdownLevels: filterDrawdownLevels,
     daysOfWeek: filterDaysOfWeek,
   });
-  const applyFilters = (tradeList: Trade[]) => applyTradeFilters(tradeList, buildFilterState());
+  const applyFilters = (tradeList: Trade[]) => applyTradeFilters(tradeList as any, buildFilterState()) as unknown as Trade[];
 
   const clearFilters = () => {
     const d = defaultFilterState();
