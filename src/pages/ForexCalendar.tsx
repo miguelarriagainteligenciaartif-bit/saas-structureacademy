@@ -22,11 +22,16 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, CalendarDays } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { getEntryPattern } from "@/lib/entryPattern";
 
 interface TradeRow {
   date: string;
   result_dollars: number | null;
   no_trade_day: boolean;
+  entry_model: string | null;
+  entry_subtype: string | null;
+  continuation_subtype: string | null;
+  fvg_count: number | null;
 }
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -41,6 +46,20 @@ const formatCellMoney = (n: number) => {
   const sign = n < 0 ? "-" : "";
   const abs = Math.abs(n);
   return `${sign}$${abs.toLocaleString("es-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+};
+
+const modelAbbr = (m: string | null): string | null => {
+  if (m === "M1") return "M1";
+  if (m === "M3") return "M3";
+  if (m === "Continuación") return "Cont";
+  return null;
+};
+
+const patternAbbr = (p: string | null): string | null => {
+  if (p === "Envolvente + Bloque") return "ENV+Bloq";
+  if (p === "Envolvente + FVG") return "ENV+FVG";
+  if (p === "FVG") return "FVG";
+  return null;
 };
 
 export default function ForexCalendar() {
@@ -65,7 +84,7 @@ export default function ForexCalendar() {
     (async () => {
       const { data, error } = await supabase
         .from("trades")
-        .select("date, result_dollars, no_trade_day")
+        .select("date, result_dollars, no_trade_day, entry_model, entry_subtype, continuation_subtype, fvg_count")
         .eq("user_id", user.id);
       if (!error && data) setTrades(data as TradeRow[]);
     })();
@@ -73,13 +92,18 @@ export default function ForexCalendar() {
 
   // Aggregate trades by date string yyyy-MM-dd
   const tradesByDay = useMemo(() => {
-    const map = new Map<string, { pnl: number; count: number }>();
+    const map = new Map<string, { pnl: number; count: number; entries: { model: string; pattern: string | null }[] }>();
     trades.forEach((t) => {
       if (!t.date || t.no_trade_day) return;
       const key = t.date.slice(0, 10);
-      const prev = map.get(key) || { pnl: 0, count: 0 };
+      const prev = map.get(key) || { pnl: 0, count: 0, entries: [] };
       prev.pnl += t.result_dollars || 0;
       prev.count += 1;
+      const mAbbr = modelAbbr(t.entry_model);
+      if (mAbbr) {
+        const pAbbr = patternAbbr(getEntryPattern(t));
+        prev.entries.push({ model: mAbbr, pattern: pAbbr });
+      }
       map.set(key, prev);
     });
     return map;
@@ -191,6 +215,21 @@ export default function ForexCalendar() {
                       )}
                     >
                       <div className="text-xs text-muted-foreground">{format(day, "d")}</div>
+                      {v && v.entries.length > 0 && (
+                        <div className="absolute top-1 right-1 flex flex-col items-end gap-0.5">
+                          {v.entries.slice(0, 3).map((e, i) => (
+                            <div key={i} className="leading-tight text-right">
+                              <div className="text-[10px] font-semibold text-foreground">{e.model}</div>
+                              {e.pattern && (
+                                <div className="text-[9px] text-muted-foreground">{e.pattern}</div>
+                              )}
+                            </div>
+                          ))}
+                          {v.entries.length > 3 && (
+                            <div className="text-[9px] text-muted-foreground">+{v.entries.length - 3}</div>
+                          )}
+                        </div>
+                      )}
                       <div className="flex-1 flex flex-col items-center justify-center text-center">
                         {count > 0 ? (
                           <>
