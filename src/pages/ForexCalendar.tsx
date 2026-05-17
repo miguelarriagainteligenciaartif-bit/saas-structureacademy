@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, Fragment } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   format,
@@ -167,7 +167,7 @@ export default function ForexCalendar() {
             });
 
             return (
-              <>
+              <Fragment key={wIdx}>
                 {week.map((day) => {
                   const inMonth = isSameMonth(day, currentMonth);
                   const key = format(day, "yyyy-MM-dd");
@@ -230,7 +230,7 @@ export default function ForexCalendar() {
                     {weekDaysWithTrades} day{weekDaysWithTrades === 1 ? "" : "s"}
                   </div>
                 </div>
-              </>
+              </Fragment>
             );
           })}
         </div>
