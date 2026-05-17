@@ -1,361 +1,265 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, Fragment } from "react";
 import { useNavigate } from "react-router-dom";
-import { format, addDays, subDays } from "date-fns";
+import {
+  format,
+  startOfMonth,
+  endOfMonth,
+  startOfWeek,
+  endOfWeek,
+  eachDayOfInterval,
+  addMonths,
+  subMonths,
+  addYears,
+  subYears,
+  isSameMonth,
+  isSameDay,
+  getWeek,
+} from "date-fns";
 import { es } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
 import { Header } from "@/components/Header";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
-import { toast } from "sonner";
-import { 
-  CalendarIcon, 
-  ChevronLeft, 
-  ChevronRight, 
-  AlertTriangle,
-  TrendingUp,
-  Clock,
-  DollarSign
-} from "lucide-react";
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, CalendarDays } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { EventEditor, DeleteEventButton } from "@/components/EventEditor";
 
-interface ForexEvent {
-  id: string;
-  time: string;
-  currency: string;
-  impact: 'high' | 'medium' | 'low';
-  event: string;
-  forecast: string;
-  previous: string;
-  actual: string;
+interface TradeRow {
+  date: string;
+  result_dollars: number | null;
+  no_trade_day: boolean;
 }
 
-const ForexCalendar = () => {
+const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+const formatMoney = (n: number) => {
+  const sign = n < 0 ? "-" : n > 0 ? "+" : "";
+  const abs = Math.abs(n);
+  return `${sign}$${abs.toLocaleString("es-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+};
+
+const formatCellMoney = (n: number) => {
+  const sign = n < 0 ? "-" : "";
+  const abs = Math.abs(n);
+  return `${sign}$${abs.toLocaleString("es-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+};
+
+export default function ForexCalendar() {
   const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const [events, setEvents] = useState<ForexEvent[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [trades, setTrades] = useState<TradeRow[]>([]);
+  const [currentMonth, setCurrentMonth] = useState<Date>(startOfMonth(new Date()));
 
   useEffect(() => {
-    checkUser();
-  }, []);
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        navigate("/auth");
+        return;
+      }
+      setUser(user);
+    })();
+  }, [navigate]);
 
   useEffect(() => {
-    if (user) {
-      fetchCalendarEvents();
-    }
-  }, [user, selectedDate]);
-
-  const checkUser = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      navigate("/auth");
-      return;
-    }
-    setUser(user);
-  };
-
-  const fetchCalendarEvents = async () => {
-    setLoading(true);
-    try {
-      const formattedDate = format(selectedDate, 'yyyy-MM-dd');
-      
+    if (!user) return;
+    (async () => {
       const { data, error } = await supabase
-        .from('economic_events')
-        .select('*')
-        .eq('event_date', formattedDate)
-        .eq('currency', 'USD')
-        .order('event_time', { ascending: true });
+        .from("trades")
+        .select("date, result_dollars, no_trade_day")
+        .eq("user_id", user.id);
+      if (!error && data) setTrades(data as TradeRow[]);
+    })();
+  }, [user]);
 
-      if (error) throw error;
+  // Aggregate trades by date string yyyy-MM-dd
+  const tradesByDay = useMemo(() => {
+    const map = new Map<string, { pnl: number; count: number }>();
+    trades.forEach((t) => {
+      if (!t.date || t.no_trade_day) return;
+      const key = t.date.slice(0, 10);
+      const prev = map.get(key) || { pnl: 0, count: 0 };
+      prev.pnl += t.result_dollars || 0;
+      prev.count += 1;
+      map.set(key, prev);
+    });
+    return map;
+  }, [trades]);
 
-      const formattedEvents: ForexEvent[] = (data || []).map(event => ({
-        id: event.id,
-        time: formatTime(event.event_time),
-        currency: event.currency,
-        impact: event.impact as 'high' | 'medium' | 'low',
-        event: event.event_name,
-        forecast: event.forecast || '-',
-        previous: event.previous || '-',
-        actual: event.actual || '-',
-      }));
+  const weeks = useMemo(() => {
+    const start = startOfWeek(startOfMonth(currentMonth), { weekStartsOn: 0 });
+    const end = endOfWeek(endOfMonth(currentMonth), { weekStartsOn: 0 });
+    const days = eachDayOfInterval({ start, end });
+    const result: Date[][] = [];
+    for (let i = 0; i < days.length; i += 7) result.push(days.slice(i, i + 7));
+    return result;
+  }, [currentMonth]);
 
-      setEvents(formattedEvents);
-    } catch (error) {
-      console.error("Error fetching calendar:", error);
-      toast.error("Error al cargar el calendario económico");
-      setEvents([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Month totals (only days within current month)
+  const monthTotals = useMemo(() => {
+    let pnl = 0;
+    let count = 0;
+    tradesByDay.forEach((v, key) => {
+      const d = new Date(key + "T00:00:00");
+      if (isSameMonth(d, currentMonth)) {
+        pnl += v.pnl;
+        count += v.count;
+      }
+    });
+    return { pnl, count };
+  }, [tradesByDay, currentMonth]);
 
-  const formatTime = (timeStr: string): string => {
-    if (!timeStr) return "All Day";
-    try {
-      const [hours, minutes] = timeStr.split(':');
-      const hour = parseInt(hours, 10);
-      const ampm = hour >= 12 ? 'PM' : 'AM';
-      const hour12 = hour % 12 || 12;
-      return `${hour12}:${minutes} ${ampm}`;
-    } catch {
-      return timeStr;
-    }
-  };
-
-  const goToPreviousDay = () => {
-    setSelectedDate(prev => subDays(prev, 1));
-  };
-
-  const goToNextDay = () => {
-    setSelectedDate(prev => addDays(prev, 1));
-  };
-
-  const goToToday = () => {
-    setSelectedDate(new Date());
-  };
-
-  const getImpactColor = (impact: string) => {
-    switch (impact) {
-      case 'high':
-        return 'bg-red-500 text-white';
-      case 'medium':
-        return 'bg-yellow-500 text-black';
-      case 'low':
-        return 'bg-green-500 text-white';
-      default:
-        return 'bg-muted text-muted-foreground';
-    }
-  };
-
-  const getImpactLabel = (impact: string) => {
-    switch (impact) {
-      case 'high':
-        return 'Alto';
-      case 'medium':
-        return 'Medio';
-      case 'low':
-        return 'Bajo';
-      default:
-        return impact;
-    }
-  };
-
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
+  const today = new Date();
 
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <main className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground flex items-center gap-3">
-            <DollarSign className="h-8 w-8 text-primary" />
-            Calendario Económico USD
-          </h1>
-          <p className="text-muted-foreground mt-2">
-            Noticias de alto impacto que afectan al dólar (NFP, GDP, FOMC, CPI, etc.)
-          </p>
+      <main className="container mx-auto px-4 py-6">
+        {/* Header bar */}
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+          <div className="flex items-center gap-3">
+            <CalendarDays className="h-6 w-6 text-primary" />
+            <h1 className="text-xl font-medium capitalize text-foreground">
+              {format(currentMonth, "MMMM 'de' yyyy", { locale: es })}
+            </h1>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="icon" onClick={() => setCurrentMonth(subYears(currentMonth, 1))}>
+              <ChevronsLeft className="h-4 w-4" />
+            </Button>
+            <Button variant="outline" size="icon" onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}>
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <Button variant="outline" size="icon" onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}>
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+            <Button variant="outline" size="icon" onClick={() => setCurrentMonth(addYears(currentMonth, 1))}>
+              <ChevronsRight className="h-4 w-4" />
+            </Button>
+            <Button onClick={() => setCurrentMonth(startOfMonth(new Date()))}>
+              This month
+            </Button>
+          </div>
         </div>
 
-        {/* Date Navigation */}
-        <Card className="mb-6">
-          <CardContent className="py-4">
-            <div className="flex flex-wrap items-center justify-between gap-4">
-              <div className="flex items-center gap-2">
-                <Button variant="outline" size="icon" onClick={goToPreviousDay}>
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-                
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" className="min-w-[200px]">
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {format(selectedDate, "EEEE, d 'de' MMMM yyyy", { locale: es })}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={selectedDate}
-                      onSelect={(date) => date && setSelectedDate(date)}
-                      initialFocus
-                      className="pointer-events-auto"
-                    />
-                  </PopoverContent>
-                </Popover>
+        {/* Calendar grid */}
+        <div className="grid grid-cols-8 gap-2">
+          {/* Header row */}
+          {WEEKDAYS.map((d) => (
+            <div key={d} className="rounded-md bg-card border border-border text-center py-2 text-xs font-medium text-muted-foreground">
+              {d}
+            </div>
+          ))}
+          <div className="rounded-md bg-card border border-border text-center py-2 text-xs font-medium text-muted-foreground">
+            Week Summary
+          </div>
 
-                <Button variant="outline" size="icon" onClick={goToNextDay}>
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
+          {/* Weeks */}
+          {weeks.map((week, wIdx) => {
+            let weekPnl = 0;
+            let weekDaysWithTrades = 0;
+            week.forEach((day) => {
+              const key = format(day, "yyyy-MM-dd");
+              const v = tradesByDay.get(key);
+              if (v && isSameMonth(day, currentMonth)) {
+                weekPnl += v.pnl;
+                weekDaysWithTrades += 1;
+              }
+            });
+
+            return (
+              <Fragment key={wIdx}>
+                {week.map((day) => {
+                  const inMonth = isSameMonth(day, currentMonth);
+                  const key = format(day, "yyyy-MM-dd");
+                  const v = tradesByDay.get(key);
+                  const pnl = v?.pnl ?? 0;
+                  const count = v?.count ?? 0;
+                  const isProfit = pnl > 0;
+                  const isLoss = pnl < 0;
+                  const isToday = isSameDay(day, today);
+
+                  return (
+                    <div
+                      key={key}
+                      className={cn(
+                        "rounded-md border min-h-[96px] p-2 flex flex-col transition-colors",
+                        !inMonth && "opacity-40",
+                        isProfit && "bg-success/15 border-success/40",
+                        isLoss && "bg-destructive/15 border-destructive/40",
+                        !isProfit && !isLoss && "bg-card border-border",
+                        isToday && "ring-1 ring-primary",
+                      )}
+                    >
+                      <div className="text-xs text-muted-foreground">{format(day, "d")}</div>
+                      <div className="flex-1 flex flex-col items-center justify-center text-center">
+                        {count > 0 ? (
+                          <>
+                            <div className={cn(
+                              "font-semibold text-base",
+                              isProfit && "text-success",
+                              isLoss && "text-destructive",
+                            )}>
+                              {formatCellMoney(pnl)}
+                            </div>
+                            <div className="text-[10px] text-muted-foreground mt-0.5">
+                              {count} trade{count === 1 ? "" : "s"}
+                            </div>
+                          </>
+                        ) : inMonth ? (
+                          <>
+                            <div className="text-base font-medium text-muted-foreground">$0</div>
+                            <div className="text-[10px] text-muted-foreground mt-0.5">No trades</div>
+                          </>
+                        ) : null}
+                      </div>
+                    </div>
+                  );
+                })}
+
+                {/* Week summary */}
+                <div className="rounded-md border border-border bg-card p-2 flex flex-col items-center justify-center text-center min-h-[96px]">
+                  <div className="text-xs text-muted-foreground">Week {wIdx + 1}</div>
+                  <div className={cn(
+                    "font-semibold text-base mt-1",
+                    weekPnl > 0 && "text-success",
+                    weekPnl < 0 && "text-destructive",
+                  )}>
+                    {formatCellMoney(weekPnl)}
+                  </div>
+                  <div className="text-[10px] text-muted-foreground mt-0.5">
+                    {weekDaysWithTrades} day{weekDaysWithTrades === 1 ? "" : "s"}
+                  </div>
+                </div>
+              </Fragment>
+            );
+          })}
+        </div>
+
+        {/* Month summary */}
+        <Card className="mt-4">
+          <CardContent className="py-4 flex flex-wrap items-center justify-between gap-4">
+            <div className="text-sm font-semibold tracking-wider text-muted-foreground uppercase">
+              Month Summary
+            </div>
+            <div className="flex items-center gap-8">
+              <div className="text-right">
+                <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Total Trades</div>
+                <div className="text-xl font-semibold">{monthTotals.count}</div>
               </div>
-
-              <div className="flex items-center gap-2">
-                <Button variant="outline" onClick={goToToday}>
-                  Hoy
-                </Button>
-                <EventEditor
-                  selectedDate={selectedDate}
-                  onSave={fetchCalendarEvents}
-                  mode="create"
-                />
+              <div className="text-right">
+                <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Net P&L</div>
+                <div className={cn(
+                  "text-xl font-bold",
+                  monthTotals.pnl > 0 && "text-success",
+                  monthTotals.pnl < 0 && "text-destructive",
+                )}>
+                  {formatMoney(monthTotals.pnl)}
+                </div>
               </div>
             </div>
           </CardContent>
         </Card>
-
-        {/* Impact Legend */}
-        <div className="flex flex-wrap gap-4 mb-6">
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 rounded bg-red-500"></div>
-            <span className="text-sm text-muted-foreground">Alto Impacto</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 rounded bg-yellow-500"></div>
-            <span className="text-sm text-muted-foreground">Medio Impacto</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 rounded bg-green-500"></div>
-            <span className="text-sm text-muted-foreground">Bajo Impacto</span>
-          </div>
-        </div>
-
-        {/* Events List */}
-        {loading ? (
-          <div className="space-y-4">
-            {[1, 2, 3, 4].map((i) => (
-              <Card key={i}>
-                <CardContent className="py-4">
-                  <div className="flex items-center gap-4">
-                    <Skeleton className="h-8 w-16" />
-                    <Skeleton className="h-6 w-48" />
-                    <Skeleton className="h-6 w-20 ml-auto" />
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        ) : events.length > 0 ? (
-          <div className="space-y-3">
-            {events.map((event) => (
-              <Card 
-                key={event.id} 
-                className={cn(
-                  "transition-all hover:shadow-md",
-                  event.impact === 'high' && "border-l-4 border-l-red-500"
-                )}
-              >
-                <CardContent className="py-4">
-                  <div className="flex flex-wrap items-center gap-4">
-                    <div className="flex items-center gap-2 min-w-[80px]">
-                      <Clock className="h-4 w-4 text-muted-foreground" />
-                      <span className="font-mono text-sm">{event.time}</span>
-                    </div>
-                    
-                    <Badge variant="outline" className="font-bold">
-                      {event.currency}
-                    </Badge>
-                    
-                    <Badge className={cn("text-xs", getImpactColor(event.impact))}>
-                      {getImpactLabel(event.impact)}
-                    </Badge>
-                    
-                    <span className="font-medium flex-1">{event.event}</span>
-                    
-                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                      {event.forecast !== '-' && (
-                        <div className="flex items-center gap-1">
-                          <TrendingUp className="h-3 w-3" />
-                          <span>Prev: {event.forecast}</span>
-                        </div>
-                      )}
-                      {event.previous !== '-' && (
-                        <span>Ant: {event.previous}</span>
-                      )}
-                      {event.actual !== '-' && (
-                        <span className="font-bold text-foreground">Act: {event.actual}</span>
-                      )}
-                    </div>
-
-                    <div className="flex items-center gap-1">
-                      <EventEditor
-                        event={{
-                          id: event.id,
-                          time: event.time,
-                          currency: event.currency,
-                          impact: event.impact,
-                          event: event.event,
-                          forecast: event.forecast,
-                          previous: event.previous,
-                          actual: event.actual,
-                        }}
-                        selectedDate={selectedDate}
-                        onSave={fetchCalendarEvents}
-                        mode="edit"
-                      />
-                      <DeleteEventButton
-                        eventId={event.id}
-                        eventName={event.event}
-                        onDelete={fetchCalendarEvents}
-                      />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        ) : (
-          <Card>
-            <CardContent className="py-12 text-center">
-              <AlertTriangle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-medium">No hay eventos USD para esta fecha</h3>
-              <p className="text-muted-foreground mt-2">
-                Usa el botón "Agregar Evento" para añadir eventos económicos manualmente.
-              </p>
-              <EventEditor
-                selectedDate={selectedDate}
-                onSave={fetchCalendarEvents}
-                mode="create"
-              />
-            </CardContent>
-          </Card>
-        )}
-
-        {/* High Impact Events Summary */}
-        {events.filter(e => e.impact === 'high').length > 0 && (
-          <Card className="mt-6 border-red-500/50 bg-red-500/5">
-            <CardHeader>
-              <CardTitle className="text-red-500 flex items-center gap-2">
-                <AlertTriangle className="h-5 w-5" />
-                Eventos de Alto Impacto
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid gap-2">
-                {events.filter(e => e.impact === 'high').map((event) => (
-                  <div key={event.id} className="flex items-center gap-3">
-                    <Clock className="h-4 w-4 text-red-500" />
-                    <span className="font-mono">{event.time}</span>
-                    <span className="font-medium">{event.event}</span>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
       </main>
     </div>
   );
-};
-
-export default ForexCalendar;
+}
