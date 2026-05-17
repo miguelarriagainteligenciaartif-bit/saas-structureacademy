@@ -206,7 +206,7 @@ export default function ForexCalendar() {
                     <div
                       key={key}
                       className={cn(
-                        "rounded-md border min-h-[96px] p-2 flex flex-col transition-colors",
+                        "relative rounded-md border min-h-[96px] p-2 flex flex-col transition-colors",
                         !inMonth && "opacity-40",
                         isProfit && "bg-success/15 border-success/40",
                         isLoss && "bg-destructive/15 border-destructive/40",
