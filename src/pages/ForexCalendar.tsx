@@ -221,7 +221,7 @@ export default function ForexCalendar() {
                             <div key={i} className="leading-tight text-right">
                               <div className="text-[10px] font-semibold text-foreground">{e.model}</div>
                               {e.pattern && (
-                                <div className="text-[9px] text-muted-foreground">{e.pattern}</div>
+                                <div className="text-[9px] font-medium text-foreground">{e.pattern}</div>
                               )}
                             </div>
                           ))}
