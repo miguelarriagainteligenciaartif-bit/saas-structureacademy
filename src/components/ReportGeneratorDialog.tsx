@@ -22,6 +22,7 @@ import {
   addBrandedFooter,
   getBrandedTableStyles,
   addSectionTitle,
+  PDF_TABLE_BOTTOM_MARGIN,
 } from "@/utils/pdfBranding";
 import { fetchAIAnalysis, buildJournalDataSummary } from "@/utils/aiAnalysis";
 import { addAIAnalysisSection } from "@/utils/pdfAISection";
@@ -486,7 +487,7 @@ export const ReportGeneratorDialog = ({ trades, label, directGenerate, filterLab
             }
           }
         },
-        margin: { left: 14, right: 14 }
+        margin: { left: 14, right: 14, bottom: PDF_TABLE_BOTTOM_MARGIN }
       });
 
       yPos = (doc as any).lastAutoTable.finalY + 12;
@@ -509,7 +510,7 @@ export const ReportGeneratorDialog = ({ trades, label, directGenerate, filterLab
           2: { halign: 'right' },
           3: { halign: 'right' }
         },
-        margin: { left: 14, right: 14 }
+        margin: { left: 14, right: 14, bottom: PDF_TABLE_BOTTOM_MARGIN }
       });
 
       yPos = (doc as any).lastAutoTable.finalY + 12;
@@ -538,7 +539,7 @@ export const ReportGeneratorDialog = ({ trades, label, directGenerate, filterLab
           2: { halign: 'right' },
           3: { halign: 'right' }
         },
-        margin: { left: 14, right: 14 }
+        margin: { left: 14, right: 14, bottom: PDF_TABLE_BOTTOM_MARGIN }
       });
 
       // New page for additional analysis
@@ -560,7 +561,7 @@ export const ReportGeneratorDialog = ({ trades, label, directGenerate, filterLab
         columnStyles: {
           3: { halign: 'right' }
         },
-        margin: { left: 14, right: 14 }
+        margin: { left: 14, right: 14, bottom: PDF_TABLE_BOTTOM_MARGIN }
       });
 
       yPos = (doc as any).lastAutoTable.finalY + 12;
@@ -581,7 +582,7 @@ export const ReportGeneratorDialog = ({ trades, label, directGenerate, filterLab
           2: { halign: 'right' },
           3: { halign: 'right' }
         },
-        margin: { left: 14, right: 14 }
+        margin: { left: 14, right: 14, bottom: PDF_TABLE_BOTTOM_MARGIN }
       });
 
       yPos = (doc as any).lastAutoTable.finalY + 12;
@@ -603,7 +604,7 @@ export const ReportGeneratorDialog = ({ trades, label, directGenerate, filterLab
         columnStyles: {
           1: { halign: 'right' }
         },
-        margin: { left: 14, right: 14 }
+        margin: { left: 14, right: 14, bottom: PDF_TABLE_BOTTOM_MARGIN }
       });
 
       yPos = (doc as any).lastAutoTable.finalY + 15;
@@ -634,7 +635,7 @@ export const ReportGeneratorDialog = ({ trades, label, directGenerate, filterLab
         columnStyles: {
           6: { halign: 'right' }
         },
-        margin: { left: 14, right: 14 },
+        margin: { left: 14, right: 14, bottom: PDF_TABLE_BOTTOM_MARGIN },
         didParseCell: (data) => {
           if (data.section === 'body' && data.column.index === 5) {
             if (data.cell.raw === 'TP') {
