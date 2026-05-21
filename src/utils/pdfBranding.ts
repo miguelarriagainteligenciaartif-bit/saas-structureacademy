@@ -34,6 +34,9 @@ export const brandColors = {
   textMuted: [148, 163, 184] as [number, number, number], // Muted text
 };
 
+export const PDF_FOOTER_HEIGHT = 10;
+export const PDF_TABLE_BOTTOM_MARGIN = PDF_FOOTER_HEIGHT + 6;
+
 // Load logo as base64 for PDF embedding
 export const loadLogoBase64 = (): Promise<string> => {
   return new Promise((resolve, reject) => {
@@ -115,11 +118,11 @@ export const addBrandedFooter = (doc: jsPDF) => {
     
     // Footer bar
     doc.setFillColor(...brandColors.graphiteGray);
-    doc.rect(0, pageHeight - 18, pageWidth, 18, "F");
+    doc.rect(0, pageHeight - PDF_FOOTER_HEIGHT, pageWidth, PDF_FOOTER_HEIGHT, "F");
     
     // Accent line above footer
     doc.setFillColor(...brandColors.quantumBlue);
-    doc.rect(0, pageHeight - 18, pageWidth, 0.5, "F");
+    doc.rect(0, pageHeight - PDF_FOOTER_HEIGHT, pageWidth, 0.5, "F");
     
     // Footer text
     doc.setFontSize(8);
@@ -127,14 +130,14 @@ export const addBrandedFooter = (doc: jsPDF) => {
     doc.text(
       `Pagina ${i} de ${pageCount}`,
       14,
-      pageHeight - 8
+      pageHeight - 4
     );
     
     doc.setTextColor(...brandColors.quantumBlue);
     doc.text(
       "QUANTUM TRADING TRACKER",
       pageWidth / 2,
-      pageHeight - 8,
+      pageHeight - 4,
       { align: "center" }
     );
     
@@ -142,7 +145,7 @@ export const addBrandedFooter = (doc: jsPDF) => {
     doc.text(
       "La senal en medio del ruido",
       pageWidth - 14,
-      pageHeight - 8,
+      pageHeight - 4,
       { align: "right" }
     );
   }
@@ -168,7 +171,7 @@ export const getBrandedTableStyles = () => ({
     lineColor: [200, 200, 200] as [number, number, number],
     lineWidth: 0.1,
   },
-  margin: { left: 14, right: 14, bottom: 25 },
+  margin: { left: 14, right: 14, bottom: PDF_TABLE_BOTTOM_MARGIN },
 });
 
 /**

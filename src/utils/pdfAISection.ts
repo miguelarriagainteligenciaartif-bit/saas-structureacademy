@@ -1,5 +1,5 @@
 import jsPDF from "jspdf";
-import { brandColors, addSectionTitle, sanitizePdfText } from "@/utils/pdfBranding";
+import { brandColors, addSectionTitle, sanitizePdfText, PDF_TABLE_BOTTOM_MARGIN } from "@/utils/pdfBranding";
 
 /**
  * Renders AI analysis text into the PDF with proper formatting.
@@ -16,7 +16,7 @@ export const addAIAnalysisSection = (
   const marginRight = 14;
   const maxWidth = pageWidth - marginLeft - marginRight;
   const lineHeight = 5;
-  const footerHeight = 25;
+  const footerHeight = PDF_TABLE_BOTTOM_MARGIN;
 
   let y = startY;
 
