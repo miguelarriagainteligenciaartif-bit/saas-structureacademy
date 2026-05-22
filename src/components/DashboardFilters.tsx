@@ -1,4 +1,4 @@
-import { format } from "date-fns";
+import { format, parse, isValid } from "date-fns";
 import { es } from "date-fns/locale";
 import { CalendarIcon, Clock, Filter, Layers, X, Sigma, TrendingUp, ArrowLeftRight, Newspaper, Activity, CalendarDays } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { Fragment } from "react";
+import { Fragment, useEffect, useState } from "react";
 import {
   ALL_MODELS,
   ALL_FVG_COUNTS,
@@ -32,6 +32,82 @@ const DRAWDOWN_LABELS: Record<number, string> = {
   0.66: "66%",
   1: "100%",
 };
+
+function DateInputCalendar({
+  value,
+  onChange,
+}: {
+  value: Date | undefined;
+  onChange: (d: Date | undefined) => void;
+}) {
+  const [text, setText] = useState(value ? format(value, "dd/MM/yyyy") : "");
+  const [month, setMonth] = useState<Date>(value ?? new Date());
+
+  useEffect(() => {
+    setText(value ? format(value, "dd/MM/yyyy") : "");
+    if (value) setMonth(value);
+  }, [value]);
+
+  const tryParse = (s: string) => {
+    const formats = ["dd/MM/yyyy", "d/M/yyyy", "ddMMyyyy", "yyyy-MM-dd", "MM/yyyy", "M/yyyy"];
+    for (const f of formats) {
+      const d = parse(s, f, new Date());
+      if (isValid(d)) return d;
+    }
+    return null;
+  };
+
+  const handleTextChange = (s: string) => {
+    setText(s);
+    const d = tryParse(s.trim());
+    if (d) setMonth(d);
+  };
+
+  const handleCommit = () => {
+    const s = text.trim();
+    if (!s) {
+      onChange(undefined);
+      return;
+    }
+    const d = tryParse(s);
+    if (d) {
+      onChange(d);
+      setMonth(d);
+    }
+  };
+
+  return (
+    <div className="p-2 space-y-2">
+      <Input
+        type="text"
+        placeholder="dd/mm/aaaa"
+        value={text}
+        onChange={(e) => handleTextChange(e.target.value)}
+        onBlur={handleCommit}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            handleCommit();
+          }
+        }}
+        className="h-8 text-sm"
+      />
+      <Calendar
+        mode="single"
+        selected={value}
+        onSelect={onChange}
+        month={month}
+        onMonthChange={setMonth}
+        initialFocus
+        className="p-3 pointer-events-auto"
+        locale={es}
+        captionLayout="dropdown-buttons"
+        fromYear={2015}
+        toYear={new Date().getFullYear() + 2}
+      />
+    </div>
+  );
+}
 
 interface DashboardFiltersProps {
   dateFrom: Date | undefined;
@@ -213,7 +289,7 @@ export function DashboardFilters({
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0" align="start">
-          <Calendar mode="single" selected={dateFrom} onSelect={onDateFromChange} initialFocus className="p-3 pointer-events-auto" locale={es} />
+          <DateInputCalendar value={dateFrom} onChange={onDateFromChange} />
         </PopoverContent>
       </Popover>
 
@@ -226,7 +302,7 @@ export function DashboardFilters({
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0" align="start">
-          <Calendar mode="single" selected={dateTo} onSelect={onDateToChange} initialFocus className="p-3 pointer-events-auto" locale={es} />
+          <DateInputCalendar value={dateTo} onChange={onDateToChange} />
         </PopoverContent>
       </Popover>
 
