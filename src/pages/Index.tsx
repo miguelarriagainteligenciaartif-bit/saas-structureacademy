@@ -445,7 +445,7 @@ export default function Index() {
             title="Win Rate"
             value={`${winRate}%`}
             icon={Target}
-            trend={Number(winRate) >= 50 ? "up" : "down"}
+            trend={Number(winRate) >= 40 ? "up" : "down"}
             subtitle={`${stats.winningTrades} TP / ${stats.losingTrades} SL`}
           />
           <StatsCard
