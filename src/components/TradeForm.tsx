@@ -122,8 +122,6 @@ export const TradeForm = ({ onSuccess, isBacktest = false, strategyId }: TradeFo
 
   const noTradeDay = form.watch("no_trade_day");
   const hadNews = form.watch("had_news");
-  const newsDescription = form.watch("news_description");
-
   useEffect(() => {
     loadAccounts();
   }, []);
