@@ -89,7 +89,7 @@ export default function Index() {
   const [filterResults, setFilterResults] = useState<string[]>([]);
   const [filterTradeTypes, setFilterTradeTypes] = useState<string[]>([]);
   const [filterNews, setFilterNews] = useState<NewsFilter>("all");
-  const [filterNewsTypes, setFilterNewsTypes] = useState<string[]>([]);
+  const [filterNewsTypes, setFilterNewsTypes] = useState<string[]>([...ALL_NEWS_TYPES]);
   const [filterDrawdownLevels, setFilterDrawdownLevels] = useState<number[]>([]);
   const [filterDaysOfWeek, setFilterDaysOfWeek] = useState<string[]>([]);
 
