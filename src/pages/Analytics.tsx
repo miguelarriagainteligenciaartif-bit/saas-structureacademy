@@ -6,7 +6,7 @@ import { StatsCard } from "@/components/StatsCard";
 import { getEntryPattern } from "@/lib/entryPattern";
 import { ReportGenerator } from "@/components/ReportGenerator";
 import { DashboardFilters } from "@/components/DashboardFilters";
-import { applyTradeFilters, defaultFilterState, hasModelPatternRestriction, VALID_PATTERNS_BY_MODEL, type FilterState, type ModelPatterns, type NewsFilter } from "@/lib/tradeFilters";
+import { applyTradeFilters, defaultFilterState, hasModelPatternRestriction, VALID_PATTERNS_BY_MODEL, type FilterState, type ModelPatterns, type NewsFilter, ALL_NEWS_TYPES } from "@/lib/tradeFilters";
 import { DollarSign, TrendingUp, TrendingDown, Target, Calendar, BarChart3, Clock, Flame, Award } from "lucide-react";
 import { ContinuationSubtypeAnalysis } from "@/components/ContinuationSubtypeAnalysis";
 import { DrawdownByModel } from "@/components/DrawdownByModel";
@@ -56,7 +56,7 @@ export default function Analytics() {
   const [filterResults, setFilterResults] = useState<string[]>([]);
   const [filterTradeTypes, setFilterTradeTypes] = useState<string[]>([]);
   const [filterNews, setFilterNews] = useState<NewsFilter>("all");
-  const [filterNewsTypes, setFilterNewsTypes] = useState<string[]>([]);
+  const [filterNewsTypes, setFilterNewsTypes] = useState<string[]>([...ALL_NEWS_TYPES]);
   const [filterDrawdownLevels, setFilterDrawdownLevels] = useState<number[]>([]);
   const [filterDaysOfWeek, setFilterDaysOfWeek] = useState<string[]>([]);
 

@@ -81,7 +81,7 @@ export const defaultFilterState = (): FilterState => ({
   results: [],
   tradeTypes: [],
   newsFilter: "all",
-  newsTypes: [],
+  newsTypes: [...ALL_NEWS_TYPES],
   drawdownLevels: [],
   daysOfWeek: [],
 });
@@ -136,7 +136,7 @@ export function applyTradeFilters<T extends FilterableTrade>(
   }
   if (f.newsFilter === "with") out = out.filter(t => !!t.had_news);
   else if (f.newsFilter === "without") out = out.filter(t => !t.had_news);
-  if (f.newsTypes.length > 0 && f.newsTypes.length < ALL_NEWS_TYPES.length) {
+  if (f.newsTypes.length < ALL_NEWS_TYPES.length) {
     out = out.filter(t => !!t.had_news && t.news_description != null && f.newsTypes.includes(t.news_description));
   }
   if (f.drawdownLevels.length > 0 && f.drawdownLevels.length < ALL_DRAWDOWN_LEVELS.length) {
@@ -158,7 +158,7 @@ export function hasActiveFilters(f: FilterState): boolean {
     (f.results.length > 0 && f.results.length < ALL_RESULTS.length) ||
     (f.tradeTypes.length > 0 && f.tradeTypes.length < ALL_TRADE_TYPES.length) ||
     f.newsFilter !== "all" ||
-    (f.newsTypes.length > 0 && f.newsTypes.length < ALL_NEWS_TYPES.length) ||
+    (f.newsTypes.length < ALL_NEWS_TYPES.length) ||
     (f.drawdownLevels.length > 0 && f.drawdownLevels.length < ALL_DRAWDOWN_LEVELS.length) ||
     (f.daysOfWeek.length > 0 && f.daysOfWeek.length < ALL_DAYS.length)
   );

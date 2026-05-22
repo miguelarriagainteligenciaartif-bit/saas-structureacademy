@@ -16,7 +16,7 @@ import { DashboardFilters } from "@/components/DashboardFilters";
 import { ModelComparisonTable } from "@/components/ModelComparisonTable";
 import { getEntryPattern } from "@/lib/entryPattern";
 import { PatternModelFvgMatrix } from "@/components/PatternModelFvgMatrix";
-import { applyTradeFilters, defaultFilterState, hasActiveFilters as filtersAreActive, hasModelPatternRestriction, VALID_PATTERNS_BY_MODEL, type FilterState, type ModelPatterns, type NewsFilter } from "@/lib/tradeFilters";
+import { applyTradeFilters, defaultFilterState, hasActiveFilters as filtersAreActive, hasModelPatternRestriction, VALID_PATTERNS_BY_MODEL, type FilterState, type ModelPatterns, type NewsFilter, ALL_NEWS_TYPES } from "@/lib/tradeFilters";
 import { DrawdownByModel } from "@/components/DrawdownByModel";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -89,7 +89,7 @@ export default function Index() {
   const [filterResults, setFilterResults] = useState<string[]>([]);
   const [filterTradeTypes, setFilterTradeTypes] = useState<string[]>([]);
   const [filterNews, setFilterNews] = useState<NewsFilter>("all");
-  const [filterNewsTypes, setFilterNewsTypes] = useState<string[]>([]);
+  const [filterNewsTypes, setFilterNewsTypes] = useState<string[]>([...ALL_NEWS_TYPES]);
   const [filterDrawdownLevels, setFilterDrawdownLevels] = useState<number[]>([]);
   const [filterDaysOfWeek, setFilterDaysOfWeek] = useState<string[]>([]);
 
