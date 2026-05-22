@@ -89,6 +89,7 @@ export default function Index() {
   const [filterResults, setFilterResults] = useState<string[]>([]);
   const [filterTradeTypes, setFilterTradeTypes] = useState<string[]>([]);
   const [filterNews, setFilterNews] = useState<NewsFilter>("all");
+  const [filterNewsTypes, setFilterNewsTypes] = useState<string[]>([]);
   const [filterDrawdownLevels, setFilterDrawdownLevels] = useState<number[]>([]);
   const [filterDaysOfWeek, setFilterDaysOfWeek] = useState<string[]>([]);
 
@@ -107,7 +108,7 @@ export default function Index() {
   useEffect(() => {
     setTradesLimit(50);
     setSelectedTradeIds(new Set());
-  }, [selectedAccount, filterDateFrom, filterDateTo, filterModels, filterTimeFrom, filterTimeTo, filterModelPatterns, filterFvgCounts, filterResults, filterTradeTypes, filterNews, filterDrawdownLevels, filterDaysOfWeek]);
+  }, [selectedAccount, filterDateFrom, filterDateTo, filterModels, filterTimeFrom, filterTimeTo, filterModelPatterns, filterFvgCounts, filterResults, filterTradeTypes, filterNews, filterNewsTypes, filterDrawdownLevels, filterDaysOfWeek]);
 
   const checkUser = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -165,6 +166,7 @@ export default function Index() {
     results: filterResults,
     tradeTypes: filterTradeTypes,
     newsFilter: filterNews,
+    newsTypes: filterNewsTypes,
     drawdownLevels: filterDrawdownLevels,
     daysOfWeek: filterDaysOfWeek,
   });
@@ -230,6 +232,7 @@ export default function Index() {
     setFilterResults(d.results);
     setFilterTradeTypes(d.tradeTypes);
     setFilterNews(d.newsFilter);
+    setFilterNewsTypes(d.newsTypes);
     setFilterDrawdownLevels(d.drawdownLevels);
     setFilterDaysOfWeek(d.daysOfWeek);
   };
@@ -430,6 +433,10 @@ export default function Index() {
           onTimeToChange={setFilterTimeTo}
           onModelPatternsChange={setFilterModelPatterns}
           onClearFilters={clearFilters}
+          newsFilter={filterNews}
+          newsTypes={filterNewsTypes}
+          onNewsFilterChange={setFilterNews}
+          onNewsTypesChange={setFilterNewsTypes}
         />
 
         {/* Stats Grid */}
