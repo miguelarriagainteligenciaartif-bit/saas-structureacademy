@@ -186,7 +186,7 @@ export function DashboardFilters({
   const allTradeTypes = tradeTypes.length === 0 || tradeTypes.length === ALL_TRADE_TYPES.length;
   const allDrawdown = drawdownLevels.length === 0 || drawdownLevels.length === ALL_DRAWDOWN_LEVELS.length;
   const allDays = daysOfWeek.length === 0 || daysOfWeek.length === ALL_DAYS.length;
-  const allNewsTypes = newsTypes.length === 0 || newsTypes.length === ALL_NEWS_TYPES.length;
+  const allNewsTypes = newsTypes.length === ALL_NEWS_TYPES.length;
   const newsActive = newsFilter !== "all" || !allNewsTypes;
 
   const hasActive = !!(dateFrom || dateTo || !isAllModels || timeFrom || timeTo ||
@@ -266,7 +266,11 @@ export function DashboardFilters({
   const toggleType = (t: string) => toggleInList(tradeTypes, [...ALL_TRADE_TYPES], t, onTradeTypesChange);
   const toggleDrawdown = (l: number) => toggleInList(drawdownLevels, [...ALL_DRAWDOWN_LEVELS], l, onDrawdownLevelsChange);
   const toggleDay = (d: string) => toggleInList(daysOfWeek, [...ALL_DAYS], d, onDaysOfWeekChange);
-  const toggleNewsType = (n: string) => toggleInList(newsTypes, [...ALL_NEWS_TYPES], n, onNewsTypesChange);
+  const toggleNewsType = (n: string) => {
+    if (!onNewsTypesChange) return;
+    if (newsTypes.includes(n)) onNewsTypesChange(newsTypes.filter(x => x !== n));
+    else onNewsTypesChange([...newsTypes, n]);
+  };
 
   const modelsLabel = isAllModels ? "Todos los modelos" : selectedModels.join(" + ");
   const patternsLabel = patternsRestricted ? "Patrones personalizados" : "Todos los patrones";
@@ -288,10 +292,11 @@ export function DashboardFilters({
   const fvgLabel = allFvg ? "Todos los FVG" : fvgCounts.map(n => `${n} FVG`).join(" / ");
   const resultsLabel = allResults ? "Todos los resultados" : results.join(" / ");
   const typesLabel = allTradeTypes ? "Compra y Venta" : tradeTypes.join(" / ");
-  const newsBase = newsFilter === "all" ? "Todas" : newsFilter === "with" ? "Con noticia" : "Sin noticia";
   const newsLabel = allNewsTypes
-    ? (newsFilter === "all" ? "Todas (con/sin noticia)" : newsBase)
-    : `${newsBase} · ${newsTypes.length} tipo${newsTypes.length === 1 ? "" : "s"}`;
+    ? "Todas las noticias"
+    : newsTypes.length === 0
+      ? "Sin tipos seleccionados"
+      : `${newsTypes.length} tipo${newsTypes.length === 1 ? "" : "s"} de noticia`;
   const drawdownLabel = allDrawdown ? "Todos los DD" : drawdownLevels.map(l => DRAWDOWN_LABELS[l] ?? `${Math.round(l*100)}%`).join(" / ");
   const daysLabel = allDays ? "Todos los días" : daysOfWeek.map(d => d.slice(0,3)).join(" / ");
 
