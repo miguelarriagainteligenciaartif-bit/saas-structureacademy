@@ -33,10 +33,8 @@ const formSchema = z.object({
     z.number(),
   ]).optional(),
   had_news: z.boolean().default(false),
-  news_description: z.enum(["NFP", "CPI", "PMI Servicios", "PMI Manufacturing", "PCE", "Flash PMI", "FOMC", "Ventas Minoristas", "Otra"]).optional(),
+  news_description: z.enum(["Miércoles previo a NFP", "Jueves previo a NFP", "NFP Flash", "PMI", "Federal Funds Rate", "Festivo Bancos"]).optional(),
   custom_news_description: z.string().optional(),
-  news_time: z.enum(["08:30", "09:45", "10:00"]).optional(),
-  execution_timing: z.enum(["Antes de noticia", "Después de noticia"]).optional(),
   entry_model: z.enum(["M1", "M3", "Continuación"]).optional(),
   continuation_subtype: z.enum(["Bloque", "FVG"]).optional(),
   fvg_count: z.enum(["1", "2", "3"]).optional(),
@@ -116,8 +114,6 @@ export const TradeForm = ({ onSuccess, isBacktest = false, strategyId }: TradeFo
       image_link: "",
       news_description: undefined,
       custom_news_description: "",
-      news_time: undefined,
-      execution_timing: undefined,
       date: "",
       day_of_week: undefined,
       notes: "",
@@ -177,8 +173,8 @@ export const TradeForm = ({ onSuccess, isBacktest = false, strategyId }: TradeFo
         had_news: values.had_news,
         news_description: values.news_description || null,
         custom_news_description: values.custom_news_description || null,
-        news_time: values.news_time || null,
-        execution_timing: values.execution_timing || null,
+        news_time: null,
+        execution_timing: null,
         entry_model: values.no_trade_day ? null : values.entry_model,
         result_dollars: values.no_trade_day ? 0 : (values.result_dollars ? parseFloat(values.result_dollars) : 0),
         image_link: values.image_link || null,
@@ -220,8 +216,6 @@ export const TradeForm = ({ onSuccess, isBacktest = false, strategyId }: TradeFo
         image_link: "",
         news_description: undefined,
         custom_news_description: "",
-        news_time: undefined,
-        execution_timing: undefined,
         date: "",
         day_of_week: undefined,
         notes: "",
@@ -629,7 +623,7 @@ export const TradeForm = ({ onSuccess, isBacktest = false, strategyId }: TradeFo
 
             {hadNews && (
               <div className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 gap-4">
                   <FormField
                     control={form.control}
                     name="news_description"
@@ -643,60 +637,12 @@ export const TradeForm = ({ onSuccess, isBacktest = false, strategyId }: TradeFo
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="NFP">NFP (Non-Farm Payrolls)</SelectItem>
-                            <SelectItem value="CPI">CPI (Consumer Price Index)</SelectItem>
-                            <SelectItem value="PMI Servicios">PMI Servicios</SelectItem>
-                            <SelectItem value="PMI Manufacturing">PMI Manufacturing</SelectItem>
-                            <SelectItem value="PCE">PCE (Personal Consumption)</SelectItem>
-                            <SelectItem value="Flash PMI">Flash PMI</SelectItem>
-                            <SelectItem value="FOMC">FOMC</SelectItem>
-                            <SelectItem value="Ventas Minoristas">Ventas Minoristas</SelectItem>
-                            <SelectItem value="Otra">Otra</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="news_time"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Hora de Noticia (NY)</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Hora" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="08:30">8:30 AM</SelectItem>
-                            <SelectItem value="09:45">9:45 AM</SelectItem>
-                            <SelectItem value="10:00">10:00 AM</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="execution_timing"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Timing de Ejecución</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Antes/Después" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="Antes de noticia">Antes de noticia</SelectItem>
-                            <SelectItem value="Después de noticia">Después de noticia</SelectItem>
+                            <SelectItem value="Miércoles previo a NFP">Miércoles previo a NFP</SelectItem>
+                            <SelectItem value="Jueves previo a NFP">Jueves previo a NFP</SelectItem>
+                            <SelectItem value="NFP Flash">NFP Flash</SelectItem>
+                            <SelectItem value="PMI">PMI</SelectItem>
+                            <SelectItem value="Federal Funds Rate">Federal Funds Rate</SelectItem>
+                            <SelectItem value="Festivo Bancos">Festivo Bancos</SelectItem>
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -704,22 +650,6 @@ export const TradeForm = ({ onSuccess, isBacktest = false, strategyId }: TradeFo
                     )}
                   />
                 </div>
-
-                {newsDescription === "Otra" && (
-                  <FormField
-                    control={form.control}
-                    name="custom_news_description"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Especifica qué noticia</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Ej: GDP, Unemployment Claims, etc." {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                )}
               </div>
             )}
 
