@@ -148,7 +148,6 @@ export const EditTradeForm = ({ trade, onSuccess, isBacktest = false }: EditTrad
 
   const noTradeDay = form.watch("no_trade_day");
   const hadNews = form.watch("had_news");
-  const newsDescription = form.watch("news_description");
   const watchedDate = form.watch("date");
 
   // Auto-update day_of_week when date changes
