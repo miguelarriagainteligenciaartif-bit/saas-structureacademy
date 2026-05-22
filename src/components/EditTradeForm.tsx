@@ -16,9 +16,7 @@ const DAY_OPTIONS = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"] as co
 const TRADE_TYPE_OPTIONS = ["Compra", "Venta"] as const;
 const RESULT_TYPE_OPTIONS = ["TP", "SL"] as const;
 const DRAWDOWN_OPTIONS = ["0", "0.33", "0.50", "0.66", "0.90", "1.00"] as const;
-const NEWS_DESCRIPTION_OPTIONS = ["NFP", "CPI", "PMI Servicios", "PMI Manufacturing", "PCE", "Flash PMI", "FOMC", "Ventas Minoristas", "Otra"] as const;
-const NEWS_TIME_OPTIONS = ["08:30", "09:45", "10:00"] as const;
-const EXECUTION_TIMING_OPTIONS = ["Antes de noticia", "Después de noticia"] as const;
+const NEWS_DESCRIPTION_OPTIONS = ["Miércoles previo a NFP", "Jueves previo a NFP", "NFP Flash", "PMI", "Federal Funds Rate", "Festivo Bancos"] as const;
 const ENTRY_MODEL_OPTIONS = ["M1", "M3", "Continuación"] as const;
 const CONTINUATION_SUBTYPE_OPTIONS = ["Bloque", "FVG"] as const;
 
@@ -47,8 +45,6 @@ const formSchema = z.object({
   had_news: z.boolean().default(false),
   news_description: z.enum(NEWS_DESCRIPTION_OPTIONS).optional(),
   custom_news_description: z.string().optional(),
-  news_time: z.enum(NEWS_TIME_OPTIONS).optional(),
-  execution_timing: z.enum(EXECUTION_TIMING_OPTIONS).optional(),
   entry_model: z.enum(ENTRY_MODEL_OPTIONS).optional(),
   continuation_subtype: z.enum(CONTINUATION_SUBTYPE_OPTIONS).optional(),
   fvg_count: z.enum(["1", "2", "3"] as const).optional(),
@@ -116,17 +112,11 @@ export const EditTradeForm = ({ trade, onSuccess, isBacktest = false }: EditTrad
     ? trade.continuation_subtype
     : undefined;
 
-  const normalizedNewsDescription = trade.had_news
-    ? (NEWS_DESCRIPTION_OPTIONS.includes(trade.news_description)
-        ? trade.news_description
-        : trade.news_description
-          ? "Otra"
-          : undefined)
+  const normalizedNewsDescription = trade.had_news && NEWS_DESCRIPTION_OPTIONS.includes(trade.news_description)
+    ? trade.news_description
     : undefined;
 
-  const normalizedCustomNewsDescription = normalizedNewsDescription === "Otra"
-    ? (trade.custom_news_description || trade.news_description || "")
-    : (trade.custom_news_description || "");
+  const normalizedCustomNewsDescription = trade.custom_news_description || "";
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -147,8 +137,6 @@ export const EditTradeForm = ({ trade, onSuccess, isBacktest = false }: EditTrad
       image_link: trade.image_link || "",
       news_description: normalizedNewsDescription,
       custom_news_description: normalizedCustomNewsDescription,
-      news_time: trade.had_news && NEWS_TIME_OPTIONS.includes(trade.news_time) ? trade.news_time : undefined,
-      execution_timing: trade.had_news && EXECUTION_TIMING_OPTIONS.includes(trade.execution_timing) ? trade.execution_timing : undefined,
       date: trade.date || "",
       day_of_week: DAY_OPTIONS.includes(trade.day_of_week) ? trade.day_of_week : undefined,
       notes: trade.notes || "",
@@ -160,7 +148,6 @@ export const EditTradeForm = ({ trade, onSuccess, isBacktest = false }: EditTrad
 
   const noTradeDay = form.watch("no_trade_day");
   const hadNews = form.watch("had_news");
-  const newsDescription = form.watch("news_description");
   const watchedDate = form.watch("date");
 
   // Auto-update day_of_week when date changes
@@ -227,8 +214,8 @@ export const EditTradeForm = ({ trade, onSuccess, isBacktest = false }: EditTrad
         had_news: hasNews,
         news_description: hasNews ? (values.news_description || null) : null,
         custom_news_description: hasNews ? (values.custom_news_description || null) : null,
-        news_time: hasNews ? (values.news_time || null) : null,
-        execution_timing: hasNews ? (values.execution_timing || null) : null,
+        news_time: null,
+        execution_timing: null,
         entry_model: values.no_trade_day ? null : values.entry_model,
         result_dollars: values.no_trade_day ? 0 : (values.result_dollars ? parseFloat(values.result_dollars) : 0),
         image_link: values.image_link || null,
@@ -667,68 +654,6 @@ export const EditTradeForm = ({ trade, onSuccess, isBacktest = false }: EditTrad
               )}
             />
 
-            {newsDescription === "Otra" && (
-              <FormField
-                control={form.control}
-                name="custom_news_description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Descripción de Noticia Personalizada</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Describe la noticia..." {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="news_time"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Hora de la Noticia</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecciona hora" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="08:30">08:30</SelectItem>
-                        <SelectItem value="09:45">09:45</SelectItem>
-                        <SelectItem value="10:00">10:00</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="execution_timing"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Timing de Ejecución</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="¿Antes o después?" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="Antes de noticia">Antes de noticia</SelectItem>
-                        <SelectItem value="Después de noticia">Después de noticia</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
           </div>
         )}
 
