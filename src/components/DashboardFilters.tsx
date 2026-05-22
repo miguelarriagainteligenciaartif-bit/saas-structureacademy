@@ -621,7 +621,11 @@ export function DashboardFilters({
           {!allFvg && <Badge variant="secondary" className="text-xs">FVG: {fvgCounts.join(" / ")}</Badge>}
           {!allResults && <Badge variant="secondary" className="text-xs">Resultado: {results.join(" / ")}</Badge>}
           {!allTradeTypes && <Badge variant="secondary" className="text-xs">Tipo: {tradeTypes.join(" / ")}</Badge>}
-          {newsActive && <Badge variant="secondary" className="text-xs">Noticia: {newsFilter === "with" ? "Con" : "Sin"}</Badge>}
+          {!allNewsTypes && (
+            <Badge variant="secondary" className="text-xs">
+              Noticias: {newsTypes.length === 0 ? "ninguna" : newsTypes.length === 1 ? newsTypes[0] : `${newsTypes.length} tipos`}
+            </Badge>
+          )}
           {!allDrawdown && <Badge variant="secondary" className="text-xs">DD: {drawdownLevels.map(l => DRAWDOWN_LABELS[l]).join(" / ")}</Badge>}
           {!allDays && <Badge variant="secondary" className="text-xs">Días: {daysOfWeek.map(d => d.slice(0,3)).join(" / ")}</Badge>}
         </div>
