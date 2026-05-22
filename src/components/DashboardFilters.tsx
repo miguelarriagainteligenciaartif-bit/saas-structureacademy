@@ -104,6 +104,15 @@ function DateInputCalendar({
         captionLayout="dropdown-buttons"
         fromYear={2015}
         toYear={new Date().getFullYear() + 2}
+        classNames={{
+          caption_dropdowns: "flex gap-2 justify-center",
+          dropdown:
+            "bg-background text-foreground border border-border rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-primary",
+          dropdown_month: "relative",
+          dropdown_year: "relative",
+          vhidden: "hidden",
+          caption_label: "hidden",
+        }}
       />
     </div>
   );
