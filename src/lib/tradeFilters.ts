@@ -10,7 +10,7 @@ export interface FilterableTrade {
   result_type: string | null;
   trade_type: string | null;
   had_news: boolean | null;
-  news_description: string | null;
+  news_description?: string | null;
   drawdown: number | null;
   day_of_week: string | null;
 }
