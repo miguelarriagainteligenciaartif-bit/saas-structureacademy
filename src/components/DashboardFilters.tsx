@@ -517,7 +517,7 @@ export function DashboardFilters({
       )}
 
       {/* News */}
-      {onNewsFilterChange && (
+      {onNewsTypesChange && (
         <Popover>
           <PopoverTrigger asChild>
             <Button variant="outline" size="sm" className={cn("justify-start text-left font-normal min-w-[180px]", newsActive && "border-primary text-primary")}>
@@ -526,44 +526,29 @@ export function DashboardFilters({
           </PopoverTrigger>
           <PopoverContent className="w-[220px] p-3" align="start">
             <div className="space-y-3">
-              <p className="text-sm font-medium text-muted-foreground">Noticias</p>
-              <RadioGroup value={newsFilter} onValueChange={v => onNewsFilterChange(v as NewsFilter)}>
-                <div className="flex items-center gap-2">
-                  <RadioGroupItem value="all" id="news-all" />
-                  <Label htmlFor="news-all" className="text-sm cursor-pointer">Todas</Label>
-                </div>
-                <div className="flex items-center gap-2">
-                  <RadioGroupItem value="with" id="news-with" />
-                  <Label htmlFor="news-with" className="text-sm cursor-pointer">Con noticia</Label>
-                </div>
-                <div className="flex items-center gap-2">
-                  <RadioGroupItem value="without" id="news-without" />
-                  <Label htmlFor="news-without" className="text-sm cursor-pointer">Sin noticia</Label>
-                </div>
-              </RadioGroup>
-              {onNewsTypesChange && newsFilter !== "without" && (
-                <div className="space-y-2 pt-2 border-t border-border">
-                  <p className="text-xs font-medium text-muted-foreground">Tipo de noticia</p>
-                  {ALL_NEWS_TYPES.map(n => {
-                    const effective = newsTypes.length === 0 ? [...ALL_NEWS_TYPES] : newsTypes;
-                    return (
-                      <label key={n} className="flex items-center gap-2 cursor-pointer">
-                        <Checkbox checked={effective.includes(n)} onCheckedChange={() => toggleNewsType(n)} />
-                        <span className="text-sm">{n}</span>
-                      </label>
-                    );
-                  })}
-                  {!allNewsTypes && (
-                    <button
-                      type="button"
-                      onClick={() => onNewsTypesChange([])}
-                      className="text-xs text-muted-foreground hover:text-foreground underline"
-                    >
-                      Restablecer tipos
-                    </button>
-                  )}
-                </div>
-              )}
+              <p className="text-sm font-medium text-muted-foreground">Tipo de noticia</p>
+              {ALL_NEWS_TYPES.map(n => (
+                <label key={n} className="flex items-center gap-2 cursor-pointer">
+                  <Checkbox checked={newsTypes.includes(n)} onCheckedChange={() => toggleNewsType(n)} />
+                  <span className="text-sm">{n}</span>
+                </label>
+              ))}
+              <div className="flex flex-col gap-1 pt-2 border-t border-border">
+                <button
+                  type="button"
+                  onClick={() => onNewsTypesChange([...ALL_NEWS_TYPES])}
+                  className="text-xs text-muted-foreground hover:text-foreground underline text-left"
+                >
+                  Restablecer todas las noticias
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onNewsTypesChange([])}
+                  className="text-xs text-muted-foreground hover:text-foreground underline text-left"
+                >
+                  Borrar todas las noticias
+                </button>
+              </div>
             </div>
           </PopoverContent>
         </Popover>
