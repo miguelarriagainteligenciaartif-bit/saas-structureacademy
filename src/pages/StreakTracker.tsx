@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Header } from "@/components/Header";
 import { DashboardFilters } from "@/components/DashboardFilters";
 import { getEntryPattern } from "@/lib/entryPattern";
-import { applyTradeFilters, defaultFilterState, type FilterState, type ModelPatterns, type NewsFilter } from "@/lib/tradeFilters";
+import { applyTradeFilters, defaultFilterState, type FilterState, type ModelPatterns, type NewsFilter, ALL_NEWS_TYPES } from "@/lib/tradeFilters";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
