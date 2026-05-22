@@ -81,7 +81,7 @@ export const defaultFilterState = (): FilterState => ({
   results: [],
   tradeTypes: [],
   newsFilter: "all",
-  newsTypes: [],
+  newsTypes: [...ALL_NEWS_TYPES],
   drawdownLevels: [],
   daysOfWeek: [],
 });
