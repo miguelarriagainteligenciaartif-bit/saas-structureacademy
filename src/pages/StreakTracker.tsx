@@ -116,6 +116,7 @@ export default function StreakTracker() {
   const [filterResults, setFilterResults] = useState<string[]>([]);
   const [filterTradeTypes, setFilterTradeTypes] = useState<string[]>([]);
   const [filterNews, setFilterNews] = useState<NewsFilter>("all");
+  const [filterNewsTypes, setFilterNewsTypes] = useState<string[]>([]);
   const [filterDrawdownLevels, setFilterDrawdownLevels] = useState<number[]>([]);
   const [filterDaysOfWeek, setFilterDaysOfWeek] = useState<string[]>([]);
 
@@ -160,6 +161,7 @@ export default function StreakTracker() {
     results: filterResults,
     tradeTypes: filterTradeTypes,
     newsFilter: filterNews,
+    newsTypes: filterNewsTypes,
     drawdownLevels: filterDrawdownLevels,
     daysOfWeek: filterDaysOfWeek,
   });
@@ -177,6 +179,7 @@ export default function StreakTracker() {
     setFilterResults(d.results);
     setFilterTradeTypes(d.tradeTypes);
     setFilterNews(d.newsFilter);
+    setFilterNewsTypes(d.newsTypes);
     setFilterDrawdownLevels(d.drawdownLevels);
     setFilterDaysOfWeek(d.daysOfWeek);
   };

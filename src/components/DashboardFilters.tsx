@@ -18,6 +18,7 @@ import {
   ALL_TRADE_TYPES,
   ALL_DRAWDOWN_LEVELS,
   ALL_DAYS,
+  ALL_NEWS_TYPES,
   VALID_PATTERNS_BY_MODEL,
   hasModelPatternRestriction,
   type ModelPatterns,
@@ -137,12 +138,14 @@ interface DashboardFiltersProps {
   results?: string[];
   tradeTypes?: string[];
   newsFilter?: NewsFilter;
+  newsTypes?: string[];
   drawdownLevels?: number[];
   daysOfWeek?: string[];
   onFvgCountsChange?: (v: number[]) => void;
   onResultsChange?: (v: string[]) => void;
   onTradeTypesChange?: (v: string[]) => void;
   onNewsFilterChange?: (v: NewsFilter) => void;
+  onNewsTypesChange?: (v: string[]) => void;
   onDrawdownLevelsChange?: (v: number[]) => void;
   onDaysOfWeekChange?: (v: string[]) => void;
 }
@@ -165,12 +168,14 @@ export function DashboardFilters({
   results = [],
   tradeTypes = [],
   newsFilter = "all",
+  newsTypes = [],
   drawdownLevels = [],
   daysOfWeek = [],
   onFvgCountsChange,
   onResultsChange,
   onTradeTypesChange,
   onNewsFilterChange,
+  onNewsTypesChange,
   onDrawdownLevelsChange,
   onDaysOfWeekChange,
 }: DashboardFiltersProps) {
@@ -181,7 +186,8 @@ export function DashboardFilters({
   const allTradeTypes = tradeTypes.length === 0 || tradeTypes.length === ALL_TRADE_TYPES.length;
   const allDrawdown = drawdownLevels.length === 0 || drawdownLevels.length === ALL_DRAWDOWN_LEVELS.length;
   const allDays = daysOfWeek.length === 0 || daysOfWeek.length === ALL_DAYS.length;
-  const newsActive = newsFilter !== "all";
+  const allNewsTypes = newsTypes.length === 0 || newsTypes.length === ALL_NEWS_TYPES.length;
+  const newsActive = newsFilter !== "all" || !allNewsTypes;
 
   const hasActive = !!(dateFrom || dateTo || !isAllModels || timeFrom || timeTo ||
     patternsRestricted || !allFvg || !allResults || !allTradeTypes ||
@@ -260,6 +266,7 @@ export function DashboardFilters({
   const toggleType = (t: string) => toggleInList(tradeTypes, [...ALL_TRADE_TYPES], t, onTradeTypesChange);
   const toggleDrawdown = (l: number) => toggleInList(drawdownLevels, [...ALL_DRAWDOWN_LEVELS], l, onDrawdownLevelsChange);
   const toggleDay = (d: string) => toggleInList(daysOfWeek, [...ALL_DAYS], d, onDaysOfWeekChange);
+  const toggleNewsType = (n: string) => toggleInList(newsTypes, [...ALL_NEWS_TYPES], n, onNewsTypesChange);
 
   const modelsLabel = isAllModels ? "Todos los modelos" : selectedModels.join(" + ");
   const patternsLabel = patternsRestricted ? "Patrones personalizados" : "Todos los patrones";
@@ -281,7 +288,10 @@ export function DashboardFilters({
   const fvgLabel = allFvg ? "Todos los FVG" : fvgCounts.map(n => `${n} FVG`).join(" / ");
   const resultsLabel = allResults ? "Todos los resultados" : results.join(" / ");
   const typesLabel = allTradeTypes ? "Compra y Venta" : tradeTypes.join(" / ");
-  const newsLabel = newsFilter === "all" ? "Todas (con/sin noticia)" : newsFilter === "with" ? "Con noticia" : "Sin noticia";
+  const newsBase = newsFilter === "all" ? "Todas" : newsFilter === "with" ? "Con noticia" : "Sin noticia";
+  const newsLabel = allNewsTypes
+    ? (newsFilter === "all" ? "Todas (con/sin noticia)" : newsBase)
+    : `${newsBase} · ${newsTypes.length} tipo${newsTypes.length === 1 ? "" : "s"}`;
   const drawdownLabel = allDrawdown ? "Todos los DD" : drawdownLevels.map(l => DRAWDOWN_LABELS[l] ?? `${Math.round(l*100)}%`).join(" / ");
   const daysLabel = allDays ? "Todos los días" : daysOfWeek.map(d => d.slice(0,3)).join(" / ");
 
@@ -526,6 +536,29 @@ export function DashboardFilters({
                   <Label htmlFor="news-without" className="text-sm cursor-pointer">Sin noticia</Label>
                 </div>
               </RadioGroup>
+              {onNewsTypesChange && newsFilter !== "without" && (
+                <div className="space-y-2 pt-2 border-t border-border">
+                  <p className="text-xs font-medium text-muted-foreground">Tipo de noticia</p>
+                  {ALL_NEWS_TYPES.map(n => {
+                    const effective = newsTypes.length === 0 ? [...ALL_NEWS_TYPES] : newsTypes;
+                    return (
+                      <label key={n} className="flex items-center gap-2 cursor-pointer">
+                        <Checkbox checked={effective.includes(n)} onCheckedChange={() => toggleNewsType(n)} />
+                        <span className="text-sm">{n}</span>
+                      </label>
+                    );
+                  })}
+                  {!allNewsTypes && (
+                    <button
+                      type="button"
+                      onClick={() => onNewsTypesChange([])}
+                      className="text-xs text-muted-foreground hover:text-foreground underline"
+                    >
+                      Restablecer tipos
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
           </PopoverContent>
         </Popover>
