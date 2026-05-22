@@ -10,6 +10,7 @@ export interface FilterableTrade {
   result_type: string | null;
   trade_type: string | null;
   had_news: boolean | null;
+  news_description: string | null;
   drawdown: number | null;
   day_of_week: string | null;
 }
@@ -20,6 +21,14 @@ export const ALL_RESULTS = ["TP", "SL"] as const;
 export const ALL_TRADE_TYPES = ["Compra", "Venta"] as const;
 export const ALL_DRAWDOWN_LEVELS = [0, 0.33, 0.5, 0.66, 1] as const;
 export const ALL_DAYS = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"] as const;
+export const ALL_NEWS_TYPES = [
+  "Miércoles previo a NFP",
+  "Jueves previo a NFP",
+  "NFP Flash",
+  "PMI",
+  "Federal Funds Rate",
+  "Festivo Bancos",
+] as const;
 export type NewsFilter = "all" | "with" | "without";
 
 // Valid (model, pattern) combinations. Continuación does not support direct "FVG".
@@ -56,6 +65,7 @@ export interface FilterState {
   results: string[];
   tradeTypes: string[];
   newsFilter: NewsFilter;
+  newsTypes: string[];
   drawdownLevels: number[];
   daysOfWeek: string[];
 }
@@ -71,6 +81,7 @@ export const defaultFilterState = (): FilterState => ({
   results: [],
   tradeTypes: [],
   newsFilter: "all",
+  newsTypes: [],
   drawdownLevels: [],
   daysOfWeek: [],
 });
@@ -125,6 +136,9 @@ export function applyTradeFilters<T extends FilterableTrade>(
   }
   if (f.newsFilter === "with") out = out.filter(t => !!t.had_news);
   else if (f.newsFilter === "without") out = out.filter(t => !t.had_news);
+  if (f.newsTypes.length > 0 && f.newsTypes.length < ALL_NEWS_TYPES.length) {
+    out = out.filter(t => !!t.had_news && t.news_description != null && f.newsTypes.includes(t.news_description));
+  }
   if (f.drawdownLevels.length > 0 && f.drawdownLevels.length < ALL_DRAWDOWN_LEVELS.length) {
     out = out.filter(t => t.drawdown != null && f.drawdownLevels.some(l => approxEq(l, t.drawdown!)));
   }
@@ -144,6 +158,7 @@ export function hasActiveFilters(f: FilterState): boolean {
     (f.results.length > 0 && f.results.length < ALL_RESULTS.length) ||
     (f.tradeTypes.length > 0 && f.tradeTypes.length < ALL_TRADE_TYPES.length) ||
     f.newsFilter !== "all" ||
+    (f.newsTypes.length > 0 && f.newsTypes.length < ALL_NEWS_TYPES.length) ||
     (f.drawdownLevels.length > 0 && f.drawdownLevels.length < ALL_DRAWDOWN_LEVELS.length) ||
     (f.daysOfWeek.length > 0 && f.daysOfWeek.length < ALL_DAYS.length)
   );
