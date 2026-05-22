@@ -56,6 +56,7 @@ export default function Analytics() {
   const [filterResults, setFilterResults] = useState<string[]>([]);
   const [filterTradeTypes, setFilterTradeTypes] = useState<string[]>([]);
   const [filterNews, setFilterNews] = useState<NewsFilter>("all");
+  const [filterNewsTypes, setFilterNewsTypes] = useState<string[]>([]);
   const [filterDrawdownLevels, setFilterDrawdownLevels] = useState<number[]>([]);
   const [filterDaysOfWeek, setFilterDaysOfWeek] = useState<string[]>([]);
 
@@ -98,6 +99,7 @@ export default function Analytics() {
     results: filterResults,
     tradeTypes: filterTradeTypes,
     newsFilter: filterNews,
+    newsTypes: filterNewsTypes,
     drawdownLevels: filterDrawdownLevels,
     daysOfWeek: filterDaysOfWeek,
   });
@@ -115,6 +117,7 @@ export default function Analytics() {
     setFilterResults(d.results);
     setFilterTradeTypes(d.tradeTypes);
     setFilterNews(d.newsFilter);
+    setFilterNewsTypes(d.newsTypes);
     setFilterDrawdownLevels(d.drawdownLevels);
     setFilterDaysOfWeek(d.daysOfWeek);
   };
@@ -366,12 +369,14 @@ export default function Analytics() {
           results={filterResults}
           tradeTypes={filterTradeTypes}
           newsFilter={filterNews}
+          newsTypes={filterNewsTypes}
           drawdownLevels={filterDrawdownLevels}
           daysOfWeek={filterDaysOfWeek}
           onFvgCountsChange={setFilterFvgCounts}
           onResultsChange={setFilterResults}
           onTradeTypesChange={setFilterTradeTypes}
           onNewsFilterChange={setFilterNews}
+          onNewsTypesChange={setFilterNewsTypes}
           onDrawdownLevelsChange={setFilterDrawdownLevels}
           onDaysOfWeekChange={setFilterDaysOfWeek}
         />
