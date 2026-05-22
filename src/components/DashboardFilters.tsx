@@ -314,15 +314,28 @@ export function DashboardFilters({
                   </Fragment>
                 ))}
               </div>
-              {patternsRestricted && (
+              <div className="flex flex-col gap-1">
+                {patternsRestricted && (
+                  <button
+                    type="button"
+                    onClick={() => onModelPatternsChange({})}
+                    className="text-xs text-muted-foreground hover:text-foreground underline text-left"
+                  >
+                    Restablecer (todos los patrones en todos los modelos)
+                  </button>
+                )}
                 <button
                   type="button"
-                  onClick={() => onModelPatternsChange({})}
-                  className="text-xs text-muted-foreground hover:text-foreground underline"
+                  onClick={() =>
+                    onModelPatternsChange(
+                      ALL_MODELS.reduce((acc, m) => ({ ...acc, [m]: [] }), {} as ModelPatterns)
+                    )
+                  }
+                  className="text-xs text-muted-foreground hover:text-foreground underline text-left"
                 >
-                  Restablecer (todos los patrones en todos los modelos)
+                  Borrar (todos los patrones en todos los modelos)
                 </button>
-              )}
+              </div>
             </div>
           </PopoverContent>
         </Popover>
