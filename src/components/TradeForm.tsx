@@ -35,7 +35,7 @@ const formSchema = z.object({
   had_news: z.boolean().default(false),
   news_description: z.enum(["Miércoles previo a NFP", "Jueves previo a NFP", "NFP Flash", "PMI", "Federal Funds Rate", "Festivo Bancos"]).optional(),
   custom_news_description: z.string().optional(),
-  entry_model: z.enum(["M1", "M3", "Continuación"]).optional(),
+  entry_model: z.string().optional(),
   continuation_subtype: z.enum(["Bloque", "FVG"]).optional(),
   fvg_count: z.enum(["1", "2", "3"]).optional(),
   entry_subtype: z.enum(["Envolvente + Bloque", "Envolvente + FVG", "FVG"]).optional(),
@@ -89,9 +89,13 @@ interface TradeFormProps {
   onSuccess: () => void;
   isBacktest?: boolean;
   strategyId?: string;
+  entryModels?: string[];
 }
 
-export const TradeForm = ({ onSuccess, isBacktest = false, strategyId }: TradeFormProps) => {
+export const TradeForm = ({ onSuccess, isBacktest = false, strategyId, entryModels }: TradeFormProps) => {
+  const modelOptions = (isBacktest && entryModels && entryModels.length > 0)
+    ? entryModels
+    : ["M1", "M3", "Continuación"];
   const [loading, setLoading] = useState(false);
   const [accounts, setAccounts] = useState<any[]>([]);
 
