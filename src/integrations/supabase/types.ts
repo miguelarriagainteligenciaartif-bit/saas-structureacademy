@@ -85,6 +85,7 @@ export type Database = {
           asset: string
           created_at: string
           description: string | null
+          entry_models: string[]
           id: string
           initial_capital: number
           name: string
@@ -96,6 +97,7 @@ export type Database = {
           asset?: string
           created_at?: string
           description?: string | null
+          entry_models?: string[]
           id?: string
           initial_capital?: number
           name: string
@@ -107,6 +109,7 @@ export type Database = {
           asset?: string
           created_at?: string
           description?: string | null
+          entry_models?: string[]
           id?: string
           initial_capital?: number
           name?: string
