@@ -67,8 +67,11 @@ const Backtesting = () => {
   const [filterDateTo, setFilterDateTo] = useState<string>("");
   const [filterTimeFrom, setFilterTimeFrom] = useState<string>("");
   const [filterTimeTo, setFilterTimeTo] = useState<string>("");
+  const ALL_MODELS = ["M1", "M3", "Continuación"];
+  const [filterModels, setFilterModels] = useState<string[]>([...ALL_MODELS]);
 
-  const hasActiveFilters = filterDateFrom || filterDateTo || filterTimeFrom || filterTimeTo;
+  const modelsFilterActive = filterModels.length > 0 && filterModels.length < ALL_MODELS.length;
+  const hasActiveFilters = filterDateFrom || filterDateTo || filterTimeFrom || filterTimeTo || modelsFilterActive;
 
   const filteredTrades = useMemo(() => {
     return trades.filter(t => {
@@ -78,15 +81,20 @@ const Backtesting = () => {
         if (filterTimeFrom && t.entry_time < filterTimeFrom) return false;
         if (filterTimeTo && t.entry_time > filterTimeTo) return false;
       }
+      if (modelsFilterActive) {
+        if (t.no_trade_day) return false;
+        if (!t.entry_model || !filterModels.includes(t.entry_model)) return false;
+      }
       return true;
     });
-  }, [trades, filterDateFrom, filterDateTo, filterTimeFrom, filterTimeTo]);
+  }, [trades, filterDateFrom, filterDateTo, filterTimeFrom, filterTimeTo, filterModels, modelsFilterActive]);
 
   const clearFilters = () => {
     setFilterDateFrom("");
     setFilterDateTo("");
     setFilterTimeFrom("");
     setFilterTimeTo("");
+    setFilterModels([...ALL_MODELS]);
   };
 
   const isSelecting = selectedTradeIds.size > 0;
