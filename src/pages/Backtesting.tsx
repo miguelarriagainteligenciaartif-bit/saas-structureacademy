@@ -585,6 +585,32 @@ const Backtesting = () => {
                     />
                   </div>
                 </div>
+                <div className="mt-4 space-y-2">
+                  <Label className="text-xs text-muted-foreground">Modelo de entrada</Label>
+                  <div className="flex flex-wrap items-center gap-4">
+                    {ALL_MODELS.map((m) => (
+                      <label key={m} className="flex items-center gap-2 text-sm cursor-pointer">
+                        <Checkbox
+                          checked={filterModels.includes(m)}
+                          onCheckedChange={(checked) => {
+                            setFilterModels((prev) =>
+                              checked ? Array.from(new Set([...prev, m])) : prev.filter((x) => x !== m)
+                            );
+                          }}
+                        />
+                        {m}
+                      </label>
+                    ))}
+                    <div className="ml-auto flex gap-2">
+                      <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => setFilterModels([...ALL_MODELS])}>
+                        Todos
+                      </Button>
+                      <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => setFilterModels([])}>
+                        Ninguno
+                      </Button>
+                    </div>
+                  </div>
+                </div>
               </CardContent>
             </Card>
 
