@@ -67,8 +67,11 @@ const Backtesting = () => {
   const [filterDateTo, setFilterDateTo] = useState<string>("");
   const [filterTimeFrom, setFilterTimeFrom] = useState<string>("");
   const [filterTimeTo, setFilterTimeTo] = useState<string>("");
+  const ALL_MODELS = ["M1", "M3", "Continuación"];
+  const [filterModels, setFilterModels] = useState<string[]>([...ALL_MODELS]);
 
-  const hasActiveFilters = filterDateFrom || filterDateTo || filterTimeFrom || filterTimeTo;
+  const modelsFilterActive = filterModels.length > 0 && filterModels.length < ALL_MODELS.length;
+  const hasActiveFilters = filterDateFrom || filterDateTo || filterTimeFrom || filterTimeTo || modelsFilterActive;
 
   const filteredTrades = useMemo(() => {
     return trades.filter(t => {
@@ -78,15 +81,20 @@ const Backtesting = () => {
         if (filterTimeFrom && t.entry_time < filterTimeFrom) return false;
         if (filterTimeTo && t.entry_time > filterTimeTo) return false;
       }
+      if (modelsFilterActive) {
+        if (t.no_trade_day) return false;
+        if (!t.entry_model || !filterModels.includes(t.entry_model)) return false;
+      }
       return true;
     });
-  }, [trades, filterDateFrom, filterDateTo, filterTimeFrom, filterTimeTo]);
+  }, [trades, filterDateFrom, filterDateTo, filterTimeFrom, filterTimeTo, filterModels, modelsFilterActive]);
 
   const clearFilters = () => {
     setFilterDateFrom("");
     setFilterDateTo("");
     setFilterTimeFrom("");
     setFilterTimeTo("");
+    setFilterModels([...ALL_MODELS]);
   };
 
   const isSelecting = selectedTradeIds.size > 0;
@@ -575,6 +583,32 @@ const Backtesting = () => {
                       onChange={(e) => setFilterTimeTo(e.target.value)}
                       className="h-8 text-sm"
                     />
+                  </div>
+                </div>
+                <div className="mt-4 space-y-2">
+                  <Label className="text-xs text-muted-foreground">Modelo de entrada</Label>
+                  <div className="flex flex-wrap items-center gap-4">
+                    {ALL_MODELS.map((m) => (
+                      <label key={m} className="flex items-center gap-2 text-sm cursor-pointer">
+                        <Checkbox
+                          checked={filterModels.includes(m)}
+                          onCheckedChange={(checked) => {
+                            setFilterModels((prev) =>
+                              checked ? Array.from(new Set([...prev, m])) : prev.filter((x) => x !== m)
+                            );
+                          }}
+                        />
+                        {m}
+                      </label>
+                    ))}
+                    <div className="ml-auto flex gap-2">
+                      <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => setFilterModels([...ALL_MODELS])}>
+                        Todos
+                      </Button>
+                      <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => setFilterModels([])}>
+                        Ninguno
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </CardContent>
