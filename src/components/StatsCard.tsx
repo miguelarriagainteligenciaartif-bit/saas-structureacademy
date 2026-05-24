@@ -19,10 +19,10 @@ export const StatsCard = ({ title, value, icon: Icon, trend = "neutral", subtitl
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-muted-foreground mb-1">{title}</p>
             <h3 title={valueTitle} className={cn(
-              "text-xl font-bold mb-1 truncate",
+              "font-bold mb-1 truncate text-base",
               trend === "up" && "text-success",
               trend === "down" && "text-destructive",
-              trend === "neutral" && "text-foreground"
+              trend === "neutral" && "text-success"
             )}>
               {value}
             </h3>
