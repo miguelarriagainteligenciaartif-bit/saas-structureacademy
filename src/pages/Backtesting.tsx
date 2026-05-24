@@ -48,6 +48,7 @@ interface Strategy {
   description: string | null;
   initial_capital: number;
   risk_reward_ratio: string;
+  entry_models: string[] | null;
 }
 
 const Backtesting = () => {
@@ -67,8 +68,19 @@ const Backtesting = () => {
   const [filterDateTo, setFilterDateTo] = useState<string>("");
   const [filterTimeFrom, setFilterTimeFrom] = useState<string>("");
   const [filterTimeTo, setFilterTimeTo] = useState<string>("");
-  const ALL_MODELS = ["M1", "M3", "Continuación"];
-  const [filterModels, setFilterModels] = useState<string[]>([...ALL_MODELS]);
+  const DEFAULT_MODELS = ["M1", "M3", "Continuación"];
+  const ALL_MODELS = useMemo(
+    () => (currentStrategy?.entry_models && currentStrategy.entry_models.length > 0
+      ? currentStrategy.entry_models
+      : DEFAULT_MODELS),
+    [currentStrategy]
+  );
+  const [filterModels, setFilterModels] = useState<string[]>([...DEFAULT_MODELS]);
+
+  // Resync filter when active strategy changes
+  useEffect(() => {
+    setFilterModels([...ALL_MODELS]);
+  }, [ALL_MODELS]);
 
   const modelsFilterActive = filterModels.length > 0 && filterModels.length < ALL_MODELS.length;
   const hasActiveFilters = filterDateFrom || filterDateTo || filterTimeFrom || filterTimeTo || modelsFilterActive;
@@ -291,8 +303,7 @@ const Backtesting = () => {
   };
 
   const getAnalysisByEntryModel = () => {
-    const models = ["M1", "M3", "Continuación"];
-    return models.map(model => {
+    return ALL_MODELS.map(model => {
       const modelTrades = filteredTrades.filter(t => t.entry_model === model && !t.no_trade_day);
       const wins = modelTrades.filter(t => t.result_type === "TP").length;
       const total = modelTrades.length;
@@ -474,6 +485,7 @@ const Backtesting = () => {
                 <TradeForm 
                   isBacktest={true}
                   strategyId={selectedStrategy}
+                  entryModels={ALL_MODELS}
                   onSuccess={() => {
                     setIsDialogOpen(false);
                     fetchTrades();
@@ -1054,6 +1066,7 @@ const Backtesting = () => {
               <EditTradeForm
                 trade={selectedTrade}
                 isBacktest={true}
+                entryModels={ALL_MODELS}
                 onSuccess={() => {
                   setEditDialogOpen(false);
                   fetchTrades();

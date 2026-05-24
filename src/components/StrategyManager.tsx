@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { Plus, Pencil, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 
 interface Strategy {
@@ -17,6 +17,7 @@ interface Strategy {
   initial_capital: number;
   risk_reward_ratio: string;
   asset: string;
+  entry_models: string[] | null;
   created_at: string;
 }
 
@@ -35,8 +36,10 @@ export const StrategyManager = ({ selectedStrategy, onStrategyChange, onStrategi
     description: "",
     initial_capital: "0",
     risk_reward_ratio: "1:2",
-    asset: "Nasdaq 100"
+    asset: "Nasdaq 100",
+    entry_models: ["M1", "M3", "Continuación"] as string[],
   });
+  const [newModel, setNewModel] = useState("");
 
   useEffect(() => {
     loadStrategies();
@@ -88,7 +91,8 @@ export const StrategyManager = ({ selectedStrategy, onStrategyChange, onStrategi
             description: formData.description || null,
             initial_capital: capitalValue,
             risk_reward_ratio: formData.risk_reward_ratio,
-            asset: formData.asset
+            asset: formData.asset,
+            entry_models: formData.entry_models.length > 0 ? formData.entry_models : ["M1", "M3", "Continuación"],
           })
           .eq("id", editingStrategy.id);
 
@@ -103,7 +107,8 @@ export const StrategyManager = ({ selectedStrategy, onStrategyChange, onStrategi
             description: formData.description || null,
             initial_capital: capitalValue,
             risk_reward_ratio: formData.risk_reward_ratio,
-            asset: formData.asset
+            asset: formData.asset,
+            entry_models: formData.entry_models.length > 0 ? formData.entry_models : ["M1", "M3", "Continuación"],
           });
 
         if (error) throw error;
@@ -153,7 +158,10 @@ export const StrategyManager = ({ selectedStrategy, onStrategyChange, onStrategi
       description: strategy.description || "",
       initial_capital: strategy.initial_capital.toString(),
       risk_reward_ratio: strategy.risk_reward_ratio,
-      asset: strategy.asset || "Nasdaq 100"
+      asset: strategy.asset || "Nasdaq 100",
+      entry_models: (strategy.entry_models && strategy.entry_models.length > 0)
+        ? [...strategy.entry_models]
+        : ["M1", "M3", "Continuación"],
     });
     setIsDialogOpen(true);
   };
@@ -164,8 +172,10 @@ export const StrategyManager = ({ selectedStrategy, onStrategyChange, onStrategi
       description: "",
       initial_capital: "0",
       risk_reward_ratio: "1:2",
-      asset: "Nasdaq 100"
+      asset: "Nasdaq 100",
+      entry_models: ["M1", "M3", "Continuación"],
     });
+    setNewModel("");
   };
 
   const handleDialogClose = (open: boolean) => {
@@ -271,6 +281,69 @@ export const StrategyManager = ({ selectedStrategy, onStrategyChange, onStrategi
                       <SelectItem value="Variable">Variable</SelectItem>
                     </SelectContent>
                   </Select>
+                </div>
+                <div>
+                  <Label>Modelos de Entrada *</Label>
+                  <p className="text-xs text-muted-foreground mb-2">
+                    Modelos disponibles al registrar operaciones de esta estrategia. Personaliza según tu sistema.
+                  </p>
+                  <div className="flex flex-wrap gap-2 mb-2 min-h-[2rem]">
+                    {formData.entry_models.length === 0 ? (
+                      <span className="text-xs text-muted-foreground italic">Sin modelos. Añade al menos uno.</span>
+                    ) : (
+                      formData.entry_models.map((m) => (
+                        <span
+                          key={m}
+                          className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-primary/10 text-primary text-sm"
+                        >
+                          {m}
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setFormData({
+                                ...formData,
+                                entry_models: formData.entry_models.filter((x) => x !== m),
+                              })
+                            }
+                            className="hover:text-destructive"
+                            aria-label={`Quitar ${m}`}
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </span>
+                      ))
+                    )}
+                  </div>
+                  <div className="flex gap-2">
+                    <Input
+                      value={newModel}
+                      onChange={(e) => setNewModel(e.target.value)}
+                      placeholder="Ej: Breaker, OB, FVG..."
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          const v = newModel.trim();
+                          if (v && !formData.entry_models.includes(v)) {
+                            setFormData({ ...formData, entry_models: [...formData.entry_models, v] });
+                            setNewModel("");
+                          }
+                        }
+                      }}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => {
+                        const v = newModel.trim();
+                        if (v && !formData.entry_models.includes(v)) {
+                          setFormData({ ...formData, entry_models: [...formData.entry_models, v] });
+                          setNewModel("");
+                        }
+                      }}
+                    >
+                      Añadir
+                    </Button>
+                  </div>
                 </div>
                 <div className="flex gap-2">
                   <Button type="submit" className="flex-1">
