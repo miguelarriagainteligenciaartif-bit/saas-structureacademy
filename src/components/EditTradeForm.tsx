@@ -504,9 +504,9 @@ export const EditTradeForm = ({ trade, onSuccess, isBacktest = false, entryModel
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="M1">M1</SelectItem>
-                    <SelectItem value="M3">M3</SelectItem>
-                    <SelectItem value="Continuación">Continuación</SelectItem>
+                    {modelOptions.map((m) => (
+                      <SelectItem key={m} value={m}>{m}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
                 <FormMessage />
