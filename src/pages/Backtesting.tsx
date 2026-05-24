@@ -303,8 +303,7 @@ const Backtesting = () => {
   };
 
   const getAnalysisByEntryModel = () => {
-    const models = ["M1", "M3", "Continuación"];
-    return models.map(model => {
+    return ALL_MODELS.map(model => {
       const modelTrades = filteredTrades.filter(t => t.entry_model === model && !t.no_trade_day);
       const wins = modelTrades.filter(t => t.result_type === "TP").length;
       const total = modelTrades.length;
