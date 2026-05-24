@@ -495,6 +495,31 @@ export const TradeForm = ({ onSuccess, isBacktest = false, strategyId, entryMode
                 )}
               />
 
+              {isBacktest && patternOptions.length > 0 && (
+                <FormField
+                  control={form.control}
+                  name="entry_pattern"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Patrón de Entrada</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value || ""} disabled={noTradeDay}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecciona patrón" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {patternOptions.map((p) => (
+                            <SelectItem key={p} value={p}>{p}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
+
               {form.watch("entry_model") === "Continuación" && !noTradeDay && !isBacktest && (
                 <FormField
                   control={form.control}

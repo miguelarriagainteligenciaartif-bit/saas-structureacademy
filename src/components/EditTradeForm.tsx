@@ -49,6 +49,7 @@ const formSchema = z.object({
   continuation_subtype: z.enum(CONTINUATION_SUBTYPE_OPTIONS).optional(),
   fvg_count: z.enum(["1", "2", "3"] as const).optional(),
   entry_subtype: z.enum(["Envolvente + Bloque", "Envolvente + FVG", "FVG"] as const).optional(),
+  entry_pattern: z.string().optional(),
   result_dollars: z.string().optional(),
   image_link: z.string().url().optional().or(z.literal("")),
   risk_percentage: z.string().default("1"),
@@ -98,12 +99,16 @@ interface EditTradeFormProps {
   onSuccess: () => void;
   isBacktest?: boolean;
   entryModels?: string[];
+  entryPatterns?: string[];
 }
 
-export const EditTradeForm = ({ trade, onSuccess, isBacktest = false, entryModels }: EditTradeFormProps) => {
+export const EditTradeForm = ({ trade, onSuccess, isBacktest = false, entryModels, entryPatterns }: EditTradeFormProps) => {
   const modelOptions = (isBacktest && entryModels && entryModels.length > 0)
     ? entryModels
     : [...ENTRY_MODEL_OPTIONS];
+  const patternOptions = (isBacktest && entryPatterns && entryPatterns.length > 0)
+    ? entryPatterns
+    : [];
   const [loading, setLoading] = useState(false);
   const [accounts, setAccounts] = useState<any[]>([]);
 
@@ -151,6 +156,7 @@ export const EditTradeForm = ({ trade, onSuccess, isBacktest = false, entryModel
       continuation_subtype: normalizedContinuationSubtype,
       fvg_count: trade.fvg_count ? trade.fvg_count.toString() : undefined,
       entry_subtype: trade.entry_subtype || undefined,
+      entry_pattern: trade.entry_pattern || undefined,
     },
   });
 
@@ -237,6 +243,8 @@ export const EditTradeForm = ({ trade, onSuccess, isBacktest = false, entryModel
         const isM1M3 = values.entry_model === "M1" || values.entry_model === "M3";
         updateData.fvg_count = isM1M3 ? (values.fvg_count ? parseInt(values.fvg_count) : null) : null;
         updateData.entry_subtype = isM1M3 ? (values.entry_subtype || null) : null;
+      } else {
+        updateData.entry_pattern = values.no_trade_day ? null : (values.entry_pattern || null);
       }
 
       const { error } = await supabase
@@ -513,6 +521,31 @@ export const EditTradeForm = ({ trade, onSuccess, isBacktest = false, entryModel
               </FormItem>
             )}
           />
+
+          {isBacktest && patternOptions.length > 0 && (
+            <FormField
+              control={form.control}
+              name="entry_pattern"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Patrón de Entrada</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value || ""} disabled={noTradeDay}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecciona patrón" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {patternOptions.map((p) => (
+                        <SelectItem key={p} value={p}>{p}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
 
           {form.watch("entry_model") === "Continuación" && !noTradeDay && !isBacktest && (
             <FormField
