@@ -49,6 +49,7 @@ interface Strategy {
   initial_capital: number;
   risk_reward_ratio: string;
   entry_models: string[] | null;
+  entry_patterns: string[] | null;
 }
 
 const Backtesting = () => {
@@ -73,6 +74,13 @@ const Backtesting = () => {
     () => (currentStrategy?.entry_models && currentStrategy.entry_models.length > 0
       ? currentStrategy.entry_models
       : DEFAULT_MODELS),
+    [currentStrategy]
+  );
+  const DEFAULT_PATTERNS = ["Envolvente + Bloque", "Envolvente + FVG", "FVG"];
+  const ALL_PATTERNS = useMemo(
+    () => (currentStrategy?.entry_patterns && currentStrategy.entry_patterns.length > 0
+      ? currentStrategy.entry_patterns
+      : DEFAULT_PATTERNS),
     [currentStrategy]
   );
   const [filterModels, setFilterModels] = useState<string[]>([...DEFAULT_MODELS]);
@@ -486,6 +494,7 @@ const Backtesting = () => {
                   isBacktest={true}
                   strategyId={selectedStrategy}
                   entryModels={ALL_MODELS}
+                  entryPatterns={ALL_PATTERNS}
                   onSuccess={() => {
                     setIsDialogOpen(false);
                     fetchTrades();
@@ -1067,6 +1076,7 @@ const Backtesting = () => {
                 trade={selectedTrade}
                 isBacktest={true}
                 entryModels={ALL_MODELS}
+                entryPatterns={ALL_PATTERNS}
                 onSuccess={() => {
                   setEditDialogOpen(false);
                   fetchTrades();
