@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { Plus, Pencil, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 
 interface Strategy {
@@ -17,6 +17,7 @@ interface Strategy {
   initial_capital: number;
   risk_reward_ratio: string;
   asset: string;
+  entry_models: string[] | null;
   created_at: string;
 }
 
@@ -35,8 +36,10 @@ export const StrategyManager = ({ selectedStrategy, onStrategyChange, onStrategi
     description: "",
     initial_capital: "0",
     risk_reward_ratio: "1:2",
-    asset: "Nasdaq 100"
+    asset: "Nasdaq 100",
+    entry_models: ["M1", "M3", "Continuación"] as string[],
   });
+  const [newModel, setNewModel] = useState("");
 
   useEffect(() => {
     loadStrategies();
@@ -88,7 +91,8 @@ export const StrategyManager = ({ selectedStrategy, onStrategyChange, onStrategi
             description: formData.description || null,
             initial_capital: capitalValue,
             risk_reward_ratio: formData.risk_reward_ratio,
-            asset: formData.asset
+            asset: formData.asset,
+            entry_models: formData.entry_models.length > 0 ? formData.entry_models : ["M1", "M3", "Continuación"],
           })
           .eq("id", editingStrategy.id);
 
@@ -103,7 +107,8 @@ export const StrategyManager = ({ selectedStrategy, onStrategyChange, onStrategi
             description: formData.description || null,
             initial_capital: capitalValue,
             risk_reward_ratio: formData.risk_reward_ratio,
-            asset: formData.asset
+            asset: formData.asset,
+            entry_models: formData.entry_models.length > 0 ? formData.entry_models : ["M1", "M3", "Continuación"],
           });
 
         if (error) throw error;
@@ -153,7 +158,10 @@ export const StrategyManager = ({ selectedStrategy, onStrategyChange, onStrategi
       description: strategy.description || "",
       initial_capital: strategy.initial_capital.toString(),
       risk_reward_ratio: strategy.risk_reward_ratio,
-      asset: strategy.asset || "Nasdaq 100"
+      asset: strategy.asset || "Nasdaq 100",
+      entry_models: (strategy.entry_models && strategy.entry_models.length > 0)
+        ? [...strategy.entry_models]
+        : ["M1", "M3", "Continuación"],
     });
     setIsDialogOpen(true);
   };
@@ -164,8 +172,10 @@ export const StrategyManager = ({ selectedStrategy, onStrategyChange, onStrategi
       description: "",
       initial_capital: "0",
       risk_reward_ratio: "1:2",
-      asset: "Nasdaq 100"
+      asset: "Nasdaq 100",
+      entry_models: ["M1", "M3", "Continuación"],
     });
+    setNewModel("");
   };
 
   const handleDialogClose = (open: boolean) => {
