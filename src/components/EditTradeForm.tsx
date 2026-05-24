@@ -45,7 +45,7 @@ const formSchema = z.object({
   had_news: z.boolean().default(false),
   news_description: z.enum(NEWS_DESCRIPTION_OPTIONS).optional(),
   custom_news_description: z.string().optional(),
-  entry_model: z.enum(ENTRY_MODEL_OPTIONS).optional(),
+  entry_model: z.string().optional(),
   continuation_subtype: z.enum(CONTINUATION_SUBTYPE_OPTIONS).optional(),
   fvg_count: z.enum(["1", "2", "3"] as const).optional(),
   entry_subtype: z.enum(["Envolvente + Bloque", "Envolvente + FVG", "FVG"] as const).optional(),
@@ -97,9 +97,13 @@ interface EditTradeFormProps {
   trade: any;
   onSuccess: () => void;
   isBacktest?: boolean;
+  entryModels?: string[];
 }
 
-export const EditTradeForm = ({ trade, onSuccess, isBacktest = false }: EditTradeFormProps) => {
+export const EditTradeForm = ({ trade, onSuccess, isBacktest = false, entryModels }: EditTradeFormProps) => {
+  const modelOptions = (isBacktest && entryModels && entryModels.length > 0)
+    ? entryModels
+    : [...ENTRY_MODEL_OPTIONS];
   const [loading, setLoading] = useState(false);
   const [accounts, setAccounts] = useState<any[]>([]);
 
@@ -133,7 +137,11 @@ export const EditTradeForm = ({ trade, onSuccess, isBacktest = false }: EditTrad
       result_type: RESULT_TYPE_OPTIONS.includes(trade.result_type) ? trade.result_type : undefined,
       drawdown: normalizedDrawdown,
       max_rr: trade.max_rr?.toString() || undefined,
-      entry_model: ENTRY_MODEL_OPTIONS.includes(trade.entry_model) ? trade.entry_model : undefined,
+      entry_model: trade.entry_model && (isBacktest
+        ? (entryModels && entryModels.length > 0 ? entryModels.includes(trade.entry_model) : ENTRY_MODEL_OPTIONS.includes(trade.entry_model))
+        : ENTRY_MODEL_OPTIONS.includes(trade.entry_model))
+        ? trade.entry_model
+        : undefined,
       image_link: trade.image_link || "",
       news_description: normalizedNewsDescription,
       custom_news_description: normalizedCustomNewsDescription,
