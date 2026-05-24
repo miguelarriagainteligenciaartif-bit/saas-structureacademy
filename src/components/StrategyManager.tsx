@@ -18,6 +18,7 @@ interface Strategy {
   risk_reward_ratio: string;
   asset: string;
   entry_models: string[] | null;
+  entry_patterns: string[] | null;
   created_at: string;
 }
 
@@ -38,8 +39,10 @@ export const StrategyManager = ({ selectedStrategy, onStrategyChange, onStrategi
     risk_reward_ratio: "1:2",
     asset: "Nasdaq 100",
     entry_models: ["M1", "M3", "Continuación"] as string[],
+    entry_patterns: ["Envolvente + Bloque", "Envolvente + FVG", "FVG"] as string[],
   });
   const [newModel, setNewModel] = useState("");
+  const [newPattern, setNewPattern] = useState("");
 
   useEffect(() => {
     loadStrategies();
@@ -93,6 +96,7 @@ export const StrategyManager = ({ selectedStrategy, onStrategyChange, onStrategi
             risk_reward_ratio: formData.risk_reward_ratio,
             asset: formData.asset,
             entry_models: formData.entry_models.length > 0 ? formData.entry_models : ["M1", "M3", "Continuación"],
+            entry_patterns: formData.entry_patterns.length > 0 ? formData.entry_patterns : ["Envolvente + Bloque", "Envolvente + FVG", "FVG"],
           })
           .eq("id", editingStrategy.id);
 
@@ -109,6 +113,7 @@ export const StrategyManager = ({ selectedStrategy, onStrategyChange, onStrategi
             risk_reward_ratio: formData.risk_reward_ratio,
             asset: formData.asset,
             entry_models: formData.entry_models.length > 0 ? formData.entry_models : ["M1", "M3", "Continuación"],
+            entry_patterns: formData.entry_patterns.length > 0 ? formData.entry_patterns : ["Envolvente + Bloque", "Envolvente + FVG", "FVG"],
           });
 
         if (error) throw error;
@@ -162,6 +167,9 @@ export const StrategyManager = ({ selectedStrategy, onStrategyChange, onStrategi
       entry_models: (strategy.entry_models && strategy.entry_models.length > 0)
         ? [...strategy.entry_models]
         : ["M1", "M3", "Continuación"],
+      entry_patterns: (strategy.entry_patterns && strategy.entry_patterns.length > 0)
+        ? [...strategy.entry_patterns]
+        : ["Envolvente + Bloque", "Envolvente + FVG", "FVG"],
     });
     setIsDialogOpen(true);
   };
@@ -174,8 +182,10 @@ export const StrategyManager = ({ selectedStrategy, onStrategyChange, onStrategi
       risk_reward_ratio: "1:2",
       asset: "Nasdaq 100",
       entry_models: ["M1", "M3", "Continuación"],
+      entry_patterns: ["Envolvente + Bloque", "Envolvente + FVG", "FVG"],
     });
     setNewModel("");
+    setNewPattern("");
   };
 
   const handleDialogClose = (open: boolean) => {
@@ -338,6 +348,69 @@ export const StrategyManager = ({ selectedStrategy, onStrategyChange, onStrategi
                         if (v && !formData.entry_models.includes(v)) {
                           setFormData({ ...formData, entry_models: [...formData.entry_models, v] });
                           setNewModel("");
+                        }
+                      }}
+                    >
+                      Añadir
+                    </Button>
+                  </div>
+                </div>
+                <div>
+                  <Label>Patrones de Entrada *</Label>
+                  <p className="text-xs text-muted-foreground mb-2">
+                    Patrones disponibles al registrar operaciones (ej: Envolvente + Bloque, Envolvente + FVG, FVG). Personaliza según tu sistema.
+                  </p>
+                  <div className="flex flex-wrap gap-2 mb-2 min-h-[2rem]">
+                    {formData.entry_patterns.length === 0 ? (
+                      <span className="text-xs text-muted-foreground italic">Sin patrones. Añade al menos uno.</span>
+                    ) : (
+                      formData.entry_patterns.map((p) => (
+                        <span
+                          key={p}
+                          className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-primary/10 text-primary text-sm"
+                        >
+                          {p}
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setFormData({
+                                ...formData,
+                                entry_patterns: formData.entry_patterns.filter((x) => x !== p),
+                              })
+                            }
+                            className="hover:text-destructive"
+                            aria-label={`Quitar ${p}`}
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </span>
+                      ))
+                    )}
+                  </div>
+                  <div className="flex gap-2">
+                    <Input
+                      value={newPattern}
+                      onChange={(e) => setNewPattern(e.target.value)}
+                      placeholder="Ej: Envolvente + Bloque, FVG único..."
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          const v = newPattern.trim();
+                          if (v && !formData.entry_patterns.includes(v)) {
+                            setFormData({ ...formData, entry_patterns: [...formData.entry_patterns, v] });
+                            setNewPattern("");
+                          }
+                        }
+                      }}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => {
+                        const v = newPattern.trim();
+                        if (v && !formData.entry_patterns.includes(v)) {
+                          setFormData({ ...formData, entry_patterns: [...formData.entry_patterns, v] });
+                          setNewPattern("");
                         }
                       }}
                     >

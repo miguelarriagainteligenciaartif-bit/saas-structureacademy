@@ -39,6 +39,7 @@ const formSchema = z.object({
   continuation_subtype: z.enum(["Bloque", "FVG"]).optional(),
   fvg_count: z.enum(["1", "2", "3"]).optional(),
   entry_subtype: z.enum(["Envolvente + Bloque", "Envolvente + FVG", "FVG"]).optional(),
+  entry_pattern: z.string().optional(),
   result_dollars: z.string().optional(),
   image_link: z.string().url().optional().or(z.literal("")),
   risk_percentage: z.string().default("1"),
@@ -90,12 +91,16 @@ interface TradeFormProps {
   isBacktest?: boolean;
   strategyId?: string;
   entryModels?: string[];
+  entryPatterns?: string[];
 }
 
-export const TradeForm = ({ onSuccess, isBacktest = false, strategyId, entryModels }: TradeFormProps) => {
+export const TradeForm = ({ onSuccess, isBacktest = false, strategyId, entryModels, entryPatterns }: TradeFormProps) => {
   const modelOptions = (isBacktest && entryModels && entryModels.length > 0)
     ? entryModels
     : ["M1", "M3", "Continuación"];
+  const patternOptions = (isBacktest && entryPatterns && entryPatterns.length > 0)
+    ? entryPatterns
+    : [];
   const [loading, setLoading] = useState(false);
   const [accounts, setAccounts] = useState<any[]>([]);
 
@@ -187,6 +192,7 @@ export const TradeForm = ({ onSuccess, isBacktest = false, strategyId, entryMode
       // Add account_id for regular trades or strategy_id for backtest trades
       if (isBacktest) {
         insertData.strategy_id = strategyId;
+        insertData.entry_pattern = values.no_trade_day ? null : (values.entry_pattern || null);
       } else {
         insertData.account_id = values.account_id || null;
         insertData.continuation_subtype = values.entry_model === "Continuación" ? (values.continuation_subtype || null) : null;
@@ -488,6 +494,31 @@ export const TradeForm = ({ onSuccess, isBacktest = false, strategyId, entryMode
                   </FormItem>
                 )}
               />
+
+              {isBacktest && patternOptions.length > 0 && (
+                <FormField
+                  control={form.control}
+                  name="entry_pattern"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Patrón de Entrada</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value || ""} disabled={noTradeDay}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecciona patrón" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {patternOptions.map((p) => (
+                            <SelectItem key={p} value={p}>{p}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
 
               {form.watch("entry_model") === "Continuación" && !noTradeDay && !isBacktest && (
                 <FormField

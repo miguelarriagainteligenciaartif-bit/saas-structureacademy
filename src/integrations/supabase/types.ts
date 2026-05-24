@@ -86,6 +86,7 @@ export type Database = {
           created_at: string
           description: string | null
           entry_models: string[]
+          entry_patterns: string[]
           id: string
           initial_capital: number
           name: string
@@ -98,6 +99,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           entry_models?: string[]
+          entry_patterns?: string[]
           id?: string
           initial_capital?: number
           name: string
@@ -110,6 +112,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           entry_models?: string[]
+          entry_patterns?: string[]
           id?: string
           initial_capital?: number
           name?: string
@@ -128,6 +131,7 @@ export type Database = {
           day_of_week: string
           drawdown: number | null
           entry_model: string | null
+          entry_pattern: string | null
           entry_time: string | null
           execution_timing: string | null
           exit_time: string | null
@@ -156,6 +160,7 @@ export type Database = {
           day_of_week: string
           drawdown?: number | null
           entry_model?: string | null
+          entry_pattern?: string | null
           entry_time?: string | null
           execution_timing?: string | null
           exit_time?: string | null
@@ -184,6 +189,7 @@ export type Database = {
           day_of_week?: string
           drawdown?: number | null
           entry_model?: string | null
+          entry_pattern?: string | null
           entry_time?: string | null
           execution_timing?: string | null
           exit_time?: string | null
