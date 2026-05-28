@@ -61,6 +61,16 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        structure: {
+          green: '#39B54A',
+          gold: '#F0CD4C',
+          gray: '#58595B',
+          white: '#FFFFFF',
+          dark: '#1A1A1A',
+        },
+        brand: {
+          orange: '#FF6B35',
+        }
       },
       backgroundImage: {
         'gradient-primary': 'var(--gradient-primary)',
@@ -76,6 +86,14 @@ export default {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+      },
+      fontFamily: {
+        sans: ['Montserrat', 'Inter', 'sans-serif'],
+        display: ['Gotham', 'Montserrat', 'sans-serif'],
+      },
+      fontSize: {
+        'hero': ['3.5rem', { lineHeight: '1.1', fontWeight: '700' }],
+        'section': ['2rem', { lineHeight: '1.2', fontWeight: '600' }],
       },
       keyframes: {
         "accordion-down": {
