@@ -15,61 +15,60 @@
 
 @layer base {
   :root {
-    /* Quantum Era Dark Theme - "Dark Tech" aesthetic */
-    --background: 0 0% 0%;
-    --foreground: 210 40% 98%;
+    /* Structure Academy Light Theme */
+    --background: 0 0% 100%;
+    --foreground: 0 0% 10%;
 
-    --card: 240 8% 11%;
-    --card-foreground: 210 40% 98%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 10%;
 
-    --popover: 240 8% 11%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 10%;
 
-    /* Quantum Blue - Primary accent */
-    --primary: 210 100% 56%;
+    /* Structure Green - Primary accent */
+    --primary: 128 54% 47%; /* #39B54A */
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 240 6% 18%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 0 0% 96%;
+    --secondary-foreground: 0 0% 10%;
 
-    --muted: 240 6% 18%;
-    --muted-foreground: 210 10% 60%;
+    --muted: 0 0% 96%;
+    --muted-foreground: 220 2% 35%; /* #58595B */
 
-    /* Quantum Blue as accent */
-    --accent: 210 100% 56%;
+    --accent: 128 54% 47%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 0 0% 100%;
 
-    --success: 142 76% 36%;
-    --success-foreground: 210 40% 98%;
+    --success: 128 54% 47%;
+    --success-foreground: 0 0% 100%;
 
-    --warning: 45 93% 47%;
-    --warning-foreground: 0 0% 0%;
+    --warning: 47 85% 62%; /* #F0CD4C */
+    --warning-foreground: 0 0% 10%;
 
-    --border: 240 6% 20%;
-    --input: 240 6% 18%;
-    --ring: 210 100% 56%;
+    --border: 0 0% 90%;
+    --input: 0 0% 90%;
+    --ring: 128 54% 47%;
 
     --radius: 0.5rem;
     
     /* Chart colors */
     --chart-1: 142 76% 36%;
     --chart-2: 0 84% 60%;
-    --chart-3: 210 100% 56%;
-    --chart-4: 45 93% 47%;
+    --chart-3: 128 54% 47%;
+    --chart-4: 47 85% 62%;
     --chart-5: 280 65% 60%;
 
     /* Sidebar */
-    --sidebar-background: 240 8% 11%;
-    --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 210 100% 56%;
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 0 0% 10%;
+    --sidebar-primary: 128 54% 47%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 6% 18%;
-    --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 240 6% 20%;
-    --sidebar-ring: 210 100% 56%;
+    --sidebar-accent: 0 0% 96%;
+    --sidebar-accent-foreground: 0 0% 10%;
+    --sidebar-border: 0 0% 90%;
+    --sidebar-ring: 128 54% 47%;
   }
 }
 

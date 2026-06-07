@@ -33,7 +33,7 @@ const formSchema = z.object({
     z.number(),
   ]).optional(),
   had_news: z.boolean().default(false),
-  news_description: z.enum(["Miércoles previo a NFP", "Jueves previo a NFP", "NFP Flash", "PMI", "Federal Funds Rate", "Festivo Bancos"]).optional(),
+  news_description: z.enum(["Miércoles previo a NFP", "Jueves previo a NFP", "NFP", "Flash PMI", "Federal Funds Rate", "Festivo Bancos"]).optional(),
   custom_news_description: z.string().optional(),
   entry_model: z.string().optional(),
   continuation_subtype: z.enum(["Bloque", "FVG"]).optional(),
@@ -672,8 +672,8 @@ export const TradeForm = ({ onSuccess, isBacktest = false, strategyId, entryMode
                           <SelectContent>
                             <SelectItem value="Miércoles previo a NFP">Miércoles previo a NFP</SelectItem>
                             <SelectItem value="Jueves previo a NFP">Jueves previo a NFP</SelectItem>
-                            <SelectItem value="NFP Flash">NFP Flash</SelectItem>
-                            <SelectItem value="PMI">PMI</SelectItem>
+                            <SelectItem value="NFP">NFP</SelectItem>
+                            <SelectItem value="Flash PMI">Flash PMI</SelectItem>
                             <SelectItem value="Federal Funds Rate">Federal Funds Rate</SelectItem>
                             <SelectItem value="Festivo Bancos">Festivo Bancos</SelectItem>
                           </SelectContent>

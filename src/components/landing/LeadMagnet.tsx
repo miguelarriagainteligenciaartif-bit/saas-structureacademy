@@ -49,14 +49,23 @@ export function LeadMagnet() {
           
           <div className="bg-white rounded-xl p-8 shadow-2xl text-structure-dark">
             {submitted ? (
-              <div className="text-center py-12">
+              <div className="text-center py-8">
                 <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
                   <CheckCircle2 className="w-8 h-8 text-structure-green" />
                 </div>
-                <h3 className="text-2xl font-bold mb-2">¡Plantilla enviada!</h3>
-                <p className="text-structure-gray">
-                  Revisa tu bandeja de entrada (y la carpeta de spam). Te hemos enviado el enlace de descarga.
+                <h3 className="text-2xl font-bold mb-2">¡Plantilla Generada!</h3>
+                <p className="text-structure-gray mb-6">
+                  Hemos registrado tu solicitud. Ya puedes acceder a tu plantilla oficial.
                 </p>
+                <a 
+                  href="/journaling-template" 
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center bg-structure-green text-white font-bold py-4 px-8 rounded-md hover:bg-structure-green/90 transition-colors shadow-lg shadow-structure-green/20"
+                >
+                  <Download className="w-5 h-5 mr-2" />
+                  Ver y Descargar Plantilla
+                </a>
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-5">

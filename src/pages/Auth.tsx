@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import quantumLogo from "@/assets/quantum-logo.png";
+import structureLogo from "@/assets/logo_color-01.jpeg";
 
 export default function Auth() {
   const navigate = useNavigate();
@@ -24,12 +24,12 @@ export default function Auth() {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
         toast.success("¡Bienvenido!");
-        navigate("/");
+        navigate("/dashboard");
       } else if (mode === "signup") {
         const { error } = await supabase.auth.signUp({
           email,
           password,
-          options: { emailRedirectTo: `${window.location.origin}/` },
+          options: { emailRedirectTo: `${window.location.origin}/dashboard` },
         });
         if (error) throw error;
         toast.success("Cuenta creada. Revisa tu email para confirmar tu cuenta.");
@@ -51,21 +51,27 @@ export default function Auth() {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-background">
-      <Card className="w-full max-w-md border-border bg-card">
-        <CardHeader className="text-center space-y-4">
-          <div className="flex justify-center">
+      <Card className="w-full max-w-md border-border bg-card shadow-soft relative">
+        <button 
+          onClick={() => navigate("/")}
+          className="absolute left-4 top-4 text-muted-foreground hover:text-foreground transition-colors text-sm font-medium flex items-center gap-1"
+        >
+          ← Volver
+        </button>
+        <CardHeader className="text-center space-y-4 pt-10">
+          <div className="flex justify-center cursor-pointer" onClick={() => navigate("/")}>
             <img 
-              src={quantumLogo} 
-              alt="Quantum Trading Tracker" 
-              className="h-48 w-48"
+              src={structureLogo} 
+              alt="Structure Academy" 
+              className="h-48 w-auto object-contain"
             />
           </div>
           <div>
             <CardTitle className="text-2xl font-bold tracking-tight">
-              QUANTUM TRADING TRACKER
+              Structure Academy
             </CardTitle>
             <p className="text-sm text-primary font-medium mt-1">
-              Basado en Datos • Ejecución Disciplinada
+              Disciplina primero, resultados después
             </p>
           </div>
           <CardDescription className="text-muted-foreground">
