@@ -1,0 +1,17 @@
+name: Supabase Keep Alive
+
+on:
+  schedule:
+    # Ejecuta el script cada 2 días a la medianoche
+    - cron: '0 0 */2 * *'
+  workflow_dispatch: # Permite ejecutarlo manualmente si queremos
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase API
+        run: |
+          curl -s -X GET "https://djwvctmedtadhxuofrjb.supabase.co/rest/v1/" \
+          -H "apikey: sb_publishable_cxr_3XZVIxjt2zTZT1BEFA_DxTI7X5F" \
+          -H "Authorization: Bearer sb_publishable_cxr_3XZVIxjt2zTZT1BEFA_DxTI7X5F"
