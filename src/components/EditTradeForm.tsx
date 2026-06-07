@@ -16,7 +16,7 @@ const DAY_OPTIONS = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"] as co
 const TRADE_TYPE_OPTIONS = ["Compra", "Venta"] as const;
 const RESULT_TYPE_OPTIONS = ["TP", "SL"] as const;
 const DRAWDOWN_OPTIONS = ["0", "0.33", "0.50", "0.66", "0.90", "1.00"] as const;
-const NEWS_DESCRIPTION_OPTIONS = ["Miércoles previo a NFP", "Jueves previo a NFP", "NFP Flash", "PMI", "Federal Funds Rate", "Festivo Bancos"] as const;
+const NEWS_DESCRIPTION_OPTIONS = ["Miércoles previo a NFP", "Jueves previo a NFP", "NFP", "Flash PMI", "Federal Funds Rate", "Festivo Bancos"] as const;
 const ENTRY_MODEL_OPTIONS = ["M1", "M3", "Continuación"] as const;
 const CONTINUATION_SUBTYPE_OPTIONS = ["Bloque", "FVG"] as const;
 

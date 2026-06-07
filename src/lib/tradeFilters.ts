@@ -24,8 +24,8 @@ export const ALL_DAYS = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"] a
 export const ALL_NEWS_TYPES = [
   "Miércoles previo a NFP",
   "Jueves previo a NFP",
-  "NFP Flash",
-  "PMI",
+  "NFP",
+  "Flash PMI",
   "Federal Funds Rate",
   "Festivo Bancos",
 ] as const;

@@ -2,16 +2,21 @@ import { HeroSection } from "@/components/landing/HeroSection";
 import { Manifesto } from "@/components/landing/Manifesto";
 import { Methodology } from "@/components/landing/Methodology";
 import { LeadMagnet } from "@/components/landing/LeadMagnet";
+import structureLogo from "@/assets/logo_color-01.jpeg";
 
 export default function Landing() {
   return (
     <div className="min-h-screen bg-white text-structure-gray font-sans selection:bg-structure-green selection:text-white">
       {/* Navigation (simplified for v1) */}
       <nav className="sticky top-0 z-50 w-full border-b border-gray-100 bg-white/80 backdrop-blur-md">
-        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            {/* Minimalist Logo text since image is absent */}
-            <span className="font-display font-bold text-xl tracking-tight text-structure-dark">
+        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-2 cursor-pointer" onClick={() => window.scrollTo(0, 0)}>
+            <img 
+              src={structureLogo} 
+              alt="Structure Academy" 
+              className="h-20 w-auto object-contain"
+            />
+            <span className="font-display font-bold text-xl tracking-tight text-structure-dark hidden sm:block">
               Structure <span className="text-structure-green">Academy</span>
             </span>
           </div>

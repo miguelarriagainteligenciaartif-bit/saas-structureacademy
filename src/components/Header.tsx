@@ -9,6 +9,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import structureLogo from "@/assets/logo_color-01.jpeg";
 
 interface HeaderProps {
   userName?: string | null;
@@ -31,26 +32,24 @@ export const Header = ({ userName }: HeaderProps) => {
   const isActive = (path: string) => location.pathname === path;
 
   const navItems = [
-    { path: "/", label: "Dashboard" },
+    { path: "/dashboard", label: "Dashboard" },
     { path: "/analytics", label: "Análisis" },
     { path: "/equity-curve", label: "Cuentas Fondeadas" },
     { path: "/backtesting", label: "Backtesting", icon: FlaskConical },
     { path: "/streak-tracker", label: "Racha Tracker", icon: Flame },
     { path: "/edgecore-x5", label: "X5 Simulator", icon: Activity },
-    { path: "/flip-rotational", label: "Flip Rotacional", icon: Layers },
     { path: "/optimization", label: "Optimization", icon: Crosshair },
     { path: "/saved-simulations", label: "Simulaciones", icon: Save },
     { path: "/forex-calendar", label: "Calendario PNL", icon: Newspaper },
-    { path: "/checklist", label: "Checklist", icon: ClipboardCheck },
   ];
 
   return (
     <header className="border-b border-border bg-card">
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-6 overflow-x-auto">
             {/* Desktop Navigation */}
-            <nav className="hidden lg:flex items-center gap-1">
+            <nav className="hidden md:flex items-center gap-1">
               {navItems.map((item) => (
                 <Button 
                   key={item.path}
