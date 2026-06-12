@@ -275,11 +275,11 @@ export function ExcelImporter({ onSuccess, accountId }: ExcelImporterProps) {
     try {
       let text = await file.text();
       
-      // Si el CSV tiene un resumen arriba, lo saltamos y leemos solo la tabla final
-      const marker = "=== DETALLE DE OPERACIONES ===";
-      const markerIndex = text.indexOf(marker);
-      if (markerIndex !== -1) {
-        text = text.substring(markerIndex + marker.length).trim();
+      // Si el CSV tiene un resumen arriba, lo saltamos buscando la fila de cabeceras
+      const lines = text.split(/\r?\n/);
+      const headerIndex = lines.findIndex(line => line.toUpperCase().startsWith("FECHA"));
+      if (headerIndex !== -1) {
+        text = lines.slice(headerIndex).join("\n");
       }
 
       const parsed = Papa.parse<CsvRow>(text, {
