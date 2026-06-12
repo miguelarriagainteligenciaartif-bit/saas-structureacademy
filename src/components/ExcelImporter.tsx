@@ -273,7 +273,14 @@ export function ExcelImporter({ onSuccess, accountId }: ExcelImporterProps) {
     setIsDragging(false);
 
     try {
-      const text = await file.text();
+      let text = await file.text();
+      
+      // Si el CSV tiene un resumen arriba, lo saltamos y leemos solo la tabla final
+      const marker = "=== DETALLE DE OPERACIONES ===";
+      const markerIndex = text.indexOf(marker);
+      if (markerIndex !== -1) {
+        text = text.substring(markerIndex + marker.length).trim();
+      }
 
       const parsed = Papa.parse<CsvRow>(text, {
         header: true,
