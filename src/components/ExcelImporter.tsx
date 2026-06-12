@@ -275,9 +275,16 @@ export function ExcelImporter({ onSuccess, accountId }: ExcelImporterProps) {
     try {
       let text = await file.text();
       
+      // Eliminar el BOM (Byte Order Mark) que Excel suele añadir, ya que rompe el startsWith
+      text = text.replace(/^\uFEFF/, '');
+
       // Si el CSV tiene un resumen arriba, lo saltamos buscando la fila de cabeceras
       const lines = text.split(/\r?\n/);
-      const headerIndex = lines.findIndex(line => line.toUpperCase().startsWith("FECHA"));
+      const headerIndex = lines.findIndex(line => {
+        const u = line.toUpperCase();
+        return u.includes("FECHA") && u.includes("TIPO");
+      });
+      
       if (headerIndex !== -1) {
         text = lines.slice(headerIndex).join("\n");
       }
