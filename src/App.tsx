@@ -20,6 +20,12 @@ import StreakTracker from "./pages/StreakTracker";
 import JournalingTemplate from "./pages/JournalingTemplate";
 import NotFound from "./pages/NotFound";
 
+import { ProtectedRoute } from "./components/ProtectedRoute";
+import PendingApproval from "./pages/PendingApproval";
+import Admin from "./pages/Admin";
+
+// ... existing imports
+
 const queryClient = new QueryClient();
 
 function App() {
@@ -32,21 +38,27 @@ function App() {
         <Sonner />
         <BrowserRouter>
           <Routes>
+            {/* Public Routes */}
             <Route path="/" element={<Landing />} />
-            <Route path="/dashboard" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/reset-password" element={<ResetPassword />} />
-            <Route path="/analytics" element={<Analytics />} />
-            <Route path="/equity-curve" element={<EquityCurve />} />
-            <Route path="/backtesting" element={<Backtesting />} />
-            <Route path="/edgecore-x5" element={<EdgecoreX5 />} />
-            <Route path="/flip-rotational" element={<FlipRotational />} />
-            <Route path="/saved-simulations" element={<SavedSimulations />} />
-            <Route path="/forex-calendar" element={<ForexCalendar />} />
-            <Route path="/checklist" element={<Checklist />} />
-            <Route path="/optimization" element={<Optimization />} />
-            <Route path="/streak-tracker" element={<StreakTracker />} />
-            <Route path="/journaling-template" element={<JournalingTemplate />} />
+            
+            {/* Protected Routes (Needs Auth) */}
+            <Route path="/pending" element={<ProtectedRoute><PendingApproval /></ProtectedRoute>} />
+            <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
+            <Route path="/dashboard" element={<ProtectedRoute><Index /></ProtectedRoute>} />
+            <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
+            <Route path="/equity-curve" element={<ProtectedRoute><EquityCurve /></ProtectedRoute>} />
+            <Route path="/backtesting" element={<ProtectedRoute><Backtesting /></ProtectedRoute>} />
+            <Route path="/edgecore-x5" element={<ProtectedRoute><EdgecoreX5 /></ProtectedRoute>} />
+            <Route path="/flip-rotational" element={<ProtectedRoute><FlipRotational /></ProtectedRoute>} />
+            <Route path="/saved-simulations" element={<ProtectedRoute><SavedSimulations /></ProtectedRoute>} />
+            <Route path="/forex-calendar" element={<ProtectedRoute><ForexCalendar /></ProtectedRoute>} />
+            <Route path="/checklist" element={<ProtectedRoute><Checklist /></ProtectedRoute>} />
+            <Route path="/optimization" element={<ProtectedRoute><Optimization /></ProtectedRoute>} />
+            <Route path="/streak-tracker" element={<ProtectedRoute><StreakTracker /></ProtectedRoute>} />
+            <Route path="/journaling-template" element={<ProtectedRoute><JournalingTemplate /></ProtectedRoute>} />
+            
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
