@@ -1,4 +1,4 @@
-import { Shield, FileText, CheckCircle, Search, Clock, Target, ShieldAlert, Activity } from "lucide-react";
+import { Shield, FileText, CheckCircle, Search, Clock, Target, ShieldAlert, Activity, MessageCircle } from "lucide-react";
 
 export function NqkeySection() {
   return (
@@ -61,6 +61,7 @@ export function NqkeySection() {
         {/* WhatsApp CTA */}
         <div className="text-center">
           <a href="#comenzar" className="inline-flex items-center justify-center bg-structure-green text-white px-10 py-4 rounded-md font-bold hover:bg-structure-green/90 transition-all shadow-lg hover:shadow-structure-green/20 w-full md:w-auto">
+            <MessageCircle className="w-5 h-5 mr-2" />
             Comenzar ahora
           </a>
           <p className="mt-4 text-structure-gray text-sm">Hablemos por WhatsApp y te explicamos cómo funciona.</p>
