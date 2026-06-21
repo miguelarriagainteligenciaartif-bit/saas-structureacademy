@@ -3,7 +3,7 @@ import { QRCodeSVG } from "qrcode.react";
 
 export function WhatsAppCta() {
   const whatsappNumber = "+34675344307"; // Replace with actual number
-  const whatsappMessage = "Hola! Quiero empezar en Structure Academy.";
+  const whatsappMessage = "Hola! Me gustaría recibir información sobre Structure Academy.";
   const whatsappUrl = `https://wa.me/${whatsappNumber.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(whatsappMessage)}`;
 
   return (
