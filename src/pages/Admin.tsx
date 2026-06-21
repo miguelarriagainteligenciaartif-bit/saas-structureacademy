@@ -7,6 +7,7 @@ import { toast } from "sonner";
 
 interface Profile {
   id: string;
+  email?: string;
   status: string;
   role: string;
   created_at: string;
@@ -107,7 +108,7 @@ export default function Admin() {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-gray-50 border-b border-gray-100 text-sm">
-                  <th className="p-4 font-semibold text-gray-600">ID Usuario</th>
+                  <th className="p-4 font-semibold text-gray-600">Usuario (Email)</th>
                   <th className="p-4 font-semibold text-gray-600">Fecha de registro</th>
                   <th className="p-4 font-semibold text-gray-600">Estado</th>
                   <th className="p-4 font-semibold text-gray-600">Acciones</th>
@@ -119,7 +120,9 @@ export default function Admin() {
                     <td className="p-4">
                       <div className="flex items-center gap-2">
                         <Mail className="w-4 h-4 text-gray-400" />
-                        <span className="text-sm font-mono text-gray-600">{p.id.substring(0, 12)}...</span>
+                        <span className="text-sm font-medium text-gray-800">
+                          {p.email ? p.email : <span className="font-mono text-gray-400 text-xs">{p.id.substring(0, 12)}...</span>}
+                        </span>
                       </div>
                     </td>
                     <td className="p-4 text-sm text-gray-500">
