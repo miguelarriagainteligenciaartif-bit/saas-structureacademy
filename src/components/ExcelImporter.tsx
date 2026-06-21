@@ -273,7 +273,21 @@ export function ExcelImporter({ onSuccess, accountId }: ExcelImporterProps) {
     setIsDragging(false);
 
     try {
-      const text = await file.text();
+      let text = await file.text();
+      
+      // Eliminar el BOM (Byte Order Mark) que Excel suele añadir, ya que rompe el startsWith
+      text = text.replace(/^\uFEFF/, '');
+
+      // Si el CSV tiene un resumen arriba, lo saltamos buscando la fila de cabeceras
+      const lines = text.split(/\r?\n/);
+      const headerIndex = lines.findIndex(line => {
+        const u = line.toUpperCase();
+        return u.includes("FECHA") && u.includes("TIPO");
+      });
+      
+      if (headerIndex !== -1) {
+        text = lines.slice(headerIndex).join("\n");
+      }
 
       const parsed = Papa.parse<CsvRow>(text, {
         header: true,
