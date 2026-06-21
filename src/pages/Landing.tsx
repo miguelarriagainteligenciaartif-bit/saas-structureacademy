@@ -11,7 +11,7 @@ import { MessageCircle, Instagram, MapPin, Mail } from "lucide-react";
 
 export default function Landing() {
   const whatsappNumber = "+34675344307"; // Replace with actual number
-  const whatsappMessage = "Hola! Me interesa entrar a Structure Academy.";
+  const whatsappMessage = "Hola! Me gustaría recibir información sobre Structure Academy.";
   const whatsappUrl = `https://wa.me/${whatsappNumber.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(whatsappMessage)}`;
 
   return (
