@@ -1,4 +1,6 @@
 import { PlayCircle, Calendar, Target, ShieldAlert, TrendingUp, ShieldCheck } from "lucide-react";
+import desktopChart from "@/assets/desktop_chart.png";
+import mobileApp from "@/assets/mobile_app.png";
 
 export function HeroSection() {
   const stats = [
@@ -53,31 +55,15 @@ export function HeroSection() {
             </div>
           </div>
 
-          {/* Placeholder for Monitor & Phone mockups */}
+          {/* Images for Monitor & Phone */}
           <div className="relative flex justify-center items-center lg:justify-end h-[400px]">
-            {/* Main Monitor Placeholder */}
+            {/* Main Monitor */}
             <div className="w-[350px] md:w-[450px] h-[250px] md:h-[300px] bg-structure-dark rounded-xl shadow-2xl relative border-4 border-gray-800 flex items-center justify-center overflow-hidden">
-              {/* Fake chart lines inside */}
-              <div className="absolute inset-0 opacity-20">
-                <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="w-full h-full">
-                  <polyline points="0,80 20,60 40,70 60,30 80,40 100,10" fill="none" stroke="#22c55e" strokeWidth="2" />
-                </svg>
-              </div>
-              <TrendingUp className="w-16 h-16 text-structure-green/50" />
+              <img src={desktopChart} alt="Plataforma de Trading" className="w-full h-full object-cover" />
             </div>
-            {/* Phone Placeholder */}
-            <div className="absolute bottom-0 left-10 md:left-20 w-[120px] md:w-[150px] h-[240px] md:h-[300px] bg-white rounded-3xl shadow-xl border-4 border-gray-200 flex flex-col overflow-hidden">
-              <div className="w-full h-4 bg-gray-100 flex justify-center items-center">
-                <div className="w-1/3 h-1 bg-gray-300 rounded-full"></div>
-              </div>
-              <div className="flex-1 p-2 space-y-2">
-                {[...Array(6)].map((_, i) => (
-                  <div key={i} className="w-full h-8 bg-gray-50 rounded border border-gray-100 flex items-center px-2">
-                    <div className="w-4 h-4 rounded-full bg-green-100 mr-2"></div>
-                    <div className="w-12 h-2 bg-gray-200 rounded"></div>
-                  </div>
-                ))}
-              </div>
+            {/* Phone */}
+            <div className="absolute bottom-0 left-10 md:left-20 w-[120px] md:w-[150px] h-[240px] md:h-[300px] bg-white rounded-3xl shadow-2xl border-4 border-gray-200 flex flex-col overflow-hidden">
+              <img src={mobileApp} alt="Aplicación Móvil" className="w-full h-full object-cover" />
             </div>
           </div>
         </div>
