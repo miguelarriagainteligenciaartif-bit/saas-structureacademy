@@ -59,91 +59,8 @@ export const CSVExportButton = ({ trades }: CSVExportButtonProps) => {
       : 0;
     const expectedValue = avgWin * (winRate / 100) - avgLoss * (1 - winRate / 100);
 
-    let csvContent = "QUANTUM TRADING TRACKER - EXPORTACIÓN DE DATOS\n\n";
+    let csvContent = "";
 
-    // Summary section
-    csvContent += "=== RESUMEN GENERAL ===\n";
-    csvContent += `P&L Total,$${totalPnL.toFixed(2)}\n`;
-    csvContent += `Win Rate,${winRate.toFixed(1)}%\n`;
-    csvContent += `Total Operaciones,${actualTrades.length}\n`;
-    csvContent += `Trades Ganados (TP),${winningTrades.length}\n`;
-    csvContent += `Trades Perdidos (SL),${losingTrades.length}\n`;
-    csvContent += `Break Even,${breakEvenTrades.length}\n`;
-    csvContent += `Promedio Ganancia,$${avgWin.toFixed(2)}\n`;
-    csvContent += `Promedio Pérdida,$${avgLoss.toFixed(2)}\n`;
-    csvContent += `Expectativa,$${expectedValue.toFixed(2)}\n`;
-    csvContent += `Días Sin Entrada,${noTradeDays.length}\n`;
-    csvContent += `Tasa de Ejecución,${trades.length > 0 ? (actualTrades.length / trades.length * 100).toFixed(1) : 0}%\n\n`;
-
-    // By model
-    csvContent += "=== ANÁLISIS POR MODELO ===\n";
-    csvContent += "Modelo,Operaciones,P&L,Win Rate\n";
-    ["M1", "M3", "Continuación"].forEach(model => {
-      const modelTrades = actualTrades.filter(t => t.entry_model === model);
-      const wins = modelTrades.filter(t => t.result_type === "TP").length;
-      const pnl = modelTrades.reduce((sum, t) => sum + (t.result_dollars || 0), 0);
-      const wr = modelTrades.length > 0 ? (wins / modelTrades.length * 100) : 0;
-      csvContent += `${model},${modelTrades.length},$${pnl.toFixed(2)},${wr.toFixed(1)}%\n`;
-
-      if (model === "M1" || model === "M3") {
-        [1, 2, 3].forEach(count => {
-          const sub = modelTrades.filter(t => t.fvg_count === count);
-          if (sub.length > 0) {
-            const sw = sub.filter(t => t.result_type === "TP").length;
-            const sp = sub.reduce((s, t) => s + (t.result_dollars || 0), 0);
-            csvContent += `  ${count} FVG${count > 1 ? "s" : ""},${sub.length},$${sp.toFixed(2)},${sub.length > 0 ? (sw / sub.length * 100).toFixed(1) : 0}%\n`;
-          }
-        });
-        ["Envolvente + Bloque", "Envolvente + FVG"].forEach(subtype => {
-          const sub = modelTrades.filter(t => t.entry_subtype === subtype);
-          if (sub.length > 0) {
-            const sw = sub.filter(t => t.result_type === "TP").length;
-            const sp = sub.reduce((s, t) => s + (t.result_dollars || 0), 0);
-            csvContent += `  ${subtype},${sub.length},$${sp.toFixed(2)},${sub.length > 0 ? (sw / sub.length * 100).toFixed(1) : 0}%\n`;
-          }
-        });
-      }
-      if (model === "Continuación") {
-        ["Bloque", "FVG"].forEach(subtype => {
-          const sub = modelTrades.filter(t => t.continuation_subtype === subtype);
-          if (sub.length > 0) {
-            const sw = sub.filter(t => t.result_type === "TP").length;
-            const sp = sub.reduce((s, t) => s + (t.result_dollars || 0), 0);
-            csvContent += `  ${subtype},${sub.length},$${sp.toFixed(2)},${sub.length > 0 ? (sw / sub.length * 100).toFixed(1) : 0}%\n`;
-          }
-        });
-      }
-    });
-    csvContent += "\n";
-
-    // By day
-    csvContent += "=== ANÁLISIS POR DÍA ===\n";
-    csvContent += "Día,Operaciones,P&L,Win Rate\n";
-    ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"].forEach(day => {
-      const dayTrades = actualTrades.filter(t => t.day_of_week?.toLowerCase() === day.toLowerCase());
-      const wins = dayTrades.filter(t => t.result_type === "TP").length;
-      const pnl = dayTrades.reduce((sum, t) => sum + (t.result_dollars || 0), 0);
-      const wr = dayTrades.length > 0 ? (wins / dayTrades.length * 100) : 0;
-      csvContent += `${day},${dayTrades.length},$${pnl.toFixed(2)},${wr.toFixed(1)}%\n`;
-    });
-    csvContent += "\n";
-
-    // By week
-    csvContent += "=== ANÁLISIS POR SEMANA DEL MES ===\n";
-    csvContent += "Semana,Operaciones,P&L,Win Rate\n";
-    [1, 2, 3, 4, 5].forEach(week => {
-      const weekTrades = actualTrades.filter(t => t.week_of_month === week);
-      if (weekTrades.length > 0) {
-        const wins = weekTrades.filter(t => t.result_type === "TP").length;
-        const pnl = weekTrades.reduce((sum, t) => sum + (t.result_dollars || 0), 0);
-        const wr = (wins / weekTrades.length * 100);
-        csvContent += `Semana ${week},${weekTrades.length},$${pnl.toFixed(2)},${wr.toFixed(1)}%\n`;
-      }
-    });
-    csvContent += "\n";
-
-    // Trade details
-    csvContent += "=== DETALLE DE OPERACIONES ===\n";
     csvContent += "Fecha,Día,Semana,Hora Entrada,Hora Salida,Tipo,Modelo,FVG Count,Subtipo Entrada,Subtipo Continuación,Resultado,P&L,Max RR,Drawdown,Noticias,Descripción Noticias,Hora Noticias,Timing Ejecución,Notas,No Trade Day\n";
 
     const sorted = [...trades].sort((a, b) => {
@@ -190,7 +107,7 @@ export const CSVExportButton = ({ trades }: CSVExportButtonProps) => {
     const blob = new Blob(["\uFEFF" + csvContent], { type: "text/csv;charset=utf-8;" });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
-    link.download = `quantum-trading-export-${new Date().toISOString().split("T")[0]}.csv`;
+    link.download = `structure-academy-export-${new Date().toISOString().split("T")[0]}.csv`;
     link.style.visibility = "hidden";
     document.body.appendChild(link);
     link.click();

@@ -1,34 +1,116 @@
-import { ArrowRight } from "lucide-react";
+import { PlayCircle, Calendar, Target, ShieldAlert, TrendingUp, ShieldCheck } from "lucide-react";
 
 export function HeroSection() {
+  const stats = [
+    {
+      icon: <Calendar className="w-6 h-6 text-structure-green" />,
+      value: "+36",
+      label: "MESES ANALIZADOS",
+      desc: "Más de 36 meses de datos reales."
+    },
+    {
+      icon: <Target className="w-6 h-6 text-structure-green" />,
+      value: "1:2",
+      label: "RELACIÓN RIESGO/BENEFICIO",
+      desc: "Relación fija 1:2 aplicada en todas las operaciones."
+    },
+    {
+      icon: <ShieldAlert className="w-6 h-6 text-structure-green" />,
+      value: "7 SL",
+      label: "MÁXIMO DRAWDOWN HISTÓRICO",
+      desc: "Máximo drawdown de 7 SL consecutivos."
+    },
+    {
+      icon: <TrendingUp className="w-6 h-6 text-structure-green" />,
+      value: "+50%",
+      label: "PROMEDIO ANUAL",
+      desc: "Rendimiento promedio anual obtenido."
+    }
+  ];
+
   return (
-    <section className="relative overflow-hidden bg-white pt-24 pb-32">
-      {/* Decorative background grid */}
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_0%,#000_70%,transparent_110%)]"></div>
-      
-      <div className="container relative mx-auto px-4 text-center z-10 max-w-4xl">
-        <div className="inline-flex items-center rounded-full border border-gray-200 bg-gray-50/50 px-3 py-1 text-sm font-medium text-structure-gray mb-8">
-          <span className="flex h-2 w-2 rounded-full bg-structure-green mr-2"></span>
-          Sistema validado con datos
+    <section className="relative overflow-hidden bg-white pt-20 pb-16">
+      <div className="container mx-auto px-4 relative z-10 max-w-6xl">
+        
+        {/* Top Content: Text + Image */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center mb-16">
+          <div className="text-left">
+            <h1 className="text-5xl lg:text-6xl font-display font-bold text-structure-dark mb-6 tracking-tight leading-tight">
+              No es suerte.<br/>
+              Es <span className="text-structure-green">estructura.</span>
+            </h1>
+            <p className="text-lg text-structure-gray mb-10 leading-relaxed max-w-lg">
+              Aprende a operar con un sistema respaldado por datos reales, reglas claras y una ejecución disciplinada.
+            </p>
+            <div className="flex flex-col sm:flex-row items-center gap-4">
+              <a href="#nqkey" className="w-full sm:w-auto inline-flex items-center justify-center bg-structure-green text-white px-8 py-4 rounded-md font-bold hover:bg-structure-green/90 transition-all shadow-lg hover:shadow-structure-green/20">
+                Descubrir NQkey
+              </a>
+              <a href="#como-funciona" className="w-full sm:w-auto inline-flex items-center justify-center text-structure-dark border border-gray-300 px-8 py-4 rounded-md font-semibold hover:bg-gray-50 transition-colors">
+                <PlayCircle className="w-5 h-5 mr-2 text-structure-gray" />
+                Ver cómo funciona
+              </a>
+            </div>
+          </div>
+
+          {/* Placeholder for Monitor & Phone mockups */}
+          <div className="relative flex justify-center items-center lg:justify-end h-[400px]">
+            {/* Main Monitor Placeholder */}
+            <div className="w-[350px] md:w-[450px] h-[250px] md:h-[300px] bg-structure-dark rounded-xl shadow-2xl relative border-4 border-gray-800 flex items-center justify-center overflow-hidden">
+              {/* Fake chart lines inside */}
+              <div className="absolute inset-0 opacity-20">
+                <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="w-full h-full">
+                  <polyline points="0,80 20,60 40,70 60,30 80,40 100,10" fill="none" stroke="#22c55e" strokeWidth="2" />
+                </svg>
+              </div>
+              <TrendingUp className="w-16 h-16 text-structure-green/50" />
+            </div>
+            {/* Phone Placeholder */}
+            <div className="absolute bottom-0 left-10 md:left-20 w-[120px] md:w-[150px] h-[240px] md:h-[300px] bg-white rounded-3xl shadow-xl border-4 border-gray-200 flex flex-col overflow-hidden">
+              <div className="w-full h-4 bg-gray-100 flex justify-center items-center">
+                <div className="w-1/3 h-1 bg-gray-300 rounded-full"></div>
+              </div>
+              <div className="flex-1 p-2 space-y-2">
+                {[...Array(6)].map((_, i) => (
+                  <div key={i} className="w-full h-8 bg-gray-50 rounded border border-gray-100 flex items-center px-2">
+                    <div className="w-4 h-4 rounded-full bg-green-100 mr-2"></div>
+                    <div className="w-12 h-2 bg-gray-200 rounded"></div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
-        
-        <h1 className="text-hero font-display text-structure-dark mb-6 tracking-tight">
-          No es suerte, es <span className="text-structure-green">Structure.</span>
-        </h1>
-        
-        <p className="text-lg md:text-xl text-structure-gray mb-10 max-w-2xl mx-auto leading-relaxed">
-          Te enseñamos a operar los mercados financieros con una estrategia sistemática, respaldada por datos reales y una mentalidad sólida. Sin promesas vacías. Solo proceso.
-        </p>
-        
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-          <a href="#recurso" className="w-full sm:w-auto inline-flex items-center justify-center bg-structure-green text-white px-8 py-4 rounded-md font-bold hover:bg-structure-green/90 transition-all shadow-lg hover:shadow-structure-green/20">
-            Empieza con Estructura
-            <ArrowRight className="ml-2 h-5 w-5" />
-          </a>
-          <a href="#metodologia" className="w-full sm:w-auto inline-flex items-center justify-center text-structure-gray px-8 py-4 font-semibold hover:text-structure-dark transition-colors">
-            Ver el Sistema
-          </a>
+
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+          {stats.map((stat, idx) => (
+            <div key={idx} className="bg-white border border-gray-100 rounded-xl p-6 text-center shadow-sm hover:shadow-md transition-shadow">
+              <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-green-50 mb-4 border border-green-100">
+                {stat.icon}
+              </div>
+              <div className="text-3xl font-display font-bold text-structure-green mb-1">{stat.value}</div>
+              <div className="text-xs font-bold text-structure-dark mb-3">{stat.label}</div>
+              <p className="text-xs text-structure-gray">{stat.desc}</p>
+            </div>
+          ))}
         </div>
+
+        {/* Bottom Banner */}
+        <div className="bg-gray-50 rounded-xl p-6 md:p-8 flex items-center border border-gray-100">
+          <div className="bg-white p-3 rounded-xl shadow-sm mr-6 border border-gray-200 flex-shrink-0">
+            <ShieldCheck className="w-8 h-8 text-structure-green" />
+          </div>
+          <div>
+            <h3 className="font-display font-bold text-structure-dark text-lg md:text-xl">
+              Sistema. Datos. Disciplina. Resultados.
+            </h3>
+            <p className="text-structure-gray text-sm md:text-base">
+              No operamos por impulso, operamos con ventaja.
+            </p>
+          </div>
+        </div>
+
       </div>
     </section>
   );
