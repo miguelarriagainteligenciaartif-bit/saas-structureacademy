@@ -56,7 +56,7 @@ export function HeroSection() {
 
           {/* Hero Devices Image */}
           <div className="relative flex justify-center items-center lg:justify-end">
-            <img src={heroDevices} alt="Plataforma de Trading NQkey" className="w-full max-w-[500px] lg:max-w-[600px] h-auto object-contain drop-shadow-2xl hover:scale-105 transition-transform duration-700" />
+            <img src={heroDevices} alt="Plataforma de Trading NQkey" className="w-full max-w-[500px] lg:max-w-[600px] h-auto object-contain mix-blend-multiply drop-shadow-2xl hover:scale-105 transition-transform duration-700" />
           </div>
         </div>
 
