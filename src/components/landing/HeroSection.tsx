@@ -1,6 +1,5 @@
 import { PlayCircle, Calendar, Target, ShieldAlert, TrendingUp, ShieldCheck } from "lucide-react";
-import desktopChart from "@/assets/desktop_chart.png";
-import mobileApp from "@/assets/mobile_app.png";
+import heroDevices from "@/assets/hero_devices.png";
 
 export function HeroSection() {
   const stats = [
@@ -55,16 +54,9 @@ export function HeroSection() {
             </div>
           </div>
 
-          {/* Images for Monitor & Phone */}
-          <div className="relative flex justify-center items-center lg:justify-end h-[400px]">
-            {/* Main Monitor */}
-            <div className="w-[350px] md:w-[450px] h-[250px] md:h-[300px] bg-structure-dark rounded-xl shadow-2xl relative border-4 border-gray-800 flex items-center justify-center overflow-hidden">
-              <img src={desktopChart} alt="Plataforma de Trading" className="w-full h-full object-cover" />
-            </div>
-            {/* Phone */}
-            <div className="absolute bottom-0 left-10 md:left-20 w-[120px] md:w-[150px] h-[240px] md:h-[300px] bg-white rounded-3xl shadow-2xl border-4 border-gray-200 flex flex-col overflow-hidden">
-              <img src={mobileApp} alt="Aplicación Móvil" className="w-full h-full object-cover" />
-            </div>
+          {/* Hero Devices Image */}
+          <div className="relative flex justify-center items-center lg:justify-end">
+            <img src={heroDevices} alt="Plataforma de Trading NQkey" className="w-full max-w-[500px] lg:max-w-[600px] h-auto object-contain drop-shadow-2xl hover:scale-105 transition-transform duration-700" />
           </div>
         </div>
 
