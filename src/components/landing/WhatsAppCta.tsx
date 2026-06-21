@@ -2,7 +2,7 @@ import { CalendarCheck, ShieldQuestion, Rocket, Key, MessageCircle } from "lucid
 import { QRCodeSVG } from "qrcode.react";
 
 export function WhatsAppCta() {
-  const whatsappNumber = "+34000000000"; // Replace with actual number
+  const whatsappNumber = "+34675344307"; // Replace with actual number
   const whatsappMessage = "Hola! Quiero empezar en Structure Academy.";
   const whatsappUrl = `https://wa.me/${whatsappNumber.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(whatsappMessage)}`;
 

@@ -10,7 +10,7 @@ import structureLogo from "@/assets/logo_color-01.jpeg";
 import { MessageCircle, Instagram, MapPin, Mail } from "lucide-react";
 
 export default function Landing() {
-  const whatsappNumber = "+34000000000"; // Replace with actual number
+  const whatsappNumber = "+34675344307"; // Replace with actual number
   const whatsappMessage = "Hola! Me interesa entrar a Structure Academy.";
   const whatsappUrl = `https://wa.me/${whatsappNumber.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(whatsappMessage)}`;
 
@@ -80,7 +80,7 @@ export default function Landing() {
               Hablar por WhatsApp
             </a>
             <a 
-              href="https://instagram.com" 
+              href="https://www.instagram.com/eriick.ruiiz/" 
               target="_blank" 
               rel="noopener noreferrer"
               className="inline-flex items-center border border-gray-300 text-structure-dark font-bold py-3 px-8 rounded-md hover:bg-gray-50 transition-colors"
