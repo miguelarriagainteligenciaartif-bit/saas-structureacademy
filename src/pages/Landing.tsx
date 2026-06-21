@@ -95,12 +95,12 @@ export default function Landing() {
         <div className="container mx-auto px-4 py-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 border-b border-gray-800">
           <div>
             <div className="flex items-center gap-2 mb-6">
-              <img src={structureLogo} alt="Logo" className="h-12 w-auto invert" />
+              <img src={structureLogo} alt="Logo" className="h-12 w-auto bg-white p-1.5 rounded-lg" />
               <span className="font-display font-bold text-xl tracking-tight text-white">
                 Structure <span className="text-structure-green">Academy</span>
               </span>
             </div>
-            <p className="text-sm text-gray-400 mb-6">
+            <p className="text-sm text-gray-200 mb-6">
               Disciplina primero,<br/>
               resultados después.
             </p>
@@ -112,7 +112,7 @@ export default function Landing() {
 
           <div>
             <h4 className="font-bold text-white uppercase text-sm tracking-wider mb-6">Navegación</h4>
-            <ul className="space-y-3 text-sm">
+            <ul className="space-y-3 text-sm text-gray-200">
               <li><a href="#manifiesto" className="hover:text-white transition-colors flex items-center"><span className="text-structure-green mr-2">›</span> Filosofía</a></li>
               <li><a href="#nqkey" className="hover:text-white transition-colors flex items-center"><span className="text-structure-green mr-2">›</span> NQkey</a></li>
               <li><a href="#estadisticas" className="hover:text-white transition-colors flex items-center"><span className="text-structure-green mr-2">›</span> Estadísticas</a></li>
@@ -128,21 +128,21 @@ export default function Landing() {
                 <MessageCircle className="w-5 h-5 text-structure-green mr-3 flex-shrink-0" />
                 <div>
                   <a href={whatsappUrl} className="text-white font-bold hover:text-structure-green transition-colors">WhatsApp</a>
-                  <p className="text-xs text-gray-500 mt-1">Respuesta rápida</p>
+                  <p className="text-xs text-gray-300 mt-1">Respuesta rápida</p>
                 </div>
               </div>
               <div className="flex items-start">
                 <Mail className="w-5 h-5 text-structure-green mr-3 flex-shrink-0" />
                 <div>
                   <a href="mailto:contacto@structureacademy.com" className="text-white font-bold hover:text-structure-green transition-colors">contacto@structureacademy.com</a>
-                  <p className="text-xs text-gray-500 mt-1">Escríbenos</p>
+                  <p className="text-xs text-gray-300 mt-1">Escríbenos</p>
                 </div>
               </div>
               <div className="flex items-start">
                 <MapPin className="w-5 h-5 text-structure-green mr-3 flex-shrink-0" />
                 <div>
                   <span className="text-white font-bold">España</span>
-                  <p className="text-xs text-gray-500 mt-1">Horario: Lunes a Viernes<br/>10:00 - 18:00 (CET)</p>
+                  <p className="text-xs text-gray-300 mt-1">Horario: Lunes a Viernes<br/>10:00 - 18:00 (CET)</p>
                 </div>
               </div>
             </div>
@@ -153,23 +153,23 @@ export default function Landing() {
             <div className="flex items-start">
               <Instagram className="w-6 h-6 mr-3 flex-shrink-0" />
               <div>
-                <a href="https://instagram.com" className="text-white font-bold hover:text-structure-green transition-colors">Instagram</a>
-                <p className="text-xs text-gray-500 mt-1">@erick.bambino</p>
+                <a href="https://www.instagram.com/eriick.ruiiz/" className="text-white font-bold hover:text-structure-green transition-colors">Instagram</a>
+                <p className="text-xs text-gray-300 mt-1">@eriick.ruiiz</p>
               </div>
             </div>
           </div>
         </div>
 
         {/* Copyright */}
-        <div className="container mx-auto px-4 py-6 text-xs text-gray-500 flex flex-col md:flex-row justify-between items-center">
+        <div className="container mx-auto px-4 py-6 text-xs text-gray-300 flex flex-col md:flex-row justify-between items-center">
           <div className="mb-4 md:mb-0">
             &copy; {new Date().getFullYear()} Structure Academy. Todos los derechos reservados.
           </div>
           <div className="flex gap-4">
             <a href="#" className="hover:text-white transition-colors">Aviso Legal</a>
-            <span className="text-gray-700">|</span>
+            <span className="text-gray-500">|</span>
             <a href="#" className="hover:text-white transition-colors">Privacidad</a>
-            <span className="text-gray-700">|</span>
+            <span className="text-gray-500">|</span>
             <a href="#" className="hover:text-white transition-colors">Cookies</a>
           </div>
         </div>
