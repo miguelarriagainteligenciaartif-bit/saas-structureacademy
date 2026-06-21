@@ -1,4 +1,5 @@
-import { FlaskConical, Activity, Save, Layers, Newspaper, ClipboardCheck, Menu, Crosshair, Flame } from "lucide-react";
+import { useEffect, useState } from "react";
+import { FlaskConical, Activity, Save, Layers, Newspaper, ClipboardCheck, Menu, Crosshair, Flame, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -18,6 +19,24 @@ interface HeaderProps {
 export const Header = ({ userName }: HeaderProps) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    const checkAdmin = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", user.id)
+          .single();
+        if (profile?.role === "admin") {
+          setIsAdmin(true);
+        }
+      }
+    };
+    checkAdmin();
+  }, []);
 
   const handleSignOut = async () => {
     const { error } = await supabase.auth.signOut();
@@ -83,21 +102,38 @@ export const Header = ({ userName }: HeaderProps) => {
                       {item.label}
                     </DropdownMenuItem>
                   ))}
+                  {isAdmin && (
+                    <DropdownMenuItem onClick={() => navigate("/admin")} className="text-structure-green">
+                      <Shield className="mr-2 h-4 w-4" />
+                      Panel Admin
+                    </DropdownMenuItem>
+                  )}
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
           </div>
           
-          {userName && (
-            <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4">
+            {isAdmin && (
+              <Button 
+                onClick={() => navigate("/admin")} 
+                variant="outline" 
+                size="sm"
+                className="hidden md:flex border-structure-green text-structure-green hover:bg-structure-green hover:text-white"
+              >
+                <Shield className="w-4 h-4 mr-2" />
+                Panel Admin
+              </Button>
+            )}
+            {userName && (
               <span className="text-sm text-muted-foreground hidden sm:block">
                 Hola, {userName}
               </span>
-              <Button onClick={handleSignOut} variant="outline" size="sm">
-                Cerrar Sesión
-              </Button>
-            </div>
-          )}
+            )}
+            <Button onClick={handleSignOut} variant="outline" size="sm">
+              Cerrar Sesión
+            </Button>
+          </div>
         </div>
       </div>
     </header>
