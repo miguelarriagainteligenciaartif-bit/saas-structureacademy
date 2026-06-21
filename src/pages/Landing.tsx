@@ -134,7 +134,7 @@ export default function Landing() {
               <div className="flex items-start">
                 <Mail className="w-5 h-5 text-structure-green mr-3 flex-shrink-0" />
                 <div>
-                  <a href="mailto:erick.bambina@hotmail.com" className="text-white font-bold hover:text-structure-green transition-colors">erick.bambina@hotmail.com</a>
+                  <a href="mailto:erick.bambino@hotmail.com" className="text-white font-bold hover:text-structure-green transition-colors">erick.bambino@hotmail.com</a>
                   <p className="text-xs text-gray-300 mt-1">Escríbenos</p>
                 </div>
               </div>
