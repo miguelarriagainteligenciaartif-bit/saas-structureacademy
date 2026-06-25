@@ -136,7 +136,7 @@ export function applyTradeFilters<T extends FilterableTrade>(
   }
   if (f.newsFilter === "with") out = out.filter(t => !!t.had_news);
   else if (f.newsFilter === "without") out = out.filter(t => !t.had_news);
-  if (f.newsTypes.length < ALL_NEWS_TYPES.length) {
+  if (f.newsTypes.length > 0 && f.newsTypes.length < ALL_NEWS_TYPES.length) {
     out = out.filter(t => !!t.had_news && t.news_description != null && f.newsTypes.includes(t.news_description));
   }
   if (f.drawdownLevels.length > 0 && f.drawdownLevels.length < ALL_DRAWDOWN_LEVELS.length) {
