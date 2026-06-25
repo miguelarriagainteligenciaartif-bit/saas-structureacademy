@@ -125,25 +125,25 @@ export function applyTradeFilters<T extends FilterableTrade>(
       return p !== null && allowed.includes(p);
     });
   }
-  if (f.fvgCounts.length > 0 && f.fvgCounts.length < ALL_FVG_COUNTS.length) {
-    out = out.filter(t => t.fvg_count != null && f.fvgCounts.includes(t.fvg_count));
+  if (f.fvgCounts && f.fvgCounts.length > 0 && f.fvgCounts.length < ALL_FVG_COUNTS.length) {
+    out = out.filter(t => t.fvg_count != null && f.fvgCounts!.includes(t.fvg_count));
   }
-  if (f.results.length > 0 && f.results.length < ALL_RESULTS.length) {
-    out = out.filter(t => t.result_type && f.results.includes(t.result_type));
+  if (f.results && f.results.length > 0 && f.results.length < ALL_RESULTS.length) {
+    out = out.filter(t => t.result_type != null && f.results!.includes(t.result_type as any));
   }
-  if (f.tradeTypes.length > 0 && f.tradeTypes.length < ALL_TRADE_TYPES.length) {
-    out = out.filter(t => t.trade_type && f.tradeTypes.includes(t.trade_type));
+  if (f.tradeTypes && f.tradeTypes.length > 0 && f.tradeTypes.length < ALL_TRADE_TYPES.length) {
+    out = out.filter(t => t.trade_type != null && f.tradeTypes!.includes(t.trade_type as any));
   }
   if (f.newsFilter === "with") out = out.filter(t => !!t.had_news);
   else if (f.newsFilter === "without") out = out.filter(t => !t.had_news);
-  if (f.newsTypes.length > 0 && f.newsTypes.length < ALL_NEWS_TYPES.length) {
+  if (f.newsTypes && f.newsTypes.length > 0 && f.newsTypes.length < ALL_NEWS_TYPES.length) {
     out = out.filter(t => !!t.had_news && t.news_description != null && f.newsTypes.includes(t.news_description));
   }
-  if (f.drawdownLevels.length > 0 && f.drawdownLevels.length < ALL_DRAWDOWN_LEVELS.length) {
-    out = out.filter(t => t.drawdown != null && f.drawdownLevels.some(l => approxEq(l, t.drawdown!)));
+  if (f.drawdownLevels && f.drawdownLevels.length > 0 && f.drawdownLevels.length < ALL_DRAWDOWN_LEVELS.length) {
+    out = out.filter(t => t.drawdown != null && f.drawdownLevels!.some(l => approxEq(l, t.drawdown!)));
   }
-  if (f.daysOfWeek.length > 0 && f.daysOfWeek.length < ALL_DAYS.length) {
-    out = out.filter(t => t.day_of_week && f.daysOfWeek.includes(t.day_of_week));
+  if (f.daysOfWeek && f.daysOfWeek.length > 0 && f.daysOfWeek.length < ALL_DAYS.length) {
+    out = out.filter(t => t.day_of_week && f.daysOfWeek!.includes(t.day_of_week));
   }
   return out;
 }
@@ -151,15 +151,15 @@ export function applyTradeFilters<T extends FilterableTrade>(
 export function hasActiveFilters(f: FilterState): boolean {
   return Boolean(
     f.dateFrom || f.dateTo ||
-    (f.models.length > 0 && f.models.length < ALL_MODELS.length) ||
+    (f.models && f.models.length > 0 && f.models.length < ALL_MODELS.length) ||
     f.timeFrom || f.timeTo ||
     hasModelPatternRestriction(f.modelPatterns) ||
-    (f.fvgCounts.length > 0 && f.fvgCounts.length < ALL_FVG_COUNTS.length) ||
-    (f.results.length > 0 && f.results.length < ALL_RESULTS.length) ||
-    (f.tradeTypes.length > 0 && f.tradeTypes.length < ALL_TRADE_TYPES.length) ||
+    (f.fvgCounts && f.fvgCounts.length > 0 && f.fvgCounts.length < ALL_FVG_COUNTS.length) ||
+    (f.results && f.results.length > 0 && f.results.length < ALL_RESULTS.length) ||
+    (f.tradeTypes && f.tradeTypes.length > 0 && f.tradeTypes.length < ALL_TRADE_TYPES.length) ||
     f.newsFilter !== "all" ||
-    (f.newsTypes.length < ALL_NEWS_TYPES.length) ||
-    (f.drawdownLevels.length > 0 && f.drawdownLevels.length < ALL_DRAWDOWN_LEVELS.length) ||
-    (f.daysOfWeek.length > 0 && f.daysOfWeek.length < ALL_DAYS.length)
+    (f.newsTypes && f.newsTypes.length < ALL_NEWS_TYPES.length) ||
+    (f.drawdownLevels && f.drawdownLevels.length > 0 && f.drawdownLevels.length < ALL_DRAWDOWN_LEVELS.length) ||
+    (f.daysOfWeek && f.daysOfWeek.length > 0 && f.daysOfWeek.length < ALL_DAYS.length)
   );
 }

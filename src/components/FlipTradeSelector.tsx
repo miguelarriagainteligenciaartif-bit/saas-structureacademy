@@ -209,7 +209,10 @@ export const FlipTradeSelector = ({ onTradesSelected }: FlipTradeSelectorProps) 
     newsFilter: filterNews,
     newsTypes: filterNewsTypes,
     drawdownLevels: [],
-    tradeTypes: []
+    tradeTypes: [],
+    fvgCounts: [],
+    results: [],
+    daysOfWeek: []
   };
 
   const filteredTradesBase = applyTradeFilters(trades as any[], filterState);
