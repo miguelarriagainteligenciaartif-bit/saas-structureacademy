@@ -201,7 +201,7 @@ export const ReportGenerator = ({ trades, filterLabel }: ReportGeneratorProps) =
       await addBrandedHeader(
         doc,
         filterLabel ? "INFORME DE TRADING (FILTRADO)" : "INFORME DE TRADING",
-        "Quantum Trading Tracker",
+        "Structure Academy",
         `Generado: ${new Date().toLocaleDateString('es-ES', { 
           year: 'numeric', 
           month: 'long', 
@@ -536,7 +536,7 @@ export const ReportGenerator = ({ trades, filterLabel }: ReportGeneratorProps) =
       addBrandedFooter(doc);
 
       // Save PDF
-      doc.save(`quantum-trading-report-${new Date().toISOString().split("T")[0]}.pdf`);
+      doc.save(`structure-academy-report-${new Date().toISOString().split("T")[0]}.pdf`);
       toast.success("Informe PDF descargado exitosamente");
     } catch (error) {
       console.error("Error generating PDF:", error);

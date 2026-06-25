@@ -134,7 +134,7 @@ const SavedSimulations = () => {
                 <span className="text-primary">GUARDADAS</span>
               </h1>
               <p className="text-xs text-muted-foreground">
-                Historial de simulaciones EDGECORE X5
+                Historial de simulaciones STRUCTURE LAB
               </p>
             </div>
             <Button onClick={() => navigate("/edgecore-x5")} variant="default" size="sm">
@@ -154,7 +154,7 @@ const SavedSimulations = () => {
             <div className="text-center py-12">
               <div className="text-muted-foreground space-y-2">
                 <p className="text-lg">No tienes simulaciones guardadas</p>
-                <p className="text-sm">Crea una nueva simulación en el X5 Simulator</p>
+                <p className="text-sm">Crea una nueva simulación en el STRUCTURE LAB</p>
               </div>
             </div>
           ) : (

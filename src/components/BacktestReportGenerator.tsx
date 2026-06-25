@@ -358,12 +358,15 @@ export const BacktestReportGenerator = ({ trades, strategy }: BacktestReportGene
         doc.addPage();
         addAIAnalysisSection(doc, aiResult.analysis, 20);
       }
-
+      
+      const date = format(new Date(), "yyyy-MM-dd");
+      const strategySlug = (strategy.name || "estrategia").toLowerCase().replace(/[^a-z0-9]+/g, '-');
+      
       addBrandedFooter(doc);
+      
+      doc.save(`structure-academy-backtest-${strategySlug}-${date}.pdf`);
 
-      const strategySlug = strategy.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-      doc.save(`quantum-backtest-${strategySlug}-${new Date().toISOString().split("T")[0]}.pdf`);
-      toast.success("Informe de backtesting descargado exitosamente");
+      toast.success("Informe descargado exitosamente");
     } catch (error) {
       console.error("Error generating backtest PDF:", error);
       toast.error("Error al generar el informe PDF");

@@ -275,7 +275,7 @@ export const ReportGeneratorDialog = ({ trades, label, directGenerate, filterLab
       await addBrandedHeader(
         doc,
         filterLabel ? "INFORME DE TRADING (FILTRADO)" : "INFORME DE TRADING",
-        "Quantum Trading Tracker",
+        "Structure Academy",
         periodText
       );
 
@@ -684,7 +684,7 @@ export const ReportGeneratorDialog = ({ trades, label, directGenerate, filterLab
       addBrandedFooter(doc);
 
       // Generate filename with date range
-      let filename = "quantum-trading-report";
+      let filename = "structure-academy-report";
       if (preset !== "all" && startDate && endDate) {
         filename += `-${startDate}-a-${endDate}`;
       } else {

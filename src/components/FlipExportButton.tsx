@@ -15,7 +15,7 @@ export const FlipExportButton = ({ result, config }: FlipExportButtonProps) => {
       return;
     }
 
-    let csvContent = "EDGECORE X5 SIMULATOR - RESULTADOS DE SIMULACIÓN\n\n";
+    let csvContent = "STRUCTURE LAB - RESULTADOS DE SIMULACIÓN\n\n";
     
     // Configuración
     csvContent += "=== CONFIGURACIÓN ===\n";
@@ -55,7 +55,7 @@ export const FlipExportButton = ({ result, config }: FlipExportButtonProps) => {
     const link = document.createElement("a");
     const url = URL.createObjectURL(blob);
     link.setAttribute("href", url);
-    link.setAttribute("download", `edgecore-x5-simulacion-${new Date().toISOString().split("T")[0]}.csv`);
+    link.setAttribute("download", `structure-lab-simulacion-${new Date().toISOString().split("T")[0]}.csv`);
     link.style.visibility = "hidden";
     document.body.appendChild(link);
     link.click();
