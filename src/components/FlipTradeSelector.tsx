@@ -13,6 +13,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TradeResult } from "@/utils/flipX5Simulator";
 import { toast } from "sonner";
+import { DashboardFilters } from "@/components/DashboardFilters";
+import { applyTradeFilters, FilterState, ModelPatterns, NewsFilter } from "@/lib/tradeFilters";
 
 export interface RealTrade {
   id: string;
@@ -25,6 +27,10 @@ export interface RealTrade {
   fvg_count?: number | null;
   entry_subtype?: string | null;
   continuation_subtype?: string | null;
+  had_news?: boolean | null;
+  news_description?: string | null;
+  day_of_week?: string | null;
+  drawdown?: number | null;
 }
 
 interface BacktestStrategy {
@@ -51,17 +57,20 @@ export const FlipTradeSelector = ({ onTradesSelected }: FlipTradeSelectorProps) 
   const [trades, setTrades] = useState<RealTrade[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedTradeIds, setSelectedTradeIds] = useState<Set<string>>(new Set());
-  const [filterModel, setFilterModel] = useState<string>("all");
   const [filterResult, setFilterResult] = useState<string>("all");
-  const [filterContSubtype, setFilterContSubtype] = useState<string>("all");
-  const [filterFvgCount, setFilterFvgCount] = useState<string>("all");
-  const [filterEntrySubtype, setFilterEntrySubtype] = useState<string>("all");
-  const [dateFrom, setDateFrom] = useState<string>("");
-  const [dateTo, setDateTo] = useState<string>("");
   const [selectCount, setSelectCount] = useState<number>(10);
   const [pastedSequence, setPastedSequence] = useState<string>("");
-  const [timeFrom, setTimeFrom] = useState<string>("");
-  const [timeTo, setTimeTo] = useState<string>("");
+  
+  // DashboardFilters state
+  const [filterDateFrom, setFilterDateFrom] = useState<Date>();
+  const [filterDateTo, setFilterDateTo] = useState<Date>();
+  const [filterModels, setFilterModels] = useState<string[]>([]);
+  const [filterTimeFrom, setFilterTimeFrom] = useState<string>("");
+  const [filterTimeTo, setFilterTimeTo] = useState<string>("");
+  const [filterModelPatterns, setFilterModelPatterns] = useState<ModelPatterns | undefined>(undefined);
+  const [filterNews, setFilterNews] = useState<NewsFilter>("all");
+  const [filterNewsTypes, setFilterNewsTypes] = useState<string[]>([]);
+
 
   // Backtest state
   const [btStrategies, setBtStrategies] = useState<BacktestStrategy[]>([]);
@@ -85,7 +94,7 @@ export const FlipTradeSelector = ({ onTradesSelected }: FlipTradeSelectorProps) 
     try {
       const { data, error } = await supabase
         .from("trades")
-        .select("id, date, result_type, result_dollars, entry_model, trade_type, entry_time, fvg_count, entry_subtype, continuation_subtype")
+        .select("id, date, result_type, result_dollars, entry_model, trade_type, entry_time, fvg_count, entry_subtype, continuation_subtype, had_news, news_description")
         .eq("no_trade_day", false)
         .in("result_type", ["TP", "SL"])
         .order("date", { ascending: true })
@@ -189,33 +198,27 @@ export const FlipTradeSelector = ({ onTradesSelected }: FlipTradeSelectorProps) 
 
   // --- Original dashboard logic (unchanged) ---
 
-  const filteredTrades = trades.filter((trade) => {
-    if (filterModel !== "all" && trade.entry_model !== filterModel) return false;
+  // Filter mapping
+  const filterState: FilterState = {
+    dateFrom: filterDateFrom,
+    dateTo: filterDateTo,
+    models: filterModels,
+    timeFrom: filterTimeFrom,
+    timeTo: filterTimeTo,
+    modelPatterns: filterModelPatterns,
+    newsFilter: filterNews,
+    newsTypes: filterNewsTypes,
+    drawdownLevels: [],
+    tradeTypes: []
+  };
+
+  const filteredTradesBase = applyTradeFilters(trades as any[], filterState);
+  
+  const filteredTrades = filteredTradesBase.filter((trade) => {
     if (filterResult !== "all" && trade.result_type !== filterResult) return false;
-    // Continuación subtype (Bloque / FVG)
-    if (filterModel === "Continuación" && filterContSubtype !== "all") {
-      if (trade.continuation_subtype !== filterContSubtype) return false;
-    }
-    // M1/M3 FVG count
-    if ((filterModel === "M1" || filterModel === "M3") && filterFvgCount !== "all") {
-      if (Number(trade.fvg_count) !== Number(filterFvgCount)) return false;
-    }
-    // M1/M3 entry subtype
-    if ((filterModel === "M1" || filterModel === "M3") && filterEntrySubtype !== "all") {
-      if (trade.entry_subtype !== filterEntrySubtype) return false;
-    }
-    if (dateFrom && trade.date < dateFrom) return false;
-    if (dateTo && trade.date > dateTo) return false;
-    if (timeFrom && trade.entry_time) {
-      const entryNorm = trade.entry_time.substring(0, 5);
-      if (entryNorm < timeFrom) return false;
-    }
-    if (timeTo && trade.entry_time) {
-      const entryNorm = trade.entry_time.substring(0, 5);
-      if (entryNorm > timeTo) return false;
-    }
     return true;
   });
+
 
   const handleToggleTrade = (tradeId: string) => {
     const newSelected = new Set(selectedTradeIds);
@@ -531,124 +534,50 @@ export const FlipTradeSelector = ({ onTradesSelected }: FlipTradeSelectorProps) 
           {/* === DASHBOARD TAB (original) === */}
           <TabsContent value="database" className="mt-4 space-y-4">
             {/* Filters */}
-            <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
-              <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground flex items-center gap-1">
-                  <Filter className="h-3 w-3" /> Modelo
-                </Label>
-                <Select value={filterModel} onValueChange={setFilterModel}>
-                  <SelectTrigger className="h-8 text-sm">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos</SelectItem>
-                    <SelectItem value="M1">M1</SelectItem>
-                    <SelectItem value="M3">M3</SelectItem>
-                    <SelectItem value="Continuación">Continuación</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">Resultado</Label>
-                <Select value={filterResult} onValueChange={setFilterResult}>
-                  <SelectTrigger className="h-8 text-sm">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos</SelectItem>
-                    <SelectItem value="TP">Solo TP</SelectItem>
-                    <SelectItem value="SL">Solo SL</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              {filterModel === "Continuación" && (
-                <div className="space-y-1">
-                  <Label className="text-xs text-muted-foreground">Subtipo Cont.</Label>
-                  <Select value={filterContSubtype} onValueChange={setFilterContSubtype}>
+            <div className="space-y-4">
+              <DashboardFilters
+                dateFrom={filterDateFrom}
+                dateTo={filterDateTo}
+                selectedModels={filterModels}
+                timeFrom={filterTimeFrom}
+                timeTo={filterTimeTo}
+                modelPatterns={filterModelPatterns}
+                onDateFromChange={setFilterDateFrom}
+                onDateToChange={setFilterDateTo}
+                onModelsChange={setFilterModels}
+                onTimeFromChange={setFilterTimeFrom}
+                onTimeToChange={setFilterTimeTo}
+                onModelPatternsChange={setFilterModelPatterns}
+                onClearFilters={() => {
+                  setFilterDateFrom(undefined);
+                  setFilterDateTo(undefined);
+                  setFilterModels([]);
+                  setFilterTimeFrom("");
+                  setFilterTimeTo("");
+                  setFilterModelPatterns(undefined);
+                  setFilterNews("all");
+                  setFilterNewsTypes([]);
+                  setFilterResult("all");
+                }}
+                newsFilter={filterNews}
+                newsTypes={filterNewsTypes}
+                onNewsFilterChange={setFilterNews}
+                onNewsTypesChange={setFilterNewsTypes}
+              />
+              <div className="flex gap-4">
+                <div className="w-[200px] space-y-1">
+                  <Label className="text-xs text-muted-foreground">Filtrar por Resultado</Label>
+                  <Select value={filterResult} onValueChange={setFilterResult}>
                     <SelectTrigger className="h-8 text-sm">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">Todos</SelectItem>
-                      <SelectItem value="Bloque">Bloque</SelectItem>
-                      <SelectItem value="FVG">FVG</SelectItem>
+                      <SelectItem value="all">Todos (TP/SL)</SelectItem>
+                      <SelectItem value="TP">Solo TP</SelectItem>
+                      <SelectItem value="SL">Solo SL</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
-              )}
-              {(filterModel === "M1" || filterModel === "M3") && (
-                <>
-                  <div className="space-y-1">
-                    <Label className="text-xs text-muted-foreground">Nº FVGs</Label>
-                    <Select value={filterFvgCount} onValueChange={setFilterFvgCount}>
-                      <SelectTrigger className="h-8 text-sm">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Todos</SelectItem>
-                        <SelectItem value="1">1 FVG</SelectItem>
-                        <SelectItem value="2">2 FVGs</SelectItem>
-                        <SelectItem value="3">3 FVGs</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-1">
-                    <Label className="text-xs text-muted-foreground">Subtipo entrada</Label>
-                    <Select value={filterEntrySubtype} onValueChange={setFilterEntrySubtype}>
-                      <SelectTrigger className="h-8 text-sm">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Todos</SelectItem>
-                        <SelectItem value="Envolvente + Bloque">Env+Bloque</SelectItem>
-                        <SelectItem value="Envolvente + FVG">Env+FVG</SelectItem>
-                        <SelectItem value="FVG">FVG</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </>
-              )}
-              <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground flex items-center gap-1">
-                  <Calendar className="h-3 w-3" /> Desde
-                </Label>
-                <Input
-                  type="date"
-                  value={dateFrom}
-                  onChange={(e) => setDateFrom(e.target.value)}
-                  className="h-8 text-sm"
-                />
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">Hasta</Label>
-                <Input
-                  type="date"
-                  value={dateTo}
-                  onChange={(e) => setDateTo(e.target.value)}
-                  className="h-8 text-sm"
-                />
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground flex items-center gap-1">
-                  <Clock className="h-3 w-3" /> Hora desde
-                </Label>
-                <Input
-                  type="time"
-                  value={timeFrom}
-                  onChange={(e) => setTimeFrom(e.target.value)}
-                  className="h-8 text-sm"
-                />
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground flex items-center gap-1">
-                  <Clock className="h-3 w-3" /> Hora hasta
-                </Label>
-                <Input
-                  type="time"
-                  value={timeTo}
-                  onChange={(e) => setTimeTo(e.target.value)}
-                  className="h-8 text-sm"
-                />
               </div>
             </div>
 
