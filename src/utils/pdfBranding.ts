@@ -1,5 +1,5 @@
 import jsPDF from "jspdf";
-import quantumLogo from "@/assets/quantum-logo.png";
+import quantumLogo from "@/assets/logo_color-01.jpeg";
 
 /**
  * Sanitize text for jsPDF rendering.
@@ -135,7 +135,7 @@ export const addBrandedFooter = (doc: jsPDF) => {
     
     doc.setTextColor(...brandColors.quantumBlue);
     doc.text(
-      "QUANTUM TRADING TRACKER",
+      "STRUCTURE ACADEMY",
       pageWidth / 2,
       pageHeight - 4,
       { align: "center" }
@@ -143,7 +143,7 @@ export const addBrandedFooter = (doc: jsPDF) => {
     
     doc.setTextColor(...brandColors.textMuted);
     doc.text(
-      "La senal en medio del ruido",
+      "Tu Diario de Trading Profesional",
       pageWidth - 14,
       pageHeight - 4,
       { align: "right" }

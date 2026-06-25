@@ -18,6 +18,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import { DrawdownByModel } from "@/components/DrawdownByModel";
 
 interface DrawdownTrade {
   id: string;
@@ -676,6 +677,9 @@ export default function Optimization() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Drawdown by Model Component */}
+            <DrawdownByModel trades={filteredAllTrades as any} />
 
             {/* P&L Comparison Chart */}
             <OptimizationPnLChart

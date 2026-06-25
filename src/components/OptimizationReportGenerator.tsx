@@ -77,8 +77,8 @@ export const OptimizationReportGenerator = ({
       // Branded Header
       await addBrandedHeader(
         doc,
-        "OPTIMIZACION DE ENTRADA",
-        "Analisis de Punto de Entrada Optimo",
+        "INFORME DE OPTIMIZACIÓN",
+        "Structure Academy",
         `Fuente: ${sourceName}${modelLabel} - RR Base: 1:${baseRR} - ${new Date().toLocaleDateString("es-ES")}`
       );
 
@@ -392,7 +392,7 @@ export const OptimizationReportGenerator = ({
 
       // Save
       const date = new Date().toISOString().split("T")[0];
-      doc.save(`quantum-optimization-report-${date}.pdf`);
+      doc.save(`structure-academy-optimizacion-${new Date().toISOString().split("T")[0]}.pdf`);
       toast.success("Informe de optimización descargado");
     } catch (error) {
       console.error("Error generating report:", error);
