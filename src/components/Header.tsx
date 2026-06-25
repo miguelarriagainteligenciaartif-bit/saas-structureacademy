@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { FlaskConical, Activity, Save, Layers, Newspaper, ClipboardCheck, Menu, Crosshair, Flame, Shield } from "lucide-react";
+import { FlaskConical, Activity, Save, Layers, Newspaper, ClipboardCheck, Menu, Crosshair, Flame, Shield, ArrowDownRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate, useLocation } from "react-router-dom";

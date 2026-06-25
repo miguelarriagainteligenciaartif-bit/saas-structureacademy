@@ -63,22 +63,7 @@ interface Trade {
 
 const formatDateFilter = (date: Date) => format(date, "yyyy-MM-dd");
 
-import React from "react";
-
-class ErrorBoundary extends React.Component<{children: React.ReactNode}, {hasError: boolean, error: any}> {
-  constructor(props: any) { super(props); this.state = { hasError: false, error: null }; }
-  static getDerivedStateFromError(error: any) { return { hasError: true, error }; }
-  render() {
-    if (this.state.hasError) return <div className="p-8 text-red-500"><h1 className="font-bold text-2xl">Index Crash!</h1><pre>{this.state.error?.toString()}</pre><pre>{this.state.error?.stack}</pre></div>;
-    return this.props.children;
-  }
-}
-
-export default function IndexWrapper() {
-  return <ErrorBoundary><Index /></ErrorBoundary>;
-}
-
-function Index() {
+export default function Index() {
   const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
   const [trades, setTrades] = useState<Trade[]>([]);
