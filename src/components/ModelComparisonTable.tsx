@@ -167,8 +167,8 @@ export function ModelComparisonTable({ trades }: ModelComparisonTableProps) {
               <TableHead className="text-center">Trades</TableHead>
               <TableHead className="text-center">TP</TableHead>
               <TableHead className="text-center">SL</TableHead>
-              <TableHead className="text-center">Win Rate</TableHead>
               <TableHead className="text-right">P&L Total</TableHead>
+              <TableHead className="text-center">Win Rate</TableHead>
               <TableHead className="text-right">Expected Value</TableHead>
             </TableRow>
           </TableHeader>
@@ -185,9 +185,16 @@ export function ModelComparisonTable({ trades }: ModelComparisonTableProps) {
                 <TableCell className="text-center">
                   <span className="text-destructive font-medium">{stat.losses}</span>
                 </TableCell>
+                <TableCell className={cn(
+                  "text-right font-mono font-medium",
+                  stat.totalTrades === 0 ? "text-muted-foreground" :
+                  stat.totalPnL >= 0 ? "text-success" : "text-destructive"
+                )}>
+                  {stat.totalTrades > 0 ? `$${stat.totalPnL.toFixed(2)}` : "—"}
+                </TableCell>
                 <TableCell className="text-center">
                   <div className="flex items-center justify-center gap-1">
-                    {stat.winRate >= 50 ? (
+                    {stat.winRate >= 40 ? (
                       <TrendingUp className="h-3 w-3 text-success" />
                     ) : stat.totalTrades > 0 ? (
                       <TrendingDown className="h-3 w-3 text-destructive" />
@@ -195,18 +202,11 @@ export function ModelComparisonTable({ trades }: ModelComparisonTableProps) {
                     <span className={cn(
                       "font-mono font-medium",
                       stat.totalTrades === 0 ? "text-muted-foreground" : 
-                      stat.winRate >= 50 ? "text-success" : "text-destructive"
+                      stat.winRate >= 40 ? "text-success" : "text-destructive"
                     )}>
                       {stat.totalTrades > 0 ? `${stat.winRate.toFixed(1)}%` : "—"}
                     </span>
                   </div>
-                </TableCell>
-                <TableCell className={cn(
-                  "text-right font-mono font-medium",
-                  stat.totalTrades === 0 ? "text-muted-foreground" :
-                  stat.totalPnL >= 0 ? "text-success" : "text-destructive"
-                )}>
-                  {stat.totalTrades > 0 ? `$${stat.totalPnL.toFixed(2)}` : "—"}
                 </TableCell>
                 <TableCell className={cn(
                   "text-right font-mono font-medium",
@@ -227,16 +227,20 @@ export function ModelComparisonTable({ trades }: ModelComparisonTableProps) {
               <TableCell className="text-center text-destructive">
                 {actualTrades.filter(t => t.result_type === "SL").length}
               </TableCell>
-              <TableCell className="text-center font-mono">
-                {actualTrades.length > 0 
-                  ? `${((actualTrades.filter(t => t.result_type === "TP").length / actualTrades.length) * 100).toFixed(1)}%`
-                  : "—"}
-              </TableCell>
               <TableCell className={cn(
                 "text-right font-mono",
                 actualTrades.reduce((s, t) => s + (t.result_dollars || 0), 0) >= 0 ? "text-success" : "text-destructive"
               )}>
                 ${actualTrades.reduce((s, t) => s + (t.result_dollars || 0), 0).toFixed(2)}
+              </TableCell>
+              <TableCell className={cn(
+                "text-center font-mono",
+                actualTrades.length > 0 && ((actualTrades.filter(t => t.result_type === "TP").length / actualTrades.length) * 100) >= 40
+                  ? "text-success" : actualTrades.length > 0 ? "text-destructive" : "text-muted-foreground"
+              )}>
+                {actualTrades.length > 0 
+                  ? `${((actualTrades.filter(t => t.result_type === "TP").length / actualTrades.length) * 100).toFixed(1)}%`
+                  : "—"}
               </TableCell>
               <TableCell className="text-right font-mono text-muted-foreground">
                 {(() => {
