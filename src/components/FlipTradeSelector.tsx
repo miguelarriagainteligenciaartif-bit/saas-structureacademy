@@ -67,7 +67,7 @@ export const FlipTradeSelector = ({ onTradesSelected }: FlipTradeSelectorProps) 
   const [filterModels, setFilterModels] = useState<string[]>([]);
   const [filterTimeFrom, setFilterTimeFrom] = useState<string>("");
   const [filterTimeTo, setFilterTimeTo] = useState<string>("");
-  const [filterModelPatterns, setFilterModelPatterns] = useState<ModelPatterns | undefined>(undefined);
+  const [filterModelPatterns, setFilterModelPatterns] = useState<ModelPatterns>({});
   const [filterNews, setFilterNews] = useState<NewsFilter>("all");
   const [filterNewsTypes, setFilterNewsTypes] = useState<string[]>([]);
 
@@ -557,7 +557,7 @@ export const FlipTradeSelector = ({ onTradesSelected }: FlipTradeSelectorProps) 
                   setFilterModels([]);
                   setFilterTimeFrom("");
                   setFilterTimeTo("");
-                  setFilterModelPatterns(undefined);
+                  setFilterModelPatterns({});
                   setFilterNews("all");
                   setFilterNewsTypes([]);
                   setFilterResult("all");
