@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Header } from "@/components/Header";
 import { FlipConfigForm } from "@/components/FlipConfigForm";
 import { FlipTradeInput } from "@/components/FlipTradeInput";
 import { FlipTradeSelector } from "@/components/FlipTradeSelector";
@@ -81,9 +80,7 @@ const EdgecoreX5 = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-background/95">
-      <Header userName={user?.email} />
-      
-      {/* Title Section */}
+{/* Title Section */}
       <div className="border-b border-border/50 backdrop-blur-sm bg-card/30">
         <div className="container mx-auto px-4 py-6">
           <div className="flex items-center justify-between">

@@ -21,6 +21,7 @@ import JournalingTemplate from "./pages/JournalingTemplate";
 import NotFound from "./pages/NotFound";
 
 import { ProtectedRoute } from "./components/ProtectedRoute";
+import { DashboardLayout } from "./components/DashboardLayout";
 import PendingApproval from "./pages/PendingApproval";
 import Admin from "./pages/Admin";
 
@@ -45,19 +46,19 @@ function App() {
             
             {/* Protected Routes (Needs Auth) */}
             <Route path="/pending" element={<ProtectedRoute><PendingApproval /></ProtectedRoute>} />
-            <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
-            <Route path="/dashboard" element={<ProtectedRoute><Index /></ProtectedRoute>} />
-            <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
-            <Route path="/cuentas-fondeadas" element={<ProtectedRoute><EquityCurve /></ProtectedRoute>} />
-            <Route path="/backtesting" element={<ProtectedRoute><Backtesting /></ProtectedRoute>} />
-            <Route path="/structure-lab" element={<ProtectedRoute><EdgecoreX5 /></ProtectedRoute>} />
-            <Route path="/flip-rotational" element={<ProtectedRoute><FlipRotational /></ProtectedRoute>} />
-            <Route path="/saved-simulations" element={<ProtectedRoute><SavedSimulations /></ProtectedRoute>} />
-            <Route path="/forex-calendar" element={<ProtectedRoute><ForexCalendar /></ProtectedRoute>} />
-            <Route path="/checklist" element={<ProtectedRoute><Checklist /></ProtectedRoute>} />
-            <Route path="/optimization" element={<ProtectedRoute><Optimization /></ProtectedRoute>} />
-            <Route path="/streak-tracker" element={<ProtectedRoute><StreakTracker /></ProtectedRoute>} />
-            <Route path="/journaling-template" element={<ProtectedRoute><JournalingTemplate /></ProtectedRoute>} />
+            <Route path="/admin" element={<ProtectedRoute><DashboardLayout><Admin /></DashboardLayout></ProtectedRoute>} />
+            <Route path="/dashboard" element={<ProtectedRoute><DashboardLayout><Index /></DashboardLayout></ProtectedRoute>} />
+            <Route path="/analytics" element={<ProtectedRoute><DashboardLayout><Analytics /></DashboardLayout></ProtectedRoute>} />
+            <Route path="/cuentas-fondeadas" element={<ProtectedRoute><DashboardLayout><EquityCurve /></DashboardLayout></ProtectedRoute>} />
+            <Route path="/backtesting" element={<ProtectedRoute><DashboardLayout><Backtesting /></DashboardLayout></ProtectedRoute>} />
+            <Route path="/structure-lab" element={<ProtectedRoute><DashboardLayout><EdgecoreX5 /></DashboardLayout></ProtectedRoute>} />
+            <Route path="/flip-rotational" element={<ProtectedRoute><DashboardLayout><FlipRotational /></DashboardLayout></ProtectedRoute>} />
+            <Route path="/saved-simulations" element={<ProtectedRoute><DashboardLayout><SavedSimulations /></DashboardLayout></ProtectedRoute>} />
+            <Route path="/forex-calendar" element={<ProtectedRoute><DashboardLayout><ForexCalendar /></DashboardLayout></ProtectedRoute>} />
+            <Route path="/checklist" element={<ProtectedRoute><DashboardLayout><Checklist /></DashboardLayout></ProtectedRoute>} />
+            <Route path="/optimization" element={<ProtectedRoute><DashboardLayout><Optimization /></DashboardLayout></ProtectedRoute>} />
+            <Route path="/streak-tracker" element={<ProtectedRoute><DashboardLayout><StreakTracker /></DashboardLayout></ProtectedRoute>} />
+            <Route path="/journaling-template" element={<ProtectedRoute><DashboardLayout><JournalingTemplate /></DashboardLayout></ProtectedRoute>} />
             
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />

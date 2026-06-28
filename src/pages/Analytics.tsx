@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Header } from "@/components/Header";
 import { StatsCard } from "@/components/StatsCard";
 import { getEntryPattern } from "@/lib/entryPattern";
 import { ReportGenerator } from "@/components/ReportGenerator";
@@ -327,8 +326,7 @@ export default function Analytics() {
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
-        <Header />
-        <div className="container mx-auto p-6">
+<div className="container mx-auto p-6">
           <p className="text-center text-muted-foreground">Cargando...</p>
         </div>
       </div>
@@ -337,9 +335,7 @@ export default function Analytics() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header />
-      
-      <main className="container mx-auto p-6 space-y-6">
+<main className="container mx-auto p-6 space-y-6">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-4xl font-bold">Análisis y Estadísticas</h1>

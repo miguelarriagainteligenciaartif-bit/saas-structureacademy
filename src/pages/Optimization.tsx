@@ -1,6 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Header } from "@/components/Header";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -301,8 +300,7 @@ export default function Optimization() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header userName={userName} />
-      <div className="container mx-auto px-4 py-8 space-y-6">
+<div className="container mx-auto px-4 py-8 space-y-6">
         {/* Title */}
         <div className="flex items-start justify-between">
           <div>
