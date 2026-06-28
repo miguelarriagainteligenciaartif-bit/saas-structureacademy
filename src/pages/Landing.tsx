@@ -6,7 +6,7 @@ import { BacktestingSummary } from "@/components/landing/BacktestingSummary";
 import { HowItWorks } from "@/components/landing/HowItWorks";
 import { LeadMagnet } from "@/components/landing/LeadMagnet";
 import { WhatsAppCta } from "@/components/landing/WhatsAppCta";
-import structureLogo from "@/assets/logo_color-01.jpeg";
+import structureLogo from "@/assets/logo.png";
 import { MessageCircle, Instagram, MapPin, Mail } from "lucide-react";
 
 export default function Landing() {

@@ -2,7 +2,7 @@ import { ShieldAlert, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
-import structureLogo from "@/assets/logo_color-01.jpeg";
+import structureLogo from "@/assets/logo.png";
 
 export default function PendingApproval() {
   const navigate = useNavigate();

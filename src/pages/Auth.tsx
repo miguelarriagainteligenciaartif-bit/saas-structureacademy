@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import structureLogo from "@/assets/logo_color-01.jpeg";
+import structureLogo from "@/assets/logo.png";
 
 export default function Auth() {
   const navigate = useNavigate();
