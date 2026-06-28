@@ -1,5 +1,5 @@
 import jsPDF from "jspdf";
-import quantumLogo from "@/assets/logo_color-01.jpeg";
+import quantumLogo from "@/assets/logo.png";
 
 /**
  * Sanitize text for jsPDF rendering.
