@@ -67,9 +67,21 @@ export const Header = ({ userName }: HeaderProps) => {
     <header className="border-b border-border bg-card">
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-6 overflow-x-auto">
+          <div className="flex items-center gap-4 lg:gap-6 overflow-x-auto">
+            {/* Logo */}
+            <div 
+              className="flex-shrink-0 cursor-pointer hidden sm:flex items-center mr-2" 
+              onClick={() => navigate("/dashboard")}
+            >
+              <img 
+                src={structureLogo} 
+                alt="Structure Academy" 
+                className="h-10 lg:h-12 w-auto object-contain" 
+              />
+            </div>
+
             {/* Desktop Navigation */}
-            <nav className="hidden md:flex items-center gap-1">
+            <nav className="hidden lg:flex items-center gap-1">
               {navItems.map((item) => (
                 <Button 
                   key={item.path}
@@ -85,7 +97,17 @@ export const Header = ({ userName }: HeaderProps) => {
             </nav>
 
             {/* Mobile Navigation */}
-            <div className="lg:hidden">
+            <div className="lg:hidden flex items-center gap-2">
+              <div 
+                className="flex-shrink-0 cursor-pointer sm:hidden flex items-center mr-2" 
+                onClick={() => navigate("/dashboard")}
+              >
+                <img 
+                  src={structureLogo} 
+                  alt="Structure Academy" 
+                  className="h-8 w-auto object-contain" 
+                />
+              </div>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="icon">
