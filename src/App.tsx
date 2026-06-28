@@ -50,7 +50,7 @@ function App() {
             <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
             <Route path="/equity-curve" element={<ProtectedRoute><EquityCurve /></ProtectedRoute>} />
             <Route path="/backtesting" element={<ProtectedRoute><Backtesting /></ProtectedRoute>} />
-            <Route path="/edgecore-x5" element={<ProtectedRoute><EdgecoreX5 /></ProtectedRoute>} />
+            <Route path="/structure-lab" element={<ProtectedRoute><EdgecoreX5 /></ProtectedRoute>} />
             <Route path="/flip-rotational" element={<ProtectedRoute><FlipRotational /></ProtectedRoute>} />
             <Route path="/saved-simulations" element={<ProtectedRoute><SavedSimulations /></ProtectedRoute>} />
             <Route path="/forex-calendar" element={<ProtectedRoute><ForexCalendar /></ProtectedRoute>} />

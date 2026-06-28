@@ -107,7 +107,7 @@ const SavedSimulations = () => {
 
   const handleLoad = (simulation: SavedSimulation) => {
     // Navegar a la página del simulador con los datos en el state
-    navigate("/edgecore-x5", {
+    navigate("/structure-lab", {
       state: {
         config: {
           accountSize: simulation.account_size,
@@ -137,7 +137,7 @@ const SavedSimulations = () => {
                 Historial de simulaciones STRUCTURE LAB
               </p>
             </div>
-            <Button onClick={() => navigate("/edgecore-x5")} variant="default" size="sm">
+            <Button onClick={() => navigate("/structure-lab")} variant="default" size="sm">
               Nuevo Simulador
             </Button>
           </div>
