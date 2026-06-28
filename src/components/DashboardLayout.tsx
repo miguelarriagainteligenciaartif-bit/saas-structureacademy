@@ -117,43 +117,61 @@ export const DashboardLayout = ({ children }: { children: React.ReactNode }) => 
       </aside>
 
       {/* Mobile Top Header */}
-      <div className="flex flex-col flex-1 lg:pl-64 min-h-screen">
-        <header className="lg:hidden flex items-center justify-between p-4 border-b border-border bg-card sticky top-0 z-40">
-          <Link to="/dashboard">
-            <img 
-              src={structureLogo} 
-              alt="Structure Academy" 
-              className="h-10 w-auto object-contain" 
-            />
-          </Link>
-          <div className="flex items-center gap-4">
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="icon">
-                  <Menu className="h-6 w-6" />
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="right" className="w-80 p-6 flex flex-col">
-                <NavLinks mobile />
-                <div className="mt-auto pt-6 border-t border-border flex flex-col gap-4">
-                  {userName && (
-                    <span className="text-sm text-muted-foreground">
-                      Hola, {userName}
-                    </span>
-                  )}
-                  <Button onClick={handleSignOut} variant="outline" className="w-full justify-start">
-                    <LogOut className="mr-2 h-4 w-4" />
-                    Cerrar Sesión
-                  </Button>
-                </div>
-              </SheetContent>
-            </Sheet>
+      <div className="flex flex-col flex-1 lg:pl-64 min-h-screen max-w-full overflow-hidden">
+        <header className="lg:hidden flex flex-col p-4 border-b border-border bg-card sticky top-0 z-40 gap-4">
+          <div className="flex items-center justify-between">
+            <Link to="/dashboard">
+              <img 
+                src={structureLogo} 
+                alt="Structure Academy" 
+                className="h-10 w-auto object-contain" 
+              />
+            </Link>
+            <div className="flex items-center gap-2">
+              {userName && (
+                <span className="text-sm font-medium text-muted-foreground mr-2">
+                  Hola, {userName}
+                </span>
+              )}
+              <Button onClick={handleSignOut} variant="ghost" size="icon" className="text-muted-foreground">
+                <LogOut className="h-5 w-5" />
+              </Button>
+            </div>
+          </div>
+          
+          {/* Scrollable Horizontal Tabs for Mobile */}
+          <div className="flex items-center gap-2 overflow-x-auto pb-2 custom-scrollbar w-full">
+            {navItems.map((item) => (
+              <Button
+                key={item.path}
+                variant={isActive(item.path) ? "secondary" : "ghost"}
+                className={`whitespace-nowrap flex-shrink-0 ${isActive(item.path) ? "bg-primary/20 text-primary" : "text-muted-foreground"}`}
+                onClick={() => navigate(item.path)}
+                size="sm"
+              >
+                {item.icon && <item.icon className="mr-2 h-4 w-4" />}
+                {item.label}
+              </Button>
+            ))}
+            {isAdmin && (
+              <Button
+                variant="ghost"
+                className="whitespace-nowrap flex-shrink-0 text-structure-green hover:bg-structure-green/10"
+                onClick={() => navigate("/admin")}
+                size="sm"
+              >
+                <Shield className="mr-2 h-4 w-4" />
+                Panel Admin
+              </Button>
+            )}
           </div>
         </header>
 
         {/* Main Content Area */}
         <main className="flex-1 w-full max-w-full overflow-x-hidden">
-          {children}
+          <div className="p-4 md:p-6 lg:p-8">
+            {children}
+          </div>
         </main>
       </div>
     </div>
