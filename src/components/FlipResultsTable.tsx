@@ -9,7 +9,6 @@ import {
 } from "@/components/ui/table";
 import { SimulationResult } from "@/utils/flipX5Simulator";
 import { TrendingUp, TrendingDown } from "lucide-react";
-import { format, parseISO } from "date-fns";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface FlipResultsTableProps {
@@ -24,6 +23,13 @@ export const FlipResultsTable = ({ result }: FlipResultsTableProps) => {
   const formatPnL = (value: number) => {
     const sign = value >= 0 ? "+" : "";
     return `${sign}${formatCurrency(value)}`;
+  };
+
+  const formatDateStr = (dateStr?: string) => {
+    if (!dateStr) return "—";
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return "—";
+    return d.toLocaleDateString("es-ES", { day: "2-digit", month: "2-digit", year: "numeric" });
   };
 
   return (
@@ -53,7 +59,7 @@ export const FlipResultsTable = ({ result }: FlipResultsTableProps) => {
                   {trade.tradeNumber}
                 </TableCell>
                 <TableCell className="text-center text-muted-foreground whitespace-nowrap">
-                  {trade.date ? format(parseISO(trade.date), "dd/MM/yyyy") : "—"}
+                  {formatDateStr(trade.date)}
                 </TableCell>
                 <TableCell className="text-center text-muted-foreground">
                   {trade.cycle}
