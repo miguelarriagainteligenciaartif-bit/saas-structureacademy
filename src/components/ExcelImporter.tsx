@@ -113,10 +113,28 @@ const parseTimeNullable = (timeValue: any): string | null => {
 const parsePnL = (value: any): number => {
   if (typeof value === "number") return value;
   if (!value) return 0;
-  const str = String(value)
-    .replace(/[$,]/g, "")
-    .replace(/\s/g, "")
-    .trim();
+  
+  let str = String(value).trim();
+  
+  // Handle Excel accounting format for zero
+  if (str === "-" || str === "--") return 0;
+
+  // Check if it's European format: e.g. "1.234,56" or "-1.234,56"
+  // If the last non-digit character is a comma, it's a decimal comma.
+  const lastCommaIndex = str.lastIndexOf(",");
+  const lastDotIndex = str.lastIndexOf(".");
+  
+  // Strip all currency symbols, letters, and spaces
+  str = str.replace(/[^0-9.,-]/g, "");
+  
+  if (lastCommaIndex > lastDotIndex) {
+    // European: 1.234,56 -> 1234.56
+    str = str.replace(/\./g, "").replace(",", ".");
+  } else {
+    // US: 1,234.56 -> 1234.56
+    str = str.replace(/,/g, "");
+  }
+
   const num = parseFloat(str);
   return Number.isFinite(num) ? num : 0;
 };
@@ -213,8 +231,8 @@ export function ExcelImporter({ onSuccess, accountId }: ExcelImporterProps) {
     "TIPO": ["TRADE_TYPE"],
     "MODELO": ["ENTRY_MODEL"],
     "RESULTADO": ["RESULT_TYPE"],
-    "P&L": ["RESULT_DOLLARS"],
-    "NOTICIA": ["NEWS_DESCRIPTION", "HAD_NEWS"],
+    "P&L": ["RESULT_DOLLARS", "PNL", "PROFIT", "BENEFICIO", "RESULTADO DOLLARS", "GANANCIA", "PROFIT/LOSS"],
+    "NOTICIA": ["NEWS_DESCRIPTION", "HAD_NEWS", "NOTICIAS"],
     "RR MAXIMO": ["MAX_RR"],
     "DRAWDOWN": ["DRAWDOWN"],
     "SEMANA": ["WEEK_OF_MONTH"],
