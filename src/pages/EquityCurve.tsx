@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Header } from "@/components/Header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
@@ -214,9 +213,7 @@ export default function EquityCurve() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header userName={user?.email} />
-      
-      <main className="container mx-auto px-4 py-8 space-y-8">
+<main className="container mx-auto px-4 py-8 space-y-8">
         <div className="flex justify-between items-start flex-wrap gap-4">
           <div>
             <h2 className="text-3xl font-bold text-foreground">Panel de Cuentas Fondeadas</h2>

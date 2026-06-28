@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Header } from "@/components/Header";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -37,9 +36,7 @@ const Checklist = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header userName={user?.email?.split("@")[0]} />
-      
-      <main className="container mx-auto px-4 py-6">
+<main className="container mx-auto px-4 py-6">
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-foreground mb-2">
             Checklist Pre-Trading

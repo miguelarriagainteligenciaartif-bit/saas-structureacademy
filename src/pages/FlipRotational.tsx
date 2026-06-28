@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { Header } from "@/components/Header";
 import { GroupConfigForm } from "@/components/rotational/GroupConfigForm";
 import { GroupSimulationDisplay } from "@/components/rotational/GroupSimulationDisplay";
 import { GroupSummaryCards } from "@/components/rotational/GroupSummaryCards";
@@ -162,9 +161,7 @@ const FlipRotational = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-background/95">
-      <Header userName={user?.email} />
-
-      {/* Title Section */}
+{/* Title Section */}
       <div className="border-b border-border/50 backdrop-blur-sm bg-card/30">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between flex-wrap gap-4">

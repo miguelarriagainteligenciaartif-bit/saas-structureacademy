@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Header } from "@/components/Header";
 import { Shield, Check, X, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -91,8 +90,7 @@ export default function Admin() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header />
-      <div className="container mx-auto px-4 py-8 max-w-6xl">
+<div className="container mx-auto px-4 py-8 max-w-6xl">
         <div className="flex items-center gap-3 mb-8">
           <div className="w-12 h-12 bg-structure-dark rounded-xl flex items-center justify-center">
             <Shield className="w-6 h-6 text-white" />

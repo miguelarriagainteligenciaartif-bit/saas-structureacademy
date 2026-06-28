@@ -1,7 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Header } from "@/components/Header";
 import { DashboardFilters } from "@/components/DashboardFilters";
 import { getEntryPattern } from "@/lib/entryPattern";
 import { applyTradeFilters, defaultFilterState, type FilterState, type ModelPatterns, type NewsFilter, ALL_NEWS_TYPES } from "@/lib/tradeFilters";
@@ -244,8 +243,7 @@ export default function StreakTracker() {
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
-        <Header userName={user?.email?.split("@")[0]} />
-        <div className="container mx-auto px-4 py-8 flex items-center justify-center">
+<div className="container mx-auto px-4 py-8 flex items-center justify-center">
           <p className="text-muted-foreground">Cargando datos...</p>
         </div>
       </div>
@@ -254,8 +252,7 @@ export default function StreakTracker() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header userName={user?.email?.split("@")[0]} />
-      <div className="container mx-auto px-4 py-8 space-y-6">
+<div className="container mx-auto px-4 py-8 space-y-6">
         <div>
           <h1 className="text-3xl font-bold text-foreground flex items-center gap-3">
             <Flame className="h-8 w-8 text-primary" />

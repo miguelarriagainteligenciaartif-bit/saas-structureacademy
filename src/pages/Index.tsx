@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { format } from "date-fns";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Header } from "@/components/Header";
 import { StatsCard } from "@/components/StatsCard";
 import { TradeForm } from "@/components/TradeForm";
 import { ReportGeneratorDialog } from "@/components/ReportGeneratorDialog";
@@ -400,9 +399,7 @@ export default function Index() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header userName={user?.email} />
-      
-      <main className="container mx-auto px-4 py-8 space-y-8">
+<main className="container mx-auto px-4 py-8 space-y-8">
         {/* Account Manager */}
         <AccountManager />
 
