@@ -1,4 +1,4 @@
-import structureLogo from "@/assets/logo_color-01.jpeg";
+import structureLogo from "@/assets/logo.png";
 import { Printer } from "lucide-react";
 
 export default function JournalingTemplate() {
