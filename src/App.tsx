@@ -48,7 +48,7 @@ function App() {
             <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
             <Route path="/dashboard" element={<ProtectedRoute><Index /></ProtectedRoute>} />
             <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
-            <Route path="/equity-curve" element={<ProtectedRoute><EquityCurve /></ProtectedRoute>} />
+            <Route path="/cuentas-fondeadas" element={<ProtectedRoute><EquityCurve /></ProtectedRoute>} />
             <Route path="/backtesting" element={<ProtectedRoute><Backtesting /></ProtectedRoute>} />
             <Route path="/structure-lab" element={<ProtectedRoute><EdgecoreX5 /></ProtectedRoute>} />
             <Route path="/flip-rotational" element={<ProtectedRoute><FlipRotational /></ProtectedRoute>} />
