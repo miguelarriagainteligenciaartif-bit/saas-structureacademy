@@ -50,7 +50,7 @@ interface BacktestTrade {
 }
 
 interface FlipTradeSelectorProps {
-  onTradesSelected: (trades: TradeResult[], amounts?: number[]) => void;
+  onTradesSelected: (trades: TradeResult[], amounts?: number[], dates?: string[]) => void;
 }
 
 export const FlipTradeSelector = ({ onTradesSelected }: FlipTradeSelectorProps) => {
@@ -184,8 +184,9 @@ export const FlipTradeSelector = ({ onTradesSelected }: FlipTradeSelectorProps) 
     const selectedTrades = filteredBtTrades.filter(t => btSelectedIds.has(t.id));
     const results = selectedTrades.map(t => t.result_type as TradeResult);
     const amounts = selectedTrades.map(t => Number(t.result_dollars));
+    const dates = selectedTrades.map(t => t.date);
     toast.success(`Agregados ${results.length} trades de backtesting`);
-    onTradesSelected(results, amounts);
+    onTradesSelected(results, amounts, dates);
     setBtSelectedIds(new Set());
   };
 
@@ -258,9 +259,10 @@ export const FlipTradeSelector = ({ onTradesSelected }: FlipTradeSelectorProps) 
       .filter((trade) => selectedTradeIds.has(trade.id));
     const results = selectedTrades.map((trade) => trade.result_type as TradeResult);
     const amounts = selectedTrades.map((trade) => Number(trade.result_dollars));
+    const dates = selectedTrades.map((trade) => trade.date);
 
     toast.success(`Agregados ${results.length} trades`);
-    onTradesSelected(results, amounts);
+    onTradesSelected(results, amounts, dates);
     setSelectedTradeIds(new Set());
   };
 
@@ -308,7 +310,7 @@ export const FlipTradeSelector = ({ onTradesSelected }: FlipTradeSelectorProps) 
       return;
     }
     toast.success(`Agregados ${results.length} trades`);
-    onTradesSelected(results);
+    onTradesSelected(results, undefined, results.map(() => ""));
     setPastedSequence("");
   };
 

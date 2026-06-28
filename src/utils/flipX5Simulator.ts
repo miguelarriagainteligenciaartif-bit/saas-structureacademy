@@ -19,6 +19,7 @@ export interface TradeRow {
   riskLeveraged: number;
   pnlLeveraged: number;
   balanceLeveraged: number;
+  date?: string;
 }
 
 export interface SimulationResult {
@@ -37,7 +38,8 @@ export interface SimulationResult {
 export const simulateFlipX5 = (
   config: FlipConfig,
   tradeResults: TradeResult[],
-  _actualAmounts?: number[]
+  _actualAmounts?: number[],
+  tradeDates?: string[]
 ): SimulationResult => {
   const { accountSize, cycleSize, riskPerCycle, rrRatio, reinvestPercent, usePercentageRisk = false } = config;
 
@@ -85,6 +87,7 @@ export const simulateFlipX5 = (
       riskLeveraged,
       pnlLeveraged,
       balanceLeveraged,
+      date: tradeDates?.[index] || undefined,
     });
 
     previousTradeResult = result;

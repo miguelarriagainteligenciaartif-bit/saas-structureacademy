@@ -29,6 +29,7 @@ const EdgecoreX5 = () => {
   );
   const [trades, setTrades] = useState<TradeResult[]>(location.state?.trades || []);
   const [tradeAmounts, setTradeAmounts] = useState<number[]>(location.state?.tradeAmounts || []);
+  const [tradeDates, setTradeDates] = useState<string[]>(location.state?.tradeDates || []);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -76,7 +77,7 @@ const EdgecoreX5 = () => {
   };
 
   const hasAmounts = tradeAmounts.length === trades.length && tradeAmounts.length > 0;
-  const result = trades.length > 0 ? simulateFlipX5(config, trades, hasAmounts ? tradeAmounts : undefined) : null;
+  const result = trades.length > 0 ? simulateFlipX5(config, trades, hasAmounts ? tradeAmounts : undefined, tradeDates) : null;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-background/95">
@@ -114,31 +115,35 @@ const EdgecoreX5 = () => {
       <div className="container mx-auto px-4 py-8 space-y-6">
         <FlipConfigForm initialConfig={config} onConfigChange={setConfig} />
         
-        <FlipTradeSelector onTradesSelected={(newTrades, amounts) => {
+        <FlipTradeSelector onTradesSelected={(newTrades, amounts, dates) => {
           setTrades([...trades, ...newTrades]);
           if (amounts) {
             setTradeAmounts([...tradeAmounts, ...amounts]);
           } else {
-            // No amounts = clear amounts tracking (mixed sources)
             setTradeAmounts([]);
+          }
+          if (dates) {
+            setTradeDates([...tradeDates, ...dates]);
+          } else {
+            setTradeDates([...tradeDates, ...newTrades.map(() => "")]);
           }
         }} />
         
         <FlipTradeInput trades={trades} onTradesChange={(newTrades) => {
-          // Maintain amounts array in sync with trades
           if (newTrades.length === 0) {
-            // Cleared all
             setTradeAmounts([]);
+            setTradeDates([]);
           } else if (newTrades.length === trades.length + 1 && tradeAmounts.length === trades.length) {
-            // One trade added manually - no actual amount, so clear amounts to use config
             setTradeAmounts([]);
+            setTradeDates([...tradeDates, ""]);
           } else if (newTrades.length === trades.length - 1 && tradeAmounts.length === trades.length) {
-            // One trade removed - find which index was removed and remove its amount
             const removedIndex = trades.findIndex((t, i) => newTrades[i] !== t);
             const idx = removedIndex === -1 ? trades.length - 1 : removedIndex;
             setTradeAmounts(tradeAmounts.filter((_, i) => i !== idx));
+            setTradeDates(tradeDates.filter((_, i) => i !== idx));
           } else if (newTrades.length !== tradeAmounts.length) {
             setTradeAmounts([]);
+            setTradeDates(newTrades.map((_, i) => tradeDates[i] || ""));
           }
           setTrades(newTrades);
         }} />
