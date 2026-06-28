@@ -140,7 +140,8 @@ export default function ForexCalendar() {
         </div>
 
         {/* Calendar grid */}
-        <div className="grid grid-cols-8 gap-2">
+        <div className="w-full overflow-x-auto pb-4 custom-scrollbar">
+          <div className="min-w-[800px] grid grid-cols-8 gap-2">
           {/* Header row */}
           {WEEKDAYS.map((d) => (
             <div key={d} className="rounded-md bg-card border border-border text-center py-2 text-xs font-medium text-muted-foreground">
@@ -231,6 +232,7 @@ export default function ForexCalendar() {
               </Fragment>
             );
           })}
+          </div>
         </div>
 
         {/* Month summary */}
