@@ -66,83 +66,73 @@ export const Header = ({ userName }: HeaderProps) => {
   return (
     <header className="border-b border-border bg-card">
       <div className="container mx-auto px-4 py-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4 lg:gap-6 overflow-x-auto">
-            {/* Logo */}
-            <div 
-              className="flex-shrink-0 cursor-pointer hidden sm:flex items-center mr-2" 
-              onClick={() => navigate("/dashboard")}
-            >
-              <img 
-                src={structureLogo} 
-                alt="Structure Academy" 
-                className="h-10 lg:h-12 w-auto object-contain" 
-              />
-            </div>
-
-            {/* Desktop Navigation */}
-            <nav className="hidden lg:flex items-center gap-1">
-              {navItems.map((item) => (
-                <Button 
-                  key={item.path}
-                  variant={isActive(item.path) ? "secondary" : "ghost"} 
-                  size="sm"
-                  onClick={() => navigate(item.path)}
-                  className={isActive(item.path) ? "bg-primary/20 text-primary" : ""}
-                >
-                  {item.icon && <item.icon className="mr-1.5 h-4 w-4" />}
-                  {item.label}
-                </Button>
-              ))}
-            </nav>
-
-            {/* Mobile Navigation */}
-            <div className="lg:hidden flex items-center gap-2">
-              <div 
-                className="flex-shrink-0 cursor-pointer sm:hidden flex items-center mr-2" 
-                onClick={() => navigate("/dashboard")}
-              >
-                <img 
-                  src={structureLogo} 
-                  alt="Structure Academy" 
-                  className="h-8 w-auto object-contain" 
-                />
-              </div>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon">
-                    <Menu className="h-5 w-5" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-48">
-                  {navItems.map((item) => (
-                    <DropdownMenuItem 
-                      key={item.path}
-                      onClick={() => navigate(item.path)}
-                      className={isActive(item.path) ? "bg-primary/20 text-primary" : ""}
-                    >
-                      {item.icon && <item.icon className="mr-2 h-4 w-4" />}
-                      {item.label}
-                    </DropdownMenuItem>
-                  ))}
-                  {isAdmin && (
-                    <DropdownMenuItem onClick={() => navigate("/admin")} className="text-structure-green">
-                      <Shield className="mr-2 h-4 w-4" />
-                      Panel Admin
-                    </DropdownMenuItem>
-                  )}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          </div>
+        <div className="flex flex-wrap items-center justify-between gap-4">
           
+          {/* Logo */}
+          <div 
+            className="flex-shrink-0 cursor-pointer flex items-center" 
+            onClick={() => navigate("/dashboard")}
+          >
+            <img 
+              src={structureLogo} 
+              alt="Structure Academy" 
+              className="h-16 lg:h-20 w-auto object-contain" 
+            />
+          </div>
+
+          {/* Mobile Navigation Trigger */}
+          <div className="lg:hidden flex items-center gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <Menu className="h-6 w-6" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                {navItems.map((item) => (
+                  <DropdownMenuItem 
+                    key={item.path}
+                    onClick={() => navigate(item.path)}
+                    className={isActive(item.path) ? "bg-primary/20 text-primary" : ""}
+                  >
+                    {item.icon && <item.icon className="mr-2 h-4 w-4" />}
+                    {item.label}
+                  </DropdownMenuItem>
+                ))}
+                {isAdmin && (
+                  <DropdownMenuItem onClick={() => navigate("/admin")} className="text-structure-green">
+                    <Shield className="mr-2 h-4 w-4" />
+                    Panel Admin
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+
+          {/* Desktop Navigation */}
+          <nav className="hidden lg:flex items-center gap-1.5 flex-wrap justify-center flex-1 px-4">
+            {navItems.map((item) => (
+              <Button 
+                key={item.path}
+                variant={isActive(item.path) ? "secondary" : "ghost"} 
+                size="sm"
+                onClick={() => navigate(item.path)}
+                className={isActive(item.path) ? "bg-primary/20 text-primary" : ""}
+              >
+                {item.icon && <item.icon className="mr-1.5 h-4 w-4" />}
+                {item.label}
+              </Button>
+            ))}
+          </nav>
+
+          {/* User Settings / Actions */}
           <div className="flex items-center gap-4">
             {isAdmin && (
               <Button 
                 onClick={() => navigate("/admin")} 
                 variant="outline" 
                 size="sm"
-                className="hidden md:flex border-structure-green text-structure-green hover:bg-structure-green hover:text-white"
+                className="hidden xl:flex border-structure-green text-structure-green hover:bg-structure-green hover:text-white"
               >
                 <Shield className="w-4 h-4 mr-2" />
                 Panel Admin
@@ -157,6 +147,7 @@ export const Header = ({ userName }: HeaderProps) => {
               Cerrar Sesión
             </Button>
           </div>
+
         </div>
       </div>
     </header>
