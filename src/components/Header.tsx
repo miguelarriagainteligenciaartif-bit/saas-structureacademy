@@ -53,7 +53,7 @@ export const Header = ({ userName }: HeaderProps) => {
   const navItems = [
     { path: "/dashboard", label: "Dashboard" },
     { path: "/analytics", label: "Análisis" },
-    { path: "/equity-curve", label: "Cuentas Fondeadas" },
+    { path: "/cuentas-fondeadas", label: "Cuentas Fondeadas" },
     { path: "/backtesting", label: "Backtesting", icon: FlaskConical },
     { path: "/streak-tracker", label: "Racha Tracker", icon: Flame },
     { path: "/structure-lab", label: "STRUCTURE LAB", icon: Activity },
