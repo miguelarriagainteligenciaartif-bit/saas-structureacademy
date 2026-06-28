@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/table";
 import { SimulationResult } from "@/utils/flipX5Simulator";
 import { TrendingUp, TrendingDown } from "lucide-react";
+import { format, parseISO } from "date-fns";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface FlipResultsTableProps {
@@ -34,6 +35,7 @@ export const FlipResultsTable = ({ result }: FlipResultsTableProps) => {
           <TableHeader>
             <TableRow>
               <TableHead className="text-center">#</TableHead>
+              <TableHead className="text-center">Fecha</TableHead>
               <TableHead className="text-center">Ciclo</TableHead>
               <TableHead className="text-center">Resultado</TableHead>
               <TableHead className="text-right">Riesgo Trad.</TableHead>
@@ -49,6 +51,9 @@ export const FlipResultsTable = ({ result }: FlipResultsTableProps) => {
               <TableRow key={trade.tradeNumber}>
                 <TableCell className="text-center font-medium">
                   {trade.tradeNumber}
+                </TableCell>
+                <TableCell className="text-center text-muted-foreground whitespace-nowrap">
+                  {trade.date ? format(parseISO(trade.date), "dd/MM/yyyy") : "—"}
                 </TableCell>
                 <TableCell className="text-center text-muted-foreground">
                   {trade.cycle}
