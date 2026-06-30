@@ -52,7 +52,7 @@ export const DashboardLayout = ({ children }: { children: React.ReactNode }) => 
     { path: "/cuentas-fondeadas", label: "Cuentas Fondeadas", icon: Activity },
     { path: "/backtesting", label: "Backtesting", icon: FlaskConical },
     { path: "/streak-tracker", label: "Racha Tracker", icon: Flame },
-    { path: "/structure-lab", label: "STRUCTURE LAB", icon: Activity },
+    { path: "/structure-lab", label: "Structure Lab", icon: Activity },
     { path: "/optimization", label: "Optimización", icon: ArrowDownRight },
     { path: "/saved-simulations", label: "Simulaciones", icon: Save },
     { path: "/forex-calendar", label: "Calendario PNL", icon: Newspaper },

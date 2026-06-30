@@ -145,24 +145,46 @@ export default function Admin() {
                     </td>
                     <td className="p-4">
                       {p.status === "pending" && (
-                        <Button
-                          onClick={() => updateStatus(p.id, "approved")}
-                          size="sm"
-                          className="bg-structure-green hover:bg-structure-green/90 text-white"
-                        >
-                          <Check className="w-4 h-4 mr-1" />
-                          Aprobar
-                        </Button>
+                        <div className="flex gap-2">
+                          <Button
+                            onClick={() => updateStatus(p.id, "approved")}
+                            size="sm"
+                            className="bg-structure-green hover:bg-structure-green/90 text-white"
+                          >
+                            <Check className="w-4 h-4 mr-1" />
+                            Aprobar
+                          </Button>
+                          <Button
+                            onClick={() => updateStatus(p.id, "blocked")}
+                            size="sm"
+                            variant="outline"
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
+                          >
+                            <X className="w-4 h-4 mr-1" />
+                            Revocar
+                          </Button>
+                        </div>
                       )}
                       {p.status === "approved" && (
                         <Button
-                          onClick={() => updateStatus(p.id, "pending")}
+                          onClick={() => updateStatus(p.id, "blocked")}
                           size="sm"
                           variant="outline"
                           className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
                         >
                           <X className="w-4 h-4 mr-1" />
                           Revocar
+                        </Button>
+                      )}
+                      {p.status === "blocked" && (
+                        <Button
+                          onClick={() => updateStatus(p.id, "approved")}
+                          size="sm"
+                          variant="outline"
+                          className="text-structure-green hover:text-green-700 hover:bg-green-50 border-green-200"
+                        >
+                          <Check className="w-4 h-4 mr-1" />
+                          Aprobar
                         </Button>
                       )}
                     </td>
